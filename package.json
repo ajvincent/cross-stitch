@@ -1,0 +1,25 @@
+{
+  "name": "cross-stitch",
+  "version": "0.1.0",
+  "description": "Aspect weaving unit-testable components and generating integrated classes",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ajvincent/cross-stitch.git"
+  },
+  "keywords": [
+    "typescript",
+    "aop",
+    "aspect",
+    "decorators"
+  ],
+  "author": "Alexander J. Vincent <ajvincent@gmail.com>",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/ajvincent/cross-stitch/issues"
+  },
+  "homepage": "https://github.com/ajvincent/cross-stitch#readme"
+}
