@@ -1,0 +1,14 @@
+node_modules/
+**/.DS_Store
+_*/**/ts-stdout.txt
+_*/**/tsconfig.json
+
+_*/**/*.mjs
+_*/**/*.mjs.map
+_*/**/*.d.mts
+
+build/**/*.mjs.map
+build/**/*.d.mts
+build/**/tsconfig.json
+build/tsconfig.json
+build/**/ts-stdout.txt
