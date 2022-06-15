@@ -3,17 +3,17 @@ import type {
   ReturnOrPassThroughType,
   ComponentPassThroughClass,
   ComponentPassThroughMap,
-} from "../../source/PassThroughSupport.mjs";
+} from "../source/PassThroughSupport.mjs";
 
 import {
   ForwardTo_Base,
   ForwardToSequence_Base,
   INVOKE_SYMBOL,
-} from "../../source/GenerateTypedPassThrough.mjs";
+} from "../source/GenerateTypedPassThrough.mjs";
 
 import type {
   NumberStringType
-} from "../../spec/fixtures/NumberStringType.mjs";
+} from "./NumberStringType.mjs";
 
 export class NumberString_ForwardTo
        extends ForwardTo_Base

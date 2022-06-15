@@ -4,18 +4,18 @@ import type {
 
 import type {
   NumberStringType
-} from "./fixtures/NumberStringType.mjs";
+} from "../fixtures/NumberStringType.mjs";
 
 import {
   NST_CONTINUE,
   NST_RESULT,
   NST_THROW,
-} from "./fixtures/NST_INSTANCES.mjs";
+} from "../fixtures/NST_INSTANCES.mjs";
 
 import {
   NumberStringType_Sequence,
   NumberString_ForwardTo
-} from "./fixtures/NSPT_GENERATED.mjs";
+} from "../fixtures/NSPT_GENERATED.mjs";
 
 it("DirectDriver mockup returns a sane value", () => {
   const NST_COMPONENT_MAP: ComponentPassThroughMap<NumberStringType> = new Map;
