@@ -62,6 +62,7 @@ abstract class ESTreeBase implements TSNode_EnterAndLeaveUnregistered
         errorOnUnknownASTType: false,
         filePath: this.#pathToFile,
         loc: true,
+        range: true
       }
     );
 
