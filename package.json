@@ -9,7 +9,9 @@
     "eslint": "node ./build/source/mainWithBuild.mjs eslint",
     "build": "node ./build/source/mainWithBuild.mjs stages",
     "test": "node ./build/source/mainWithBuild.mjs test",
-    "all": "node ./build/source/mainWithBuild.mjs clean stages test eslint"
+    "all": "node ./build/source/mainWithBuild.mjs clean stages test eslint",
+
+    "parseTS": "node ./_02_TypeScript_tools/source/LoggerCLI.mjs"
   },
   "repository": {
     "type": "git",

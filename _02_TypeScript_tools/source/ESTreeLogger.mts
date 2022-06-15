@@ -1,7 +1,7 @@
 import { Node as TSNode } from "@typescript-eslint/types/dist/generated/ast-spec.js";
 import ESTreeBase from "./ESTreeBase.mjs";
 
-export class ESTreeLogger extends ESTreeBase
+export default class ESTreeLogger extends ESTreeBase
 {
   #console: Console;
   #counter = 0;
