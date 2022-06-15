@@ -37,8 +37,10 @@ const InvokeTSC =
     );
 
     const err = new Error(`Failed on "${TSC} ${args.join(" ")}"`);
-    child.on("exit", (code: number) => {
+    child.on("exit", async (code: number) => {
       if (code) {
+        console.warn(await fs.readFile(pathToStdOut, {encoding: "utf-8"}));
+
         err.message += " with code " + code;
         deferred.reject(err);
       }
