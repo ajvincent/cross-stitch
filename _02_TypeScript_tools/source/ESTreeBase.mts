@@ -1,10 +1,11 @@
 import fs from "fs/promises";
 
-import TSESTree from "@typescript-eslint/typescript-estree";
+import TSESTree, {AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
+import DecideEnumTraversal from "./DecideEnumTraversal.mjs";
+import ESTreeTraversal, { ESTreeEnterLeave } from "./ESTreeTraversal.mjs";
 import {
-  DefaultMap,
-  DefaultWeakMap
+  DefaultMap
 } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
@@ -17,7 +18,7 @@ type TSNode = TSESTree.TSESTree.Node;
 type TSNodeSelector<T extends TSNode["type"], U extends { type: TSNode["type"]}> =
   U extends { type: T } ? U : never;
 
-type TSNode_EnterAndLeaveUnregistered =
+type ESTreeUnregisteredEnterLeave =
 {
   unregisteredEnter: (node: TSNode) => boolean;
   unregisteredLeave: (node: TSNode) => void;
@@ -32,7 +33,8 @@ export type TSNode_DiscriminatedCallbacks = Partial<{
 // #endregion callback type definitions
 
 export default
-abstract class ESTreeBase implements TSNode_EnterAndLeaveUnregistered
+abstract class ESTreeBase
+         implements ESTreeEnterLeave, ESTreeUnregisteredEnterLeave
 {
   static #fileCache: DefaultMap<string, Promise<string>> = new DefaultMap();
   static async #readFile(pathToFile: string): Promise<string>
@@ -43,11 +45,26 @@ abstract class ESTreeBase implements TSNode_EnterAndLeaveUnregistered
     );
   }
 
+  static buildTypeTraversal(): DecideEnumTraversal<TSNode["type"]>
+  {
+    const types: Set<TSNode["type"]> = new Set(
+      Object.values(AST_NODE_TYPES)
+    );
+    return new DecideEnumTraversal<TSNode["type"]>(
+      types
+    );
+  }
+
   // #region constructor fields
   #pathToFile: string;
-  constructor(pathToFile: string)
+  #stringTraversalDecision: DecideEnumTraversal<TSNode["type"]>;
+  constructor(
+    pathToFile: string,
+    stringTraversalDecision: DecideEnumTraversal<TSNode["type"]>
+  )
   {
     this.#pathToFile = pathToFile;
+    this.#stringTraversalDecision = stringTraversalDecision;
   }
   // #endregion constructor fields
 
@@ -66,57 +83,16 @@ abstract class ESTreeBase implements TSNode_EnterAndLeaveUnregistered
       }
     );
 
-    this.#traverseJustEnter(ast);
-    this.#traverseEnterAndLeave(ast);
+    const traversal = new ESTreeTraversal(
+      ast,
+      this.#stringTraversalDecision
+    );
+
+    traversal.traverseEnterAndLeave(ast, this);
   }
   // #endregion Parse file and start iteration
 
   // #region Tree traversal
-
-  #traverseJustEnter(ast: TSNode) : void
-  {
-    // First pass: Fill parent-to-children mapping so we can recursively walk it for enter and leave
-    TSESTree.simpleTraverse(
-      ast, {
-        enter: (node: TSNode, parent?: TSNode) : void =>
-        {
-          if (parent)
-            this.#parentToChildren.getDefault(parent, () => []).push(node);
-        }
-      },
-      true
-    );
-  }
-
-  #parentToChildren: DefaultWeakMap<TSNode, TSNode[]> = new DefaultWeakMap;
-
-  protected readonly skipTypes: ReadonlySet<TSESTree.AST_NODE_TYPES> = new Set;
-  protected readonly rejectTypes: ReadonlySet<TSESTree.AST_NODE_TYPES> = new Set;
-  protected readonly rejectChildrenTypes: ReadonlySet<TSESTree.AST_NODE_TYPES> = new Set;
-
-  #traverseEnterAndLeave = (node: TSNode): void =>
-  {
-    if (this.rejectTypes.has(node.type))
-      return;
-
-    const mustSkip = this.skipTypes.has(node.type);
-
-    let rejectChildren = this.rejectChildrenTypes.has(node.type);
-    if (!mustSkip) {
-      const acceptChildren = this.enter(node);
-      rejectChildren ||= !acceptChildren;
-    }
-
-    if (!rejectChildren) {
-      const children = this.#parentToChildren.get(node) ?? [];
-      children.forEach(this.#traverseEnterAndLeave);
-    }
-
-    if (!mustSkip) {
-      this.leave(node);
-    }
-  }
-
   enter(n: TSNode) : boolean
   {
     return this.unregisteredEnter(n);

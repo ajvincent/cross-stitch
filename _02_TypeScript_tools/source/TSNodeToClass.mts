@@ -36,28 +36,16 @@ class NodeToClassTreeTraversal extends ESTreeErrorUnregistered
     leaveAccept: TraversalLeaveAccept
   )
   {
-    super(pathToSourceFile);
+    super(pathToSourceFile, NodeToClassTreeTraversal.#traversalDecider);
     this.#enterAccept = enterAccept;
     this.#leaveAccept = leaveAccept;
   }
 
+  static #traversalDecider = ESTreeErrorUnregistered.buildTypeTraversal();
+
   static readonly #acceptTypes: ReadonlySet<AST_NODE_TYPES> = new Set([
 
   ]);
-
-  static readonly #skipTypes: ReadonlySet<TSESTree.AST_NODE_TYPES> = new Set([
-
-  ]);
-  static readonly #rejectTypes: ReadonlySet<TSESTree.AST_NODE_TYPES> = new Set([
-
-  ]);
-  static readonly #rejectChildrenTypes: ReadonlySet<TSESTree.AST_NODE_TYPES> = new Set([
-
-  ]);
-
-  readonly skipTypes = NodeToClassTreeTraversal.#skipTypes;
-  readonly rejectTypes = NodeToClassTreeTraversal.#rejectTypes;
-  readonly rejectChildrenTypes = NodeToClassTreeTraversal.#rejectChildrenTypes;
 
   enter(n: TSNode): boolean {
     return NodeToClassTreeTraversal.#acceptTypes.has(n.type) ?
@@ -84,6 +72,8 @@ export class TSNodeToClassFile
 
   #generatedMethods: string[] = [];
 
+  // XXX ajvincent Just reduce this to a "TSNodeToClassObserver" type.
+  // Most of this can happen in the async code.
   constructor(
     pathToSourceModule: string,
     typeToExtract: string,

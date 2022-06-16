@@ -1,4 +1,6 @@
 import ESTreeBase from "../source/ESTreeBase.mjs";
+import DecideEnumTraversal from "../source/DecideEnumTraversal.mjs";
+
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 type TSNode = TSESTree.TSESTree.Node;
 
@@ -32,6 +34,8 @@ describe("ESTreeBase", () => {
     }
   }
 
+  let traversalDecision: DecideEnumTraversal<TSNode["type"]>;
+
   class TestSpy extends ESTreeBase {
     sequences = new NodeStack;
     unregisteredEnter(n: TSNode) : boolean
@@ -50,7 +54,18 @@ describe("ESTreeBase", () => {
 
   it("parses a simple string type cleanly", async () => {
     const pathToFile = path.join(FIXTURES_ROOT, "SimpleStringType.mts");
-    spyTraversal = new TestSpy(pathToFile);
+
+    traversalDecision = ESTreeBase.buildTypeTraversal();
+    traversalDecision.runFilter(
+      (s) => {
+        void(s);
+        return true;
+      },
+      true,
+      DecideEnumTraversal.Decision.Accept
+    );
+
+    spyTraversal = new TestSpy(pathToFile, traversalDecision);
 
     await spyTraversal.run();
     spyTraversal.sequences.expectEmpty();

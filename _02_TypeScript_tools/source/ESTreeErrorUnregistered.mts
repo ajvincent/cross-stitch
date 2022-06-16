@@ -10,7 +10,8 @@ type Concat<A extends string, B extends string> = `${A}${B}`;
 
 type trapName = Concat<atStep, Capitalize<AST_NODE_TYPES>>
 
-export default class ESTreeErrorUnregistered extends ESTreeBase {
+export default class ESTreeErrorUnregistered extends ESTreeBase
+{
   #unregisteredNodes = new DefaultMap<trapName, Set<TSNode>>;
 
   async run() : Promise<void>
