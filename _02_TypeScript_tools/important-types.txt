@@ -1,0 +1,19 @@
+Important types
+Identifier: name
+ExportNamedDeclaration: exportKind = "type"
+ExportNamedDeclaration: specifiers != [] indicates a declared type at a different location... so we must pick up all types, then look for the identifier we want.
+TSTypeAliasDeclaration: id.name = "Foo"
+TSLiteralType
+Literal: value = "Foo", raw ='"Foo"'
+TSInterfaceDeclaration: id.name = "Foo" (this can appear more than once)
+TSTypeParameterDeclaration
+TSTypeParameter: name, constraint
+TSUnionType: types
+TSMappedType: typeAnnotation (hmm, this property shows up a lot)
+TSConditionalType
+TSTypeReference
+TSTypeParameterInstantiation
+TSIntersectionType
+TSTemplateLiteralType
+TemplateElement (maybe)
+TSQualifiedName
