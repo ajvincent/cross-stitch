@@ -28,7 +28,7 @@ export type TSNode_DiscriminatedCallbacks = Partial<{
 // #endregion callback type definitions
 
 export default
-abstract class ESTreeFile
+abstract class ESTreeBase
          implements ESTreeEnterLeave, ESTreeUnregisteredEnterLeave
 {
   static buildTypeTraversal(): DecideEnumTraversal<TSNode["type"]>
