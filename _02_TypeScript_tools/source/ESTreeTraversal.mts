@@ -3,7 +3,7 @@ import {
   DefaultWeakMap
 } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
-import TSESTree from "@typescript-eslint/typescript-estree";
+import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
 type TSNode = TSESTree.TSESTree.Node;
@@ -17,6 +17,7 @@ export interface ESTreeEnterLeave {
 
 export default class ESTreeTraversal
 {
+  // #region static private
   static #parentToChildrenMap: DefaultWeakMap<
     TSNode, ParentToChildrenMap
   > = new DefaultWeakMap;
@@ -51,19 +52,42 @@ export default class ESTreeTraversal
     });
   }
 
-  #parentToChildren: DefaultWeakMap<TSNode, TSNode[]>;
+  // #endregion static private
 
-
+  // #region public API
   constructor(
     root: TSNode,
     decider: DecideEnumTraversal<TSNode["type"]>,
   )
   {
+    if (root.type !== AST_NODE_TYPES.Program)
+      throw new Error("The root must be a Program!");
+    if (decider.remaining.length !== 0)
+      throw new Error("The decider must be fully resolved!");
     this.#decider = decider;
     this.#observer = null;
 
     this.#parentToChildren = ESTreeTraversal.#getParentToChildren(root);
   }
+
+  traverseEnterAndLeave(
+    node: TSNode,
+    observer: ESTreeEnterLeave
+  ) : void
+  {
+    this.#observer = observer;
+    try {
+      this.#traverseEnterAndLeave(node);
+    }
+    finally {
+      this.#observer = null;
+    }
+  }
+  // #endregion public API
+
+  // #region private fields
+
+  #parentToChildren: DefaultWeakMap<TSNode, TSNode[]>;
 
   #decider: DecideEnumTraversal<TSNode["type"]>;
   #observer: ESTreeEnterLeave | null;
@@ -99,17 +123,5 @@ export default class ESTreeTraversal
     }
   }
 
-  traverseEnterAndLeave(
-    node: TSNode,
-    observer: ESTreeEnterLeave
-  ) : void
-  {
-    this.#observer = observer;
-    try {
-      this.#traverseEnterAndLeave(node);
-    }
-    finally {
-      this.#observer = null;
-    }
-  }
+  // #endregion
 }

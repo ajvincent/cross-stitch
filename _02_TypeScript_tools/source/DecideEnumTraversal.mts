@@ -1,4 +1,4 @@
-enum Decision {
+export enum Decision {
   Accept = "Accept",
   RejectChildren = "RejectChildren",
   Skip = "Skip",
