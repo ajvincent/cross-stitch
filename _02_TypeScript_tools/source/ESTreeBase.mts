@@ -1,15 +1,10 @@
-import fs from "fs/promises";
-
 import TSESTree, {AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
 import DecideEnumTraversal from "./DecideEnumTraversal.mjs";
 import ESTreeTraversal, { ESTreeEnterLeave } from "./ESTreeTraversal.mjs";
-import {
-  DefaultMap
-} from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
-type TSNode = TSESTree.TSESTree.Node;
+export type TSNode = TSESTree.TSESTree.Node;
 
 // #region callback type definitions
 /**
@@ -33,18 +28,9 @@ export type TSNode_DiscriminatedCallbacks = Partial<{
 // #endregion callback type definitions
 
 export default
-abstract class ESTreeBase
+abstract class ESTreeFile
          implements ESTreeEnterLeave, ESTreeUnregisteredEnterLeave
 {
-  static #fileCache: DefaultMap<string, Promise<string>> = new DefaultMap();
-  static async #readFile(pathToFile: string): Promise<string>
-  {
-    return this.#fileCache.getDefault(
-      pathToFile,
-      () => fs.readFile(pathToFile, { encoding: "utf-8"})
-    );
-  }
-
   static buildTypeTraversal(): DecideEnumTraversal<TSNode["type"]>
   {
     const types: Set<TSNode["type"]> = new Set(
@@ -56,43 +42,52 @@ abstract class ESTreeBase
   }
 
   // #region constructor fields
-  #pathToFile: string;
-  #stringTraversalDecision: DecideEnumTraversal<TSNode["type"]>;
+  #contents: string;
+  #parseOptions = {
+    errorOnUnknownASTType: false,
+    loc: true,
+    filePath: "",
+    range: true
+  };
+
+  #decideEnumTraversal: DecideEnumTraversal<TSNode["type"]>;
+
   constructor(
-    pathToFile: string,
-    stringTraversalDecision: DecideEnumTraversal<TSNode["type"]>
+    contents: string,
+    decideEnumTraversal: DecideEnumTraversal<TSNode["type"]>
   )
   {
-    this.#pathToFile = pathToFile;
-    this.#stringTraversalDecision = stringTraversalDecision;
+    this.#contents = contents;
+    this.#decideEnumTraversal = decideEnumTraversal;
   }
   // #endregion constructor fields
 
-  // #region Parse file and start iteration
+  // #region Traversal
+
+  protected setContentsAndFilePath(
+    contents: string,
+    pathToFile: string
+  ) : void
+  {
+    this.#contents = contents;
+    this.#parseOptions.filePath = pathToFile;
+  }
+
   async run(): Promise<void>
   {
-    const sourceContents = await ESTreeBase.#readFile(this.#pathToFile);
-
     const ast = TSESTree.parse(
-      sourceContents,
-      {
-        errorOnUnknownASTType: false,
-        filePath: this.#pathToFile,
-        loc: true,
-        range: true
-      }
+      this.#contents,
+      this.#parseOptions
     );
 
     const traversal = new ESTreeTraversal(
       ast,
-      this.#stringTraversalDecision
+      this.#decideEnumTraversal
     );
 
     traversal.traverseEnterAndLeave(ast, this);
   }
-  // #endregion Parse file and start iteration
 
-  // #region Tree traversal
   enter(n: TSNode) : boolean
   {
     return this.unregisteredEnter(n);
@@ -105,5 +100,6 @@ abstract class ESTreeBase
 
   abstract unregisteredEnter(node: TSNode): boolean;
   abstract unregisteredLeave(node: TSESTree.TSESTree.Node) : void;
-  // #endregion Tree traversal
+
+  // #endregion Traversal
 }

@@ -1,15 +1,15 @@
 import { Node as TSNode, AST_NODE_TYPES } from "@typescript-eslint/types/dist/generated/ast-spec.js";
 import DecideEnumTraversal from "./DecideEnumTraversal.mjs";
-import ESTreeBase from "./ESTreeBase.mjs";
+import ESTreeFile from "./ESTreeFile.mjs";
 
-export default class ESTreeLogger extends ESTreeBase
+export default class ESTreeLogger extends ESTreeFile
 {
   #console: Console;
   #counter = 0;
 
   constructor(pathToFile: string, c: Console = console)
   {
-    const decider = ESTreeBase.buildTypeTraversal();
+    const decider = ESTreeFile.buildTypeTraversal();
     decider.runFilter(
       (s) => {
         void(s);

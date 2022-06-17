@@ -1,4 +1,4 @@
-import ESTreeBase from "../source/ESTreeBase.mjs";
+import ESTreeFile from "../source/ESTreeFile.mjs";
 import DecideEnumTraversal from "../source/DecideEnumTraversal.mjs";
 
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
@@ -8,7 +8,7 @@ import path from "path";
 
 const FIXTURES_ROOT = path.resolve("./_02_TypeScript_tools/fixtures");
 
-describe("ESTreeBase", () => {
+describe("ESTreeFile", () => {
   class NodeStack {
     readonly stack: TSNode[] = [];
     readonly mismatches: Array<[TSNode | undefined, TSNode | undefined]> = [];
@@ -36,7 +36,7 @@ describe("ESTreeBase", () => {
 
   let traversalDecision: DecideEnumTraversal<TSNode["type"]>;
 
-  class TestSpy extends ESTreeBase {
+  class TestSpy extends ESTreeFile {
     sequences = new NodeStack;
     unregisteredEnter(n: TSNode) : boolean
     {
@@ -55,7 +55,7 @@ describe("ESTreeBase", () => {
   it("parses a simple string type cleanly", async () => {
     const pathToFile = path.join(FIXTURES_ROOT, "SimpleStringType.mts");
 
-    traversalDecision = ESTreeBase.buildTypeTraversal();
+    traversalDecision = ESTreeFile.buildTypeTraversal();
     traversalDecision.runFilter(
       (s) => {
         void(s);

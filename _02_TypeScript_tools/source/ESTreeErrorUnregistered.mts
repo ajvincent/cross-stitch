@@ -1,6 +1,6 @@
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
-import ESTreeBase from "./ESTreeBase.mjs";
+import ESTreeFile from "./ESTreeFile.mjs";
 import { DefaultMap } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
 type TSNode = TSESTree.TSESTree.Node;
@@ -10,7 +10,7 @@ type Concat<A extends string, B extends string> = `${A}${B}`;
 
 type trapName = Concat<atStep, Capitalize<AST_NODE_TYPES>>
 
-export default class ESTreeErrorUnregistered extends ESTreeBase
+export default class ESTreeErrorUnregistered extends ESTreeFile
 {
   #unregisteredNodes = new DefaultMap<trapName, Set<TSNode>>;
 
