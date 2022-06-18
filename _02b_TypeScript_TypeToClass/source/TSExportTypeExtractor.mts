@@ -79,9 +79,6 @@ export class TSExportTypeExtractor
 
   enterExportNamedDeclaration(n: ExportNamedDeclaration) : boolean
   {
-    if (this.#exportTypeFound)
-      return false;
-
     let result: boolean;
 
     if (n.declaration) { // n.exportKind === "type";
