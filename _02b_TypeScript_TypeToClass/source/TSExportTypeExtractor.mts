@@ -1,6 +1,8 @@
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
-import DecideEnumTraversal, { Decision }from "../../_02a_TypeScript_ESTree/source/DecideEnumTraversal.mjs";
+import DecideEnumTraversal, {
+  Decision
+} from "../../_02a_TypeScript_ESTree/source/DecideEnumTraversal.mjs";
 import type {
   TSNode_DiscriminatedCallbacks
 } from "../../_02a_TypeScript_ESTree/source/ESTreeEnterLeaveBase.mjs";
