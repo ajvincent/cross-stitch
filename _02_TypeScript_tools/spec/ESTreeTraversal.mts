@@ -3,7 +3,7 @@ import TSESTree, {AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 import DecideEnumTraversal, { Decision } from "../source/DecideEnumTraversal.mjs";
 import ESTreeTraversal, { ESTreeEnterLeave } from "../source/ESTreeTraversal.mjs";
 
-import NodeStack from "./tools/NodeStack.mjs";
+import NodeStack from "../spec-tools/NodeStack.mjs";
 
 type TSNode = TSESTree.TSESTree.Node;
 
