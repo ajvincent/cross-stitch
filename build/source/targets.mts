@@ -15,7 +15,7 @@ let stageDirs: string[];
   dirEntries = dirEntries.filter(entry => {
     if (!entry.isDirectory())
       return false;
-    if (!/^_\d+_/.test(entry.name))
+    if (!/^_\d\d*[a-z]?_/.test(entry.name))
       return false;
     return true;
   });
