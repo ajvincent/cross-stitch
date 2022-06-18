@@ -61,7 +61,9 @@ class DirStage {
         let { files } = await readDirsDeep(this.#dir);
         const buildDir = path.join(this.#dir, "build");
         files = files.filter(f => {
-            return /(?<!\.d)\.mts$/.test(f) && !f.startsWith(buildDir);
+            return /(?<!\.d)\.mts$/.test(f) &&
+                !f.startsWith(buildDir) &&
+                !f.substring(this.#dir.length).split(path.sep).includes("generated");
         });
         if (files.length === 0)
             return;
