@@ -1,11 +1,11 @@
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
-import DecideEnumTraversal, { Decision }from "./DecideEnumTraversal.mjs";
+import DecideEnumTraversal, { Decision }from "../../_02a_TypeScript_ESTree/source/DecideEnumTraversal.mjs";
 import type {
   TSNode_DiscriminatedCallbacks
-} from "./ESTreeEnterLeaveBase.mjs";
-import ESTreeErrorUnregistered from "./ESTreeErrorUnregistered.mjs";
-import IsIdentifier from "./IsIdentifier.mjs";
+} from "../../_02a_TypeScript_ESTree/source/ESTreeEnterLeaveBase.mjs";
+import ESTreeErrorUnregistered from "../../_02a_TypeScript_ESTree/source/ESTreeErrorUnregistered.mjs";
+import IsIdentifier from "../../_02a_TypeScript_ESTree/source/IsIdentifier.mjs";
 
 type TSNode = TSESTree.TSESTree.Node;
 type ExportNamedDeclaration = TSESTree.TSESTree.ExportNamedDeclaration;
@@ -77,7 +77,7 @@ export class TSExportTypeExtractor
     return super.enter(n);
   }
 
-  enterExportNamedDeclaration(n: ExportNamedDeclaration)
+  enterExportNamedDeclaration(n: ExportNamedDeclaration) : boolean
   {
     if (this.#exportTypeFound)
       return false;
@@ -105,7 +105,7 @@ export class TSExportTypeExtractor
 
   enterTSTypeAliasDeclaration(n: TSTypeAliasDeclaration) : boolean
   {
-    let result = this.#targetType === n.id.name;
+    const result = this.#targetType === n.id.name;
     if (result)
       this.#typeNodes.add(n);
     return result;
@@ -113,7 +113,7 @@ export class TSExportTypeExtractor
 
   enterTSInterfaceDeclaration(n: TSInterfaceDeclaration) : boolean
   {
-    let result = this.#targetType === n.id.name;
+    const result = this.#targetType === n.id.name;
     if (result)
       this.#typeNodes.add(n);
     return result;

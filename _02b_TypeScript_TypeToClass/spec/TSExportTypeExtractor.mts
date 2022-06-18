@@ -1,15 +1,15 @@
 import {
   TSExportTypeFilterDecider,
   TSExportTypeExtractor,
-} from "../source/TSTypeToClass.mjs";
+} from "../source/TSExportTypeExtractor.mjs";
 
-import ESTreeParser from "../source/ESTreeParser.mjs";
-import ESTreeTraversal from "../source/ESTreeTraversal.mjs";
-import FileCache from "../source/FileCache.mjs";
+import ESTreeParser from "../../_02a_TypeScript_ESTree/source/ESTreeParser.mjs";
+import ESTreeTraversal from "../../_02a_TypeScript_ESTree/source/ESTreeTraversal.mjs";
+import FileCache from "../../_02a_TypeScript_ESTree/source/FileCache.mjs";
 
 const NST_SOURCE = await FileCache(
   import.meta,
-  "../../fixtures/NumberStringType.mts"
+  "../../../_02a_TypeScript_ESTree/fixtures/NumberStringType.mts"
 );
 
 describe("TSExportTypeExtractor", () => {

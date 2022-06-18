@@ -8,7 +8,7 @@ const FileCacheMap = new DefaultMap<string, Promise<string>>;
 export default async function FileCache(
   startLocation: ImportMeta | string,
   pathToSource: string,
-  allowNotMTS: boolean = false
+  allowNotMTS = false
 ) : Promise<string>
 {
   let basePath: string;
