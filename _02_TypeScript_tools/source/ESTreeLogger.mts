@@ -1,16 +1,20 @@
 import { Node as TSNode, AST_NODE_TYPES } from "@typescript-eslint/types/dist/generated/ast-spec.js";
 import DecideEnumTraversal from "./DecideEnumTraversal.mjs";
-import ESTreeFile from "./ESTreeFile.mjs";
+import ESTreeEnterLeaveBase from "./ESTreeEnterLeaveBase.mjs"
+import ESTreeParser from "./ESTreeParser.mjs";
+import ESTreeTraversal from "./ESTreeTraversal.mjs";
 
-export default class ESTreeLogger extends ESTreeFile
+export default class ESTreeLogger extends ESTreeEnterLeaveBase
 {
   #console: Console;
   #counter = 0;
 
-  constructor(pathToFile: string, c: Console = console)
+  static #decider = DecideEnumTraversal.buildTypeTraversal();
+
+  constructor(c: Console = console)
   {
-    const decider = ESTreeFile.buildTypeTraversal();
-    decider.runFilter(
+    super();
+    ESTreeLogger.#decider.runFilter(
       (s) => {
         void(s);
         return true;
@@ -19,8 +23,14 @@ export default class ESTreeLogger extends ESTreeFile
       DecideEnumTraversal.Decision.Accept
     );
 
-    super(pathToFile, decider);
     this.#console = c;
+  }
+
+  run(sourceContents: string) : void
+  {
+    const ast = ESTreeParser(sourceContents);
+    const traversal = new ESTreeTraversal(ast, ESTreeLogger.#decider);
+    traversal.traverseEnterAndLeave(ast, this);
   }
 
   enter(node: TSNode) : boolean

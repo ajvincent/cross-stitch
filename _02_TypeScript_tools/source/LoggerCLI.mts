@@ -1,7 +1,8 @@
 import process from "process";
-import path from "path";
+import FileCache from "./FileCache.mjs";
 import ESTreeLogger from "./ESTreeLogger.mjs";
 
-const pathToModule = path.resolve(process.cwd(), process.argv[2]);
-const logger = new ESTreeLogger(pathToModule);
-await logger.run();
+const pathToModule = process.argv[2];
+const sourceContents = await FileCache(pathToModule);
+const logger = new ESTreeLogger();
+logger.run(sourceContents);

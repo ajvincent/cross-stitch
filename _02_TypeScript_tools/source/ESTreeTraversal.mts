@@ -8,7 +8,7 @@ import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
 type TSNode = TSESTree.TSESTree.Node;
 
-type ParentToChildrenMap = DefaultWeakMap<TSNode, TSNode[]>;
+type ParentToChildrenMap = Pick<WeakMap<TSNode, TSNode[]>, "get" | "has">;
 
 export interface ESTreeEnterLeave {
   enter(n: TSNode) : boolean;
@@ -25,7 +25,7 @@ export default class ESTreeTraversal
   static #getParentToChildren(ast: TSNode) : ParentToChildrenMap
   {
     return this.#parentToChildrenMap.getDefault(ast, () => {
-      const map: ParentToChildrenMap = new DefaultWeakMap;
+      const map: DefaultWeakMap<TSNode, TSNode[]> = new DefaultWeakMap;
 
       TSESTree.simpleTraverse(
         ast, {
@@ -40,7 +40,8 @@ export default class ESTreeTraversal
 
       TSESTree.simpleTraverse(
         ast, {
-          enter: (node: TSNode) : void => {
+          enter: (node: TSNode) : void =>
+          {
             const children = map.get(node);
             if (children)
               Object.freeze(children);
@@ -87,7 +88,7 @@ export default class ESTreeTraversal
 
   // #region private fields
 
-  #parentToChildren: DefaultWeakMap<TSNode, TSNode[]>;
+  #parentToChildren: ParentToChildrenMap;
 
   #decider: DecideEnumTraversal<TSNode["type"]>;
   #observer: ESTreeEnterLeave | null;

@@ -1,3 +1,7 @@
+import {
+  AST_NODE_TYPES
+} from "@typescript-eslint/typescript-estree";
+
 export enum Decision {
   Accept = "Accept",
   RejectChildren = "RejectChildren",
@@ -63,6 +67,17 @@ export default class DecideEnumTraversal<T extends string>
       (decision, key) => this.#map.set(key, decision)
     );
     return this.#alreadyDefinedSet.slice();
+  }
+
+  static #AST_NODE_TYPE_SET: Set<AST_NODE_TYPES> = new Set(
+    Object.values(AST_NODE_TYPES)
+  );
+
+  static buildTypeTraversal(): DecideEnumTraversal<AST_NODE_TYPES>
+  {
+    return new DecideEnumTraversal<AST_NODE_TYPES>(
+      this.#AST_NODE_TYPE_SET
+    );
   }
 
   // #endregion public API
