@@ -2,7 +2,7 @@ import TSESTree from "@typescript-eslint/typescript-estree";
 
 type TSNode = TSESTree.TSESTree.Node;
 
-import { ESTreeEnterLeave } from "./ESTreeTraversal.mjs";
+import type { ESTreeEnterLeave } from "./ESTreeTraversal.mjs";
 
 export type ESTreeUnregisteredEnterLeave =
 {

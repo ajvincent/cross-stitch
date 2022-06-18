@@ -1,6 +1,6 @@
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
-import ESTreeEnterLeaveBase from "./ESTreeTraversal.mjs";
+import ESTreeEnterLeaveBase from "./ESTreeEnterLeaveBase.mjs";
 import { DefaultMap } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
 type TSNode = TSESTree.TSESTree.Node;
@@ -12,6 +12,13 @@ type trapName = Concat<atStep, Capitalize<AST_NODE_TYPES>>
 
 export default class ESTreeErrorUnregistered extends ESTreeEnterLeaveBase
 {
+  #console?: Console;
+  constructor(c?: Console)
+  {
+    super();
+    this.#console = c;
+  }
+
   #unregisteredNodes = new DefaultMap<trapName, Set<TSNode>>;
 
   #visitUnregistered(step: atStep, node: TSNode) : void
@@ -40,7 +47,7 @@ export default class ESTreeErrorUnregistered extends ESTreeEnterLeaveBase
     const traps = Array.from(this.#unregisteredNodes.keys());
     traps.sort();
 
-    console.warn("Missing traps", traps);
+    this.#console?.warn("Missing traps", traps);
 
     // eslint-disable-next-line no-debugger
     debugger;
