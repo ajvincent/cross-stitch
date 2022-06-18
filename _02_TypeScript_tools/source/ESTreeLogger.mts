@@ -4,32 +4,31 @@ import ESTreeEnterLeaveBase from "./ESTreeEnterLeaveBase.mjs"
 import ESTreeParser from "./ESTreeParser.mjs";
 import ESTreeTraversal from "./ESTreeTraversal.mjs";
 
+const ESTreeLoggerDecider = DecideEnumTraversal.buildTypeTraversal();
+ESTreeLoggerDecider.runFilter(
+  (s) => {
+    void(s);
+    return true;
+  },
+  true,
+  DecideEnumTraversal.Decision.Accept
+);
+
 export default class ESTreeLogger extends ESTreeEnterLeaveBase
 {
   #console: Console;
   #counter = 0;
 
-  static #decider = DecideEnumTraversal.buildTypeTraversal();
-
   constructor(c: Console = console)
   {
     super();
-    ESTreeLogger.#decider.runFilter(
-      (s) => {
-        void(s);
-        return true;
-      },
-      true,
-      DecideEnumTraversal.Decision.Accept
-    );
-
     this.#console = c;
   }
 
   run(sourceContents: string) : void
   {
     const ast = ESTreeParser(sourceContents);
-    const traversal = new ESTreeTraversal(ast, ESTreeLogger.#decider);
+    const traversal = new ESTreeTraversal(ast, ESTreeLoggerDecider);
     traversal.traverseEnterAndLeave(ast, this);
   }
 
