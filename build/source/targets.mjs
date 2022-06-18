@@ -43,19 +43,23 @@ class DirStage {
     }
     async #clean() {
         const isBuildDir = this.#dir.includes("/build");
-        let { files } = await readDirsDeep(this.#dir);
-        files = files.filter(f => /(?<!\.d)\.mts$/.test(f));
-        if (files.length === 0)
+        const { files } = await readDirsDeep(this.#dir);
+        let generatedFiles = files.filter(f => /(?<!\.d)\.mts$/.test(f));
+        if (generatedFiles.length === 0)
             return;
-        files = files.flatMap(f => {
+        generatedFiles = generatedFiles.flatMap(f => {
             return [
                 !isBuildDir || f.includes("/build/spec/") ? f.replace(".mts", ".mjs") : "",
                 f.replace(".mts", ".mjs.map"),
                 f.replace(".mts", ".d.mts"),
             ];
         }).filter(Boolean);
-        files.sort();
-        await PromiseAllParallel(files, f => fs.rm(f, { force: true }));
+        generatedFiles.push(...files.filter(f => {
+            const leafName = path.basename(f);
+            return (leafName === "ts-stdout.txt") || (leafName === "tsconfig.json");
+        }));
+        generatedFiles.sort();
+        await PromiseAllParallel(generatedFiles, f => fs.rm(f, { force: true }));
     }
     async #runTSC() {
         let { files } = await readDirsDeep(this.#dir);
