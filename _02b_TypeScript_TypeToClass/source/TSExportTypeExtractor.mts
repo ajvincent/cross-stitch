@@ -2,12 +2,12 @@ import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
 import DecideEnumTraversal, {
   Decision
-} from "../../_02a_TypeScript_ESTree/source/DecideEnumTraversal.mjs";
+} from "../../_01_TypeScript_ESTree/source/DecideEnumTraversal.mjs";
 import type {
   TSNode_DiscriminatedCallbacks
-} from "../../_02a_TypeScript_ESTree/source/ESTreeEnterLeaveBase.mjs";
-import ESTreeErrorUnregistered from "../../_02a_TypeScript_ESTree/source/ESTreeErrorUnregistered.mjs";
-import IsIdentifier from "../../_02a_TypeScript_ESTree/source/IsIdentifier.mjs";
+} from "../../_01_TypeScript_ESTree/source/ESTreeEnterLeaveBase.mjs";
+import ESTreeErrorUnregistered from "../../_01_TypeScript_ESTree/source/ESTreeErrorUnregistered.mjs";
+import IsIdentifier from "../../_01_TypeScript_ESTree/source/IsIdentifier.mjs";
 
 type TSNode = TSESTree.TSESTree.Node;
 type ExportNamedDeclaration = TSESTree.TSESTree.ExportNamedDeclaration;

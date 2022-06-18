@@ -3,8 +3,8 @@ import {
   TSExportTypeExtractor,
 } from "../source/TSExportTypeExtractor.mjs";
 
-import ESTreeParser from "../../_02a_TypeScript_ESTree/source/ESTreeParser.mjs";
-import ESTreeTraversal from "../../_02a_TypeScript_ESTree/source/ESTreeTraversal.mjs";
+import ESTreeParser from "../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
+import ESTreeTraversal from "../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
 
 import type {
   AST, TSESTreeOptions
