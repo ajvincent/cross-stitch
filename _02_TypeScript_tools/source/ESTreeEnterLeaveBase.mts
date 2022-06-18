@@ -17,11 +17,11 @@ export type ESTreeUnregisteredEnterLeave =
 type TSNodeSelector<T extends TSNode["type"], U extends { type: TSNode["type"]}> =
   U extends { type: T } ? U : never;
 
-export type TSNode_DiscriminatedCallbacks = Partial<{
+export type TSNode_DiscriminatedCallbacks = {
  [t in TSNode["type"] as `enter${Capitalize<t>}`]: (n: TSNodeSelector<t, TSNode>) => boolean;
 } & {
  [t in TSNode["type"] as `leave${Capitalize<t>}`]: (n: TSNodeSelector<t, TSNode>) => void;
-}>
+};
 
 // #endregion callback type definitions
 
