@@ -1,3 +1,8 @@
+/**
+ * This file will move to _02_TypeScript_TypeToClass soon.
+ * However, LoggerCLI currently relies on it, which it really doesn't need to.
+ */
+
 import path from "path";
 import url from "url";
 import fs from "fs/promises";

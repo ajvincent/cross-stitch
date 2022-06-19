@@ -1,3 +1,7 @@
+/**
+ * This module exports a simple function for testing if a string is an Identifier.
+ */
+
 import ESTreeParser from "./ESTreeParser.mjs";
 import DecideEnumTraversal, { Decision } from "./DecideEnumTraversal.mjs";
 import ESTreeTraversal, { ESTreeEnterLeave} from "./ESTreeTraversal.mjs";
@@ -29,12 +33,9 @@ class IdentifierEnterLeave implements ESTreeEnterLeave
   }
 }
 
-const IdentifierDecider = DecideEnumTraversal.buildTypeTraversal();
+const IdentifierDecider = DecideEnumTraversal.buildTypeDecider();
 IdentifierDecider.runFilter([AST_NODE_TYPES.Identifier], true, Decision.RejectChildren);
-IdentifierDecider.runFilter((s) => {
-  void(s);
-  return true
-}, true, Decision.Skip);
+IdentifierDecider.finalize(Decision.Skip);
 
 export default function IsIdentifier(s: string) : boolean
 {

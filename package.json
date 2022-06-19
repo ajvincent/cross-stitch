@@ -11,7 +11,7 @@
     "test": "node ./build/source/mainWithBuild.mjs test",
     "all": "node ./build/source/mainWithBuild.mjs clean stages test eslint",
 
-    "parseTS": "node ./_02_TypeScript_tools/source/LoggerCLI.mjs"
+    "parseTS": "node ./_01_TypeScript_ESTree/source/LoggerCLI.mjs"
   },
   "repository": {
     "type": "git",

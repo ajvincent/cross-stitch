@@ -1,3 +1,7 @@
+/**
+ * Move along, nothing to see here.
+ */
+
 import TSESTree, {
   AST, TSESTreeOptions
 } from "@typescript-eslint/typescript-estree";

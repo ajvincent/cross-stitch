@@ -1,16 +1,15 @@
+/**
+ * This is a convenience class for generating a trace of nodes ESTreeTraversal visits.
+ */
+
 import { Node as TSNode, AST_NODE_TYPES } from "@typescript-eslint/types/dist/generated/ast-spec.js";
 import DecideEnumTraversal from "./DecideEnumTraversal.mjs";
 import ESTreeEnterLeaveBase from "./ESTreeEnterLeaveBase.mjs"
 import ESTreeParser from "./ESTreeParser.mjs";
 import ESTreeTraversal from "./ESTreeTraversal.mjs";
 
-const ESTreeLoggerDecider = DecideEnumTraversal.buildTypeTraversal();
-ESTreeLoggerDecider.runFilter(
-  (s) => {
-    void(s);
-    return true;
-  },
-  true,
+const ESTreeLoggerDecider = DecideEnumTraversal.buildTypeDecider();
+ESTreeLoggerDecider.finalize(
   DecideEnumTraversal.Decision.Accept
 );
 

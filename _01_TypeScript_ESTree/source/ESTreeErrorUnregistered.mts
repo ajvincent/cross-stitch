@@ -1,3 +1,13 @@
+/**
+ * This module exports a helper class for picking up on node types which subclasses
+ * of this class do not otherwise intercept.  Ideally, the sequence goes:
+ *
+ * - Subclass ESTreeErrorUnregistered.
+ * - Before traversal, call .clear().
+ * - Run the traversal.
+ * - Call .analyze() to report on missed nodes.
+ */
+
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
 import ESTreeEnterLeaveBase from "./ESTreeEnterLeaveBase.mjs";
@@ -8,6 +18,10 @@ type TSNode = TSESTree.TSESTree.Node;
 type atStep = "enter" | "leave";
 type Concat<A extends string, B extends string> = `${A}${B}`;
 
+/**
+ * "enterProgram" | "enterTSAliasTypeDeclaration" | ...
+ * "leaveProgram" | "leaveTSAliasTypeDeclaration" | ...
+ */
 type trapName = Concat<atStep, Capitalize<AST_NODE_TYPES>>
 
 export default class ESTreeErrorUnregistered extends ESTreeEnterLeaveBase
@@ -27,6 +41,11 @@ export default class ESTreeErrorUnregistered extends ESTreeEnterLeaveBase
       (step + node.type) as trapName, () => new Set
     );
     set.add(node);
+  }
+
+  clear() : void
+  {
+    this.#unregisteredNodes.clear();
   }
 
   unregisteredEnter(node: TSNode): boolean
@@ -49,6 +68,7 @@ export default class ESTreeErrorUnregistered extends ESTreeEnterLeaveBase
 
     this.#console?.warn("Missing traps", traps);
 
+    // This is here so we can debug missing traps.
     // eslint-disable-next-line no-debugger
     debugger;
 

@@ -1,3 +1,7 @@
+/**
+ * Move along, nothing to see here.
+ */
+
 import process from "process";
 import FileCache from "./FileCache.mjs";
 import ESTreeLogger from "./ESTreeLogger.mjs";

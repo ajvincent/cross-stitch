@@ -15,7 +15,7 @@ type TSTypeAliasDeclaration = TSESTree.TSESTree.TSTypeAliasDeclaration;
 type TSInterfaceDeclaration = TSESTree.TSESTree.TSInterfaceDeclaration;
 
 // #region TSExportTypeFilter
-export const TSExportTypeFilterDecider = DecideEnumTraversal.buildTypeTraversal();
+export const TSExportTypeFilterDecider = DecideEnumTraversal.buildTypeDecider();
 
 TSExportTypeFilterDecider.runFilter([
   AST_NODE_TYPES.ExportNamedDeclaration,

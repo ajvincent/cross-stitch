@@ -188,14 +188,6 @@ describe("ESTreeTraversal", () => {
     expect(typesVisited.spyLeave).toHaveBeenCalledTimes(3);
   });
 
-  it("throws in the constructor if the root is not a Program", () => {
-    decideRemainingAsAccept();
-
-    expect(
-      () => traversal = new ESTreeTraversal(ast.body[0], decider)
-    ).toThrowError("The root must be a Program!");
-  });
-
   it("throws in the constructor if the decider has some unassigned values", () => {
     decider.runFilter(
       [AST_NODE_TYPES.TSLiteralType], true, Decision.Reject
