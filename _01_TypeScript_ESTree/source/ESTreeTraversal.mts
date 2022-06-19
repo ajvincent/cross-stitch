@@ -17,7 +17,8 @@ type TSProgram = TSESTree.TSESTree.Program;
 
 type ParentToChildrenMap = Pick<WeakMap<TSNode, TSNode[]>, "get">;
 
-export interface ESTreeEnterLeave {
+export interface ESTreeEnterLeave
+{
   enter(n: TSNode) : boolean;
   leave(n: TSNode) : void;
 }

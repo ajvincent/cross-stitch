@@ -6,7 +6,7 @@
 import path from "path";
 import url from "url";
 import fs from "fs/promises";
-import { DefaultMap } from "../../_00_shared_utilities/source/DefaultMap.mjs"
+import { DefaultMap } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
 const FileCacheMap = new DefaultMap<string, Promise<string>>;
 
@@ -16,6 +16,7 @@ export default async function FileCache(
   allowNotMTS = false
 ) : Promise<string>
 {
+  // XXX this is all backwards:  we should be converting the string to an absolute URL, then using the href as the key.
   let basePath: string;
   if (typeof startLocation === "string")
     basePath = startLocation;

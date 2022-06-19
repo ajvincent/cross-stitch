@@ -76,7 +76,6 @@ abstract class ESTreeEnterLeaveBase
   abstract unregisteredLeave(node: TSNode) : void;
 }
 
-
 // #region callback type definitions
 /**
  * {@link https://stackoverflow.com/questions/56981452/typescript-union-type-to-single-mapped-type}
