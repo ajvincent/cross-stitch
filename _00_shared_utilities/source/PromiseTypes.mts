@@ -92,3 +92,53 @@ export async function PromiseAllParallel<E, V>(
 {
   return Promise.all(elementArray.map(element => callback(element)));
 }
+
+export class Accumulator<T>
+{
+  #pending: Set<Promise<T>> = new Set;
+  #resolved: Set<Promise<T>> = new Set;
+  #final = new Deferred<T[]>;
+
+  #settledAll = false;
+  get settledAll(): boolean
+  {
+    return this.#settledAll;
+  }
+
+  readonly finalPromise: Promise<T[]>;
+
+  constructor() {
+    this.finalPromise = this.#final.promise;
+    Object.freeze(this);
+  }
+
+  async track(task: Promise<T>) : Promise<T>
+  {
+    if (this.#settledAll)
+      throw new Error("You can't add a task after all pending tasks have settled!");
+
+    this.#pending.add(task);
+    let result: T;
+    try {
+      result = await task;
+    }
+    catch (ex) {
+      this.#final.reject(new AggregateError([ex], "Accumulator failed on an added task"));
+      throw ex;
+    }
+
+    this.#resolved.add(task);
+
+    if (this.#pending.size === this.#resolved.size) {
+      this.#settledAll = true;
+      const promiseResults = await Promise.all(Array.from(
+        this.#pending.values()
+      ));
+      this.#final.resolve(promiseResults);
+    }
+
+    return result;
+  }
+}
+Object.freeze(Accumulator);
+Object.freeze(Accumulator.prototype);
