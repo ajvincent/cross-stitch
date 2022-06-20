@@ -15,6 +15,8 @@ import type {
 import ESTreeErrorUnregistered from "../../_01_TypeScript_ESTree/source/ESTreeErrorUnregistered.mjs";
 import IsIdentifier from "../../_01_TypeScript_ESTree/source/IsIdentifier.mjs";
 
+import type { TSTypeOrInterfaceDeclaration } from "./TSNode_types.mjs";
+
 type TSNode = TSESTree.TSESTree.Node;
 type ExportNamedDeclaration = TSESTree.TSESTree.ExportNamedDeclaration;
 type TSTypeAliasDeclaration = TSESTree.TSESTree.TSTypeAliasDeclaration;
@@ -54,10 +56,7 @@ export class TSExportTypeExtractor
 {
   #targetType: string;
 
-  #typeNodes: Set<
-    TSTypeAliasDeclaration |
-    TSInterfaceDeclaration
-  > = new Set;
+  #typeNodes: Set<TSTypeOrInterfaceDeclaration> = new Set;
   #exportTypeFound = false;
 
   constructor(
@@ -88,10 +87,7 @@ export class TSExportTypeExtractor
   /**
    * All type nodes matching the identifier.
    */
-  get typeNodes() : ReadonlySet<
-    TSTypeAliasDeclaration |
-    TSInterfaceDeclaration
-  >
+  get typeNodes() : ReadonlySet<TSTypeOrInterfaceDeclaration>
   {
     return this.#typeNodes;
   }
