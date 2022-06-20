@@ -10,14 +10,6 @@ import type {
   AST, TSESTreeOptions
 } from "@typescript-eslint/typescript-estree";
 
-/*
-import FileCache from "../../_02a_TypeScript_ESTree/source/FileCache.mjs";
-const NST_SOURCE = await FileCache(
-  import.meta,
-  "../../../_02a_TypeScript_ESTree/fixtures/NumberStringType.mts"
-);
-*/
-
 describe("TSExportTypeExtractor", () => {
   function extractExport(typeToExtract: string, source: string) : TSExportTypeExtractor
   {
