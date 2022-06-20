@@ -123,9 +123,9 @@ export default class Driver {
   async #writeFinalModule(): Promise<void>
   {
     let contents = "";
-    contents += `import type { ${this.#typesToImplement} } from ${
-      path.relative(this.#targetLocation, this.#sourceLocation)
-    };\n\n`
+    contents += `import type { ${this.#typesToImplement} } from "${
+      path.relative(path.dirname(this.#targetLocation), this.#sourceLocation).replace(/ts$/, "js")
+    }";\n\n`
 
     function appendString(s: string) : void {
       contents += s + "\n\n";
@@ -138,7 +138,7 @@ export default class Driver {
 
     this.#classSources.classBodyFields.forEach(appendString);
 
-    contents += "}\n\n";
+    contents += "}\n";
 
     this.#classSources.fileEpilogue.forEach(appendString);
 

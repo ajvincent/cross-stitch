@@ -32,8 +32,21 @@ export abstract class ClassSourcesBase implements ClassSources
   abstract defineMethod(
     methodName: string,
     signatureSource: string,
-    node: TSESTree.TSESTree.TSMethodSignature
+    node: TSMethodSignature
   ): void;
+
+  protected provideVoids(node: TSMethodSignature) : string[]
+  {
+    const params = node.params.map(
+      p => {
+        if (p.type === "Identifier")
+          return p.name;
+        return "";
+      }
+    );
+
+    return params.filter(Boolean).map(p => `void(${p});`)
+  }
 
   abstract defineProperty(
     propertyName: string,
@@ -51,11 +64,14 @@ export class ClassSourcesNotImplemented extends ClassSourcesBase
   ): void
   {
     void(methodName);
-    void(node);
-    this.classBodyFields.add(`${signatureSource}
-    {
-      throw new Error("not yet implemented");
-    }`)
+    const voidLines = this.provideVoids(node).map(v => "    " + v).join("\n");
+
+    this.classBodyFields.add(`  ${signatureSource}
+  {
+${voidLines}
+    throw new Error("not yet implemented");
+  }`
+    );
   }
 
   defineProperty(
@@ -66,9 +82,10 @@ export class ClassSourcesNotImplemented extends ClassSourcesBase
   {
     void(propertyName);
     void(node);
-    this.classBodyFields.add(`get ${signatureSource}
-    {
-      throw new Error("not yet implemented");
-    }`)
+    this.classBodyFields.add(`  get ${signatureSource}
+  {
+    throw new Error("not yet implemented");
+  }`
+    );
   }
 }
