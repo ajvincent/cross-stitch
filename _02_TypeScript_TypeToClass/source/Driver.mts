@@ -1,4 +1,6 @@
-import { FileCache, ASTCache } from "./FileAndASTCache.mjs";
+import path from "path";
+import fs from "fs/promises";
+
 import { ClassSources } from "./ClassSources.mjs";
 import { TSFieldIterator, TSFieldIteratorDecider } from "./TSFieldIterator.mjs";
 import type { TSTypeOrInterfaceDeclaration } from "./TSNode_types.mjs";
@@ -7,6 +9,7 @@ import {
   SingletonPromise
 } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
 
+import ESTreeParser from "../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
 import ESTreeTraversal from "../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
 import { TSExportTypeExtractor, TSExportTypeFilterDecider } from "./TSExportTypeExtractor.mjs";
 
@@ -52,11 +55,7 @@ export default class Driver {
 
   async #run() : Promise<void>
   {
-    /*
-    await this.#astAccumulator.finalPromise;
-    */
-    const sourceCode = await FileCache(this.#sourceLocation);
-    const ast = await ASTCache(this.#sourceLocation);
+    const [sourceCode, ast] = await this.#parseFile(this.#sourceLocation);
     const typeNodesArray: ReadonlySet<TSTypeOrInterfaceDeclaration>[] = this.#typesToImplement.map(
       typeToExtract => this.#getExportedType(ast, this.#sourceLocation, typeToExtract)
     );
@@ -68,6 +67,20 @@ export default class Driver {
     this.#fillClassDefinition(sourceCode, ast, typeNodeSet);
 
     void(this.#targetLocation);
+  }
+
+  async #parseFile(
+    sourceLocation: string
+  ) : Promise<[string, AST<TSESTreeOptions>]>
+  {
+    sourceLocation = path.normalize(path.resolve(
+      process.cwd(), sourceLocation
+    ));
+    const sourceCode = await fs.readFile(sourceLocation, { encoding: "utf-8" });
+
+    return [sourceCode, ESTreeParser(sourceCode, {
+      filePath: sourceLocation
+    })];
   }
 
   #getExportedType(
