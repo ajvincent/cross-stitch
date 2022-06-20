@@ -20,7 +20,7 @@ export enum Decision {
 Object.freeze(Decision);
 
 type TypeFilter<T extends string> = (s: T) => boolean;
-type DecisionFilter<T extends string> = T[] | RegExp | TypeFilter<T>;
+type DecisionFilter<T extends string> = ReadonlyArray<T> | RegExp | TypeFilter<T>;
 
 /* The set is *finite*, and not overly large.  It'd be so much
    faster to just run the filter against every member of the set,
@@ -184,7 +184,7 @@ export default class DecideEnumTraversal<T extends string>
   }
 
   #runTypeFilter(
-    filter: T[], isPositive: boolean, result: Decision
+    filter: ReadonlyArray<T>, isPositive: boolean, result: Decision
   ) : void
   {
     const values = new Set(filter);
