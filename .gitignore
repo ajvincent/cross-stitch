@@ -14,4 +14,5 @@ build/**/*.d.mts
 build/**/tsconfig.json
 build/tsconfig.json
 build/**/ts-stdout.txt
-build/tempTSCSpecDir.txt
+build/generated
+build/spec-generated

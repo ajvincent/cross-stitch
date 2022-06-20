@@ -83,13 +83,10 @@ class DirStage {
             await fs.rm(specGeneratedDir, { recursive: true });
     }
     async #runTSC() {
-        let { files } = await readDirsDeep(this.#dir);
-        const buildDir = path.join(this.#dir, "build");
+        const excludedDirs = new Set(["build", "spec-build", "spec-generated"]);
+        let { files } = await readDirsDeep(this.#dir, localDir => excludedDirs.has(path.basename(localDir)));
         files = files.filter(f => {
-            return /(?<!\.d)\.mts$/.test(f) &&
-                !f.startsWith(buildDir) &&
-                !f.substring(this.#dir.length).split(path.sep).includes("generated") &&
-                !f.substring(this.#dir.length).split(path.sep).includes("spec-generated");
+            return /(?<!\.d)\.mts$/.test(f);
         });
         if (files.length === 0)
             return;
@@ -106,52 +103,61 @@ class DirStage {
     async #runBuild() {
         const buildDir = path.resolve(this.#dir, "build");
         const pathToModule = path.resolve(buildDir, "support.mjs");
+        const pathToMTS = path.resolve(buildDir, "support.mts");
         try {
-            await fs.access(pathToModule);
+            await fs.access(pathToMTS);
         }
         catch (ex) {
             // do nothing
             void (ex);
             return;
         }
+        console.log("Compiling build:");
         {
             let { files: tsFiles } = await readDirsDeep(buildDir);
-            tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f));
+            tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f) && f !== pathToMTS);
             if (tsFiles.length > 0) {
                 await this.#invokeTSCWithFiles(tsFiles);
             }
         }
+        console.log("Creating generated:");
         const generatedDir = path.resolve(this.#dir, "generated");
         await fs.mkdir(generatedDir, { recursive: true });
         const buildNext = (await import(pathToModule)).default;
         await buildNext(generatedDir);
+    }
+    async #specBuild() {
+        const buildDir = path.resolve(this.#dir, "spec-build");
+        const pathToModule = path.resolve(buildDir, "support.mjs");
+        const pathToMTS = path.resolve(buildDir, "support.mts");
+        try {
+            await fs.access(pathToMTS);
+        }
+        catch (ex) {
+            // do nothing
+            void (ex);
+            return;
+        }
+        console.log("Compiling spec-build:");
+        {
+            let { files: tsFiles } = await readDirsDeep(buildDir);
+            tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f) && f !== pathToMTS);
+            if (tsFiles.length > 0) {
+                await this.#invokeTSCWithFiles(tsFiles);
+            }
+        }
+        console.log("Creating spec-generated:");
+        const generatedDir = path.resolve(this.#dir, "spec-generated");
+        await fs.mkdir(generatedDir, { recursive: true });
+        const supportModule = (await import(pathToModule)).default;
+        await supportModule(generatedDir);
+        console.log("Compiling spec-generated:");
         {
             let { files: tsFiles } = await readDirsDeep(generatedDir);
             tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f));
             if (tsFiles.length > 0) {
                 await this.#invokeTSCWithFiles(tsFiles);
             }
-        }
-    }
-    async #specBuild() {
-        const buildDir = path.resolve(this.#dir, "build");
-        const pathToModule = path.resolve(buildDir, "spec-support.mjs");
-        try {
-            await fs.access(pathToModule);
-        }
-        catch (ex) {
-            // do nothing
-            void (ex);
-            return;
-        }
-        const generatedDir = path.resolve(this.#dir, "spec-generated");
-        await fs.mkdir(generatedDir, { recursive: true });
-        const supportModule = (await import(pathToModule)).default;
-        await supportModule(generatedDir);
-        let { files: tsFiles } = await readDirsDeep(generatedDir);
-        tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f));
-        if (tsFiles.length > 0) {
-            await this.#invokeTSCWithFiles(tsFiles);
         }
     }
     static #subtasks = ["clean", "build", "tsc", "spec-build"];
@@ -196,13 +202,8 @@ class DirStage {
             await innerTSC.run();
         }
         catch (ex) {
-            try {
-                await fs.copyFile(path.resolve("build", "ts-stdout.txt"), path.resolve(temp.tempDir, "ts-stdout.txt"));
-                await fs.copyFile(path.resolve("build", "tsconfig.json"), path.resolve(temp.tempDir, "tsconfig.json"));
-            }
-            catch (ex2) {
-                void (ex2);
-            }
+            await fs.copyFile(path.resolve("build", "ts-stdout.txt"), path.resolve(temp.tempDir, "ts-stdout.txt"));
+            await fs.copyFile(path.resolve("build", "tsconfig.json"), path.resolve(temp.tempDir, "tsconfig.json"));
             await copyFilesRecursively(temp.tempDir, path.resolve("build"));
             throw ex;
         }
