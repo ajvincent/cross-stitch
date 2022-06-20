@@ -19,7 +19,7 @@ void (TemporaryDirWithPromise);
  * @returns The directory and promise.
  */
 export default async function tempDirWithCleanup() {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "es-membrane-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "cross-stitch-"));
     const d = new Deferred;
     let { promise } = d;
     promise = promise.then(() => fs.rm(tempDir, { recursive: true }));

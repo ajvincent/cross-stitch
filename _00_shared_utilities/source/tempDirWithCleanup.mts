@@ -17,7 +17,7 @@ export type TemporaryDirWithPromise = {
  */
 export default async function tempDirWithCleanup() : Promise<TemporaryDirWithPromise>
 {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "composite-collection-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "cross-stitch-"));
   const d = new Deferred;
   let { promise } = new Deferred;
   promise = promise.then(() => fs.rm(tempDir, { recursive: true }));
