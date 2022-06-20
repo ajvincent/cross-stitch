@@ -4,7 +4,7 @@ import os from "os";
 
 import { Deferred, PromiseResolver } from "./PromiseTypes.mjs";
 
-type TemporaryDirWithPromise = {
+export type TemporaryDirWithPromise = {
   tempDir: string;
   resolve: PromiseResolver<unknown>;
   promise: Promise<unknown>
