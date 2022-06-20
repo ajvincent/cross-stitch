@@ -11,6 +11,7 @@ import {
 
 import ESTreeParser from "../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
 import ESTreeTraversal from "../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
+import IsIdentifier from "../../_01_TypeScript_ESTree/source/IsIdentifier.mjs";
 import { TSExportTypeExtractor, TSExportTypeFilterDecider } from "./TSExportTypeExtractor.mjs";
 
 import { AST, TSESTreeOptions } from "@typescript-eslint/typescript-estree";
@@ -18,6 +19,7 @@ import { AST, TSESTreeOptions } from "@typescript-eslint/typescript-estree";
 export default class Driver {
   #sourceLocation: string;
   #targetLocation: string;
+  #targetClassName: string;
   #typesToImplement: string[];
   #classSources: ClassSources;
   #userConsole?: Console;
@@ -33,6 +35,7 @@ export default class Driver {
   constructor(
     sourceLocation: string,
     targetLocation: string,
+    targetClassName: string,
     typesToImplement: string[],
     classSources: ClassSources,
     userConsole?: Console
@@ -41,8 +44,12 @@ export default class Driver {
     if (typesToImplement.length === 0)
       throw new Error("There must be some types to implement!");
 
+    if (!IsIdentifier(targetClassName))
+      throw new Error("Target class name is not an identifier!");
+
     this.#sourceLocation = sourceLocation;
     this.#targetLocation = targetLocation;
+    this.#targetClassName = targetClassName;
     this.#typesToImplement = typesToImplement;
     this.#classSources = classSources;
     this.#userConsole = userConsole;
@@ -65,8 +72,7 @@ export default class Driver {
     );
 
     this.#fillClassDefinition(sourceCode, ast, typeNodeSet);
-
-    void(this.#targetLocation);
+    await this.#writeFinalModule();
   }
 
   async #parseFile(
@@ -112,5 +118,30 @@ export default class Driver {
     typeNodeSet.forEach(typeNode => {
       traversal.traverseEnterAndLeave(typeNode, fieldIterator)
     });
+  }
+
+  async #writeFinalModule(): Promise<void>
+  {
+    let contents = "";
+    contents += `import type { ${this.#typesToImplement} } from ${
+      path.relative(this.#targetLocation, this.#sourceLocation)
+    };\n\n`
+
+    function appendString(s: string) : void {
+      contents += s + "\n\n";
+    }
+
+    this.#classSources.filePrologue.forEach(appendString);
+
+    contents += `export default\nclass ${this.#targetClassName}\nimplements ${this.#typesToImplement.join(", ")}\n`;
+    contents += `{\n\n`;
+
+    this.#classSources.classBodyFields.forEach(appendString);
+
+    contents += "}\n\n";
+
+    this.#classSources.fileEpilogue.forEach(appendString);
+
+    await fs.writeFile(this.#targetLocation, contents, { encoding: "utf-8" });
   }
 }
