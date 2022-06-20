@@ -49,6 +49,10 @@ export interface Repeater<T extends string>
 
     expect(extractor.exportTypeFound).toBe(true);
     expect(extractor.typeNodes.size).toBe(1);
+
+    expect(
+      () => extractor.analyze()
+    ).not.toThrow();
   });
 
   it("extracts an exported type with no methods", () => {
@@ -59,6 +63,10 @@ export interface Repeater<T extends string>
 
     expect(extractor.exportTypeFound).toBe(true);
     expect(extractor.typeNodes.size).toBe(1);
+
+    expect(
+      () => extractor.analyze()
+    ).not.toThrow();
   });
 
   it("extracts an interface defined in two places", () => {
@@ -66,6 +74,10 @@ export interface Repeater<T extends string>
 
     expect(extractor.exportTypeFound).toBe(true);
     expect(extractor.typeNodes.size).toBe(2);
+
+    expect(
+      () => extractor.analyze()
+    ).not.toThrow();
   });
 
   it("reports when a type isn't found", () => {
@@ -73,6 +85,10 @@ export interface Repeater<T extends string>
 
     expect(extractor.exportTypeFound).toBe(false);
     expect(extractor.typeNodes.size).toBe(0);
+
+    expect(
+      () => extractor.analyze()
+    ).not.toThrow();
   });
 
   it("reports when a type isn't exported", () => {
@@ -83,5 +99,9 @@ export interface Repeater<T extends string>
 
     expect(extractor.exportTypeFound).toBe(false);
     expect(extractor.typeNodes.size).toBe(1);
+
+    expect(
+      () => extractor.analyze()
+    ).not.toThrow();
   });
 });

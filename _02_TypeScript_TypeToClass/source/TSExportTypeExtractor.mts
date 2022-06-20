@@ -1,3 +1,9 @@
+/**
+ * TSExportTypeExtractor exists to extract the one type the user wants to
+ * create a stub class for.
+ */
+
+// #region prologue
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 
 import DecideEnumTraversal, {
@@ -13,24 +19,27 @@ type TSNode = TSESTree.TSESTree.Node;
 type ExportNamedDeclaration = TSESTree.TSESTree.ExportNamedDeclaration;
 type TSTypeAliasDeclaration = TSESTree.TSESTree.TSTypeAliasDeclaration;
 type TSInterfaceDeclaration = TSESTree.TSESTree.TSInterfaceDeclaration;
+// #endregion prologue
 
-// #region TSExportTypeFilter
+// #region TSExportTypeFilterDecider
 export const TSExportTypeFilterDecider = DecideEnumTraversal.buildTypeDecider();
 
-TSExportTypeFilterDecider.runFilter([
-  AST_NODE_TYPES.ExportNamedDeclaration,
-  AST_NODE_TYPES.TSTypeAliasDeclaration,
-  AST_NODE_TYPES.TSInterfaceDeclaration,
-], true, Decision.Accept);
-
 TSExportTypeFilterDecider.runFilter(
-  (t: AST_NODE_TYPES) => {
-    void(t);
-    return true
-  },
+  [AST_NODE_TYPES.ExportNamedDeclaration],
   true,
-  Decision.Skip
+  Decision.Accept
 );
+TSExportTypeFilterDecider.runFilter(
+  [
+    AST_NODE_TYPES.TSTypeAliasDeclaration,
+    AST_NODE_TYPES.TSInterfaceDeclaration,
+  ],
+  true,
+  Decision.RejectChildren
+);
+
+TSExportTypeFilterDecider.finalize(Decision.Skip);
+// #endregion TSExportTypeFilterDecider
 
 type EnterExportTypeAndInterface = Pick<
   TSNode_DiscriminatedCallbacks,
@@ -68,6 +77,25 @@ export class TSExportTypeExtractor
     AST_NODE_TYPES.TSInterfaceDeclaration,
   ]);
 
+  /**
+   * True if we've found an export of the type identifier.
+   */
+  get exportTypeFound() : boolean
+  {
+    return this.#exportTypeFound;
+  }
+
+  /**
+   * All type nodes matching the identifier.
+   */
+  get typeNodes() : ReadonlySet<
+    TSTypeAliasDeclaration |
+    TSInterfaceDeclaration
+  >
+  {
+    return this.#typeNodes;
+  }
+
   enter(n: TSNode) : boolean
   {
     if (n.type === AST_NODE_TYPES.ExportNamedDeclaration)
@@ -76,9 +104,18 @@ export class TSExportTypeExtractor
       return this.enterTSTypeAliasDeclaration(n);
     if (n.type === AST_NODE_TYPES.TSInterfaceDeclaration)
       return this.enterTSInterfaceDeclaration(n);
+
+    // we should never reach this point
     return super.enter(n);
   }
 
+  // #region enter traps
+
+  /**
+   * Match an export against our target type.
+   * @param n - An export node.
+   * @returns True if we should visit its children for a type alias or interface.
+   */
   enterExportNamedDeclaration(n: ExportNamedDeclaration) : boolean
   {
     let result: boolean;
@@ -102,53 +139,40 @@ export class TSExportTypeExtractor
     return result;
   }
 
-  enterTSTypeAliasDeclaration(n: TSTypeAliasDeclaration) : boolean
+  /**
+   * If the type matches our desired name, add it to our set.
+   *
+   * @param n - The type declaration.
+   * @returns True if the type declaration has the right name.
+   */
+  enterTSTypeAliasDeclaration(n: TSTypeAliasDeclaration) : false
   {
-    const result = this.#targetType === n.id.name;
-    if (result)
+    if (this.#targetType === n.id.name)
       this.#typeNodes.add(n);
-    return result;
+    return false;
   }
 
-  enterTSInterfaceDeclaration(n: TSInterfaceDeclaration) : boolean
+  /**
+   * If the type matches our desired name, add it to our set.
+   *
+   * @param n - The type declaration.
+   * @returns True if the type declaration has the right name.
+   */
+  enterTSInterfaceDeclaration(n: TSInterfaceDeclaration) : false
   {
-    const result = this.#targetType === n.id.name;
-    if (result)
+    if (this.#targetType === n.id.name)
       this.#typeNodes.add(n);
-    return result;
+    return false;
   }
+
+  // #endregion enter traps
 
   leave(n: TSNode) : void
   {
-    if (!TSExportTypeExtractor.#acceptLeaveTypes.has(n.type))
-      super.leave(n);
-  }
+    if (TSExportTypeExtractor.#acceptLeaveTypes.has(n.type))
+      return;
 
-  get exportTypeFound() : boolean
-  {
-    return this.#exportTypeFound;
-  }
-
-  get typeNodes() : ReadonlySet<
-    TSTypeAliasDeclaration |
-    TSInterfaceDeclaration
-  >
-  {
-    return this.#typeNodes;
+    // we should never reach this point
+    super.leave(n);
   }
 }
-
-// #endregion TSExportTypeFilter
-
-
-/*
-export interface TSTypeToClassHandler {
-
-};
-
-type TSToMethodType = (
-  identifier: string,
-  typedArguments: TSNode[],
-  returnType: TSNode
-) => string;
-*/
