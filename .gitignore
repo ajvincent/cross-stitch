@@ -1,5 +1,7 @@
 node_modules/
 **/.DS_Store
+_*/generated
+_*/spec-generated
 _*/**/ts-stdout.txt
 _*/**/tsconfig.json
 
@@ -12,3 +14,4 @@ build/**/*.d.mts
 build/**/tsconfig.json
 build/tsconfig.json
 build/**/ts-stdout.txt
+build/tempTSCSpecDir.txt
