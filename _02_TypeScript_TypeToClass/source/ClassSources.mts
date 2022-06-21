@@ -35,15 +35,17 @@ export abstract class ClassSourcesBase implements ClassSources
     node: TSMethodSignature
   ): void;
 
-  protected provideVoids(node: TSMethodSignature) : string[]
+  protected provideVoids(
+    node: TSMethodSignature,
+    exclude: Set<string> = new Set
+  ) : string[]
   {
-    const params = node.params.map(
-      p => {
-        if (p.type === "Identifier")
-          return p.name;
-        return "";
+    const params = node.params.map(p => {
+      if (p.type === "Identifier") {
+        return exclude.has(p.name) ? "" : p.name;
       }
-    );
+      throw new Error("Unexpected parameter type: " + p.type);
+    });
 
     return params.filter(Boolean).map(p => `void(${p});`)
   }
