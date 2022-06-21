@@ -20,12 +20,11 @@ async function buildNST_NotImplemented(
 
   const classSources = new ClassSourcesNotImplemented;
   const driver = new Driver(
-    sourceLocation,
     targetLocation,
     "NST_NotImplemented",
-    ["NumberStringType"],
     classSources
   );
+  driver.implements("NumberStringType", sourceLocation);
 
   await driver.run();
 }

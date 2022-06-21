@@ -6,6 +6,11 @@ import { TSFieldIterator, TSFieldIteratorDecider } from "./TSFieldIterator.mjs";
 import type { TSTypeOrInterfaceDeclaration } from "./TSNode_types.mjs";
 
 import {
+  DefaultMap
+} from "../../_00_shared_utilities/source/DefaultMap.mjs";
+
+import {
+  PromiseAllSequence,
   SingletonPromise
 } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
 
@@ -16,11 +21,20 @@ import { TSExportTypeExtractor, TSExportTypeFilterDecider } from "./TSExportType
 
 import { AST, TSESTreeOptions } from "@typescript-eslint/typescript-estree";
 
+type TypeToImportAndSource = {
+  typeToImplement: string,
+  sourceLocation: string,
+  implements: boolean
+};
+
+type SourceCodeAndAST = {
+  sourceCode: string,
+  ast: AST<TSESTreeOptions>
+};
+
 export default class Driver {
-  #sourceLocation: string;
   #targetLocation: string;
   #targetClassName: string;
-  #typesToImplement: string[];
   #classSources: ClassSources;
   #userConsole?: Console;
 
@@ -33,27 +47,47 @@ export default class Driver {
   );
 
   constructor(
-    sourceLocation: string,
     targetLocation: string,
     targetClassName: string,
-    typesToImplement: string[],
     classSources: ClassSources,
     userConsole?: Console
   )
   {
-    if (typesToImplement.length === 0)
-      throw new Error("There must be some types to implement!");
-
     if (!IsIdentifier(targetClassName))
       throw new Error("Target class name is not an identifier!");
 
-    this.#sourceLocation = sourceLocation;
     this.#targetLocation = targetLocation;
     this.#targetClassName = targetClassName;
-    this.#typesToImplement = typesToImplement;
     this.#classSources = classSources;
     this.#userConsole = userConsole;
   }
+
+  implements(
+    typeToImplement: string,
+    sourceLocation: string
+  ) : void
+  {
+    if (!IsIdentifier(typeToImplement))
+      throw new Error("Type is not an identifier!");
+
+    sourceLocation = path.normalize(path.resolve(
+      process.cwd(), sourceLocation
+    ));
+
+    this.#typesAndSources.getDefault(
+      typeToImplement + ":" + sourceLocation,
+      () => {
+        return {
+          typeToImplement,
+          sourceLocation,
+          implements: true
+        };
+      }
+    ).implements = true;
+  }
+
+  #typesAndSources: DefaultMap<string, TypeToImportAndSource> = new DefaultMap;
+  #sourceAndAST_Promises: DefaultMap<string, Promise<SourceCodeAndAST>> = new DefaultMap;
 
   async run() : Promise<void>
   {
@@ -62,31 +96,58 @@ export default class Driver {
 
   async #run() : Promise<void>
   {
-    const [sourceCode, ast] = await this.#parseFile(this.#sourceLocation);
-    const typeNodesArray: ReadonlySet<TSTypeOrInterfaceDeclaration>[] = this.#typesToImplement.map(
-      typeToExtract => this.#getExportedType(ast, this.#sourceLocation, typeToExtract)
+    if (!this.#typesAndSources.size)
+      throw new Error("There must be some types to implement!");
+
+    const sourceLocations: Set<string> = new Set;
+    this.#typesAndSources.forEach(({ sourceLocation }) => sourceLocations.add(sourceLocation));
+
+    sourceLocations.forEach(location => this.#sourceAndAST_Promises.set(
+      location, this.#parseFile(location)
+    ));
+
+    await PromiseAllSequence(
+      Array.from(this.#typesAndSources.values()),
+      async (typeAndSource) => {
+        await this.#iterateOverType(typeAndSource);
+      }
     );
 
-    const typeNodeSet: ReadonlySet<TSTypeOrInterfaceDeclaration> = new Set(
-      ...typeNodesArray.map(types => types.values())
-    );
-
-    this.#fillClassDefinition(sourceCode, ast, typeNodeSet);
     await this.#writeFinalModule();
+  }
+
+  async #iterateOverType(
+    typeAndSource: TypeToImportAndSource
+  ) : Promise<void>
+  {
+    const sourceAndAST = await this.#sourceAndAST_Promises.get(typeAndSource.sourceLocation);
+    if (!sourceAndAST)
+      throw new Error("assertion failure: we should have tried loading this file");
+
+    const typeNodeSet: ReadonlySet<TSTypeOrInterfaceDeclaration> = this.#getExportedType(
+      sourceAndAST.ast,
+      typeAndSource.sourceLocation,
+      typeAndSource.typeToImplement
+    );
+
+    this.#fillClassDefinition(sourceAndAST.sourceCode, sourceAndAST.ast, typeNodeSet);
   }
 
   async #parseFile(
     sourceLocation: string
-  ) : Promise<[string, AST<TSESTreeOptions>]>
+  ) : Promise<SourceCodeAndAST>
   {
     sourceLocation = path.normalize(path.resolve(
       process.cwd(), sourceLocation
     ));
     const sourceCode = await fs.readFile(sourceLocation, { encoding: "utf-8" });
 
-    return [sourceCode, ESTreeParser(sourceCode, {
-      filePath: sourceLocation
-    })];
+    return {
+      sourceCode,
+      ast: ESTreeParser(sourceCode, {
+        filePath: sourceLocation
+      })
+    };
   }
 
   #getExportedType(
@@ -122,10 +183,28 @@ export default class Driver {
 
   async #writeFinalModule(): Promise<void>
   {
-    let contents = "";
-    contents += `import type { ${this.#typesToImplement} } from "${
-      path.relative(path.dirname(this.#targetLocation), this.#sourceLocation).replace(/ts$/, "js")
-    }";\n\n`
+    let contents = `
+/**
+ * This code is generated.
+ * @see {@link https://github.com/ajvincent/cross-stitch/tree/main/_02_TypeScript_TypeToClass}
+ */
+`.trim() + "\n\n";
+    const sourcesToTypeImports = new DefaultMap<string, string[]>;
+    const typesToImplement: string[] = [];
+    this.#typesAndSources.forEach(typeAndSource => {
+      const items = sourcesToTypeImports.getDefault(typeAndSource.sourceLocation, () => []);
+      items.push(typeAndSource.typeToImplement);
+
+      if (typeAndSource.implements)
+        typesToImplement.push(typeAndSource.typeToImplement);
+    });
+
+    sourcesToTypeImports.forEach((types, sourceLocation) => {
+      contents += `import type {\n  ${ types.join("\n  , ") }\n} from "${
+        path.relative(path.dirname(this.#targetLocation), sourceLocation).replace(/ts$/, "js")
+      }";\n`
+    });
+    contents += `\n`
 
     function appendString(s: string) : void {
       contents += s + "\n\n";
@@ -133,7 +212,7 @@ export default class Driver {
 
     this.#classSources.filePrologue.forEach(appendString);
 
-    contents += `export default\nclass ${this.#targetClassName}\nimplements ${this.#typesToImplement.join(", ")}\n`;
+    contents += `export default class ${this.#targetClassName}\nimplements ${typesToImplement.join(", ")}\n`;
     contents += `{\n\n`;
 
     this.#classSources.classBodyFields.forEach(appendString);
