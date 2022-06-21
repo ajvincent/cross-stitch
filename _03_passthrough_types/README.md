@@ -1,79 +1,6 @@
-# Cross-stitch:  Aspect weaving unit-testable components
+# Aspect oriented programming for TypeScript: rewriting method types
 
-A `ProxyHandler` for a membrane is a complicated beast, with several aspects to support:
-
-- Converting arguments from the source object graph to the target object graph
-- Invoking the target proxy handler (usually `Reflect`)
-- Converting return values from the target object graph to the source object graph
-- Populating the properties of the shadow target
-- Optional assertions
-  - Did we associate each argument with the right object graph?
-  - Did we meet the requirements from the `Proxy` specification?
-
-This presents an unit-testing conundrum.  How do we safely break up the the combined `ProxyHandler` into unit-testable component classes,
-each of which implement traps differently, and later reintegrate them?
-
-## Realistic example code
-
-```typescript
-class GraphProxyHandler<T extends object> implements ShadowProxyHandler<T> {
-  getOwnPropertyDescriptor(
-    shadowTarget: T,
-    p: propertyKey,
-
-    nextTarget: T,
-    nextHandler: Required<ProxyHandler<T>>
-  ): PropertyDescriptor | undefined
-  {
-    // revoke the proxy if one of the target graphs has been revoked
-    this.#checkIfGraphsRevoked(shadowTarget, nextTarget, nextHandler);
-
-    // get the property descriptor from the target graph
-    let desc = nextHandler.getOwnPropertyDescriptor(nextTarget, p);
-
-    // apply distortions
-    desc = this.#distortions.some(d => d.modifyPropertyDescriptor(p, desc));
-
-    // wrap the descriptor for the return value
-    if (desc) {
-      desc = this.#currentGraph.convertDescriptor(desc);
-    }
-
-    // update the shadow target for bookkeeping
-    if (desc) {
-      this.#setOwnPropertyDescriptor(shadowTarget, p, desc);
-    }
-
-    return desc;
-  }
-
-  ownKeys(
-    shadowTarget: T,
-
-    nextTarget: T,
-    nextHandler: Required<ProxyHandler<T>>
-  ): ArrayLike<propertyKey>
-  {
-    // revoke the proxy if one of the target graphs has been revoked
-    this.#checkIfGraphsRevoked(shadowTarget, nextTarget, nextHandler);
-
-    // get the ownKeys listing from the target graph
-    let keys = nextHandler.ownKeys(nextTarget);
-
-    // apply distortions
-    keys = this.#distortions.some(d => d.modifyOwnKeys(nextTarget, keys));
-
-    // update the shadow target for bookkeeping
-    this.#updateOwnKeys(shadowTarget, keys);
-
-    return keys;
-  }
-}
-```
-
-That's at least five different aspects for the final `ShadowProxyHandler` to support on each trap.
-
-## Aspect oriented programming for TypeScript: rewriting method types
+## "Continuing from the previous lecture"
 
 [Aspect-oriented programming, according to Wikipedia](https://en.wikipedia.org/wiki/Aspect-oriented_programming)
 
@@ -106,6 +33,8 @@ This sequence has a few rules:
   b. The return signature must allow for signalling to execute the next callback.
 
 [Array.prototype.reduce](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce) gives a pretty good model for this.
+
+## Diving in: generating types from existing types
 
 So here's a new mockup, from existing code:
 
@@ -488,11 +417,7 @@ This is a __lot__ of boilerplate code.  No one wants to write that by hand, espe
 
 But... if we can parse the original type ourselves into an abstract syntax tree, we should be able to walk that tree and generate this code automatically.  Then we simply ask TypeScript to transpile it at a later stage in our build.
 
-So, let's do that.
-
-### Parsing TypeScript type modules into an abstract syntax tree
-
-### Generating subclass modules from the abstract syntax tree
+So... [let's do](../_01_TypeScript_ESTree/) [exactly that.](../_02_TypeScript_TypeToClass/)
 
 ## Decorators implementing aspects
 
@@ -500,6 +425,10 @@ So, let's do that.
 beginnings of a solution: transforming a function into another function is something JavaScript is very good at,
 and decorators provide enough metadata to make that happen.
 
+[This is future work.](https://github.com/ajvincent/cross-stitch/issues/7)
+
 ## Exiting from a component trap without exiting from the integrated trap
 
-Component classes also have to be aware that they might not provide the final value to return
+(I haven't fully fleshed this out yet, which is why this article ends here.)
+
+Component classes also have to be aware that they might not provide the final value to return.  
