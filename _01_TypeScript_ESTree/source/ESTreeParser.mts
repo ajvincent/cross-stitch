@@ -14,7 +14,7 @@ const DEFAULT_PARSE_OPTIONS: TSESTreeOptions = {
 
 export default function ESTreeParser(
   contents: string,
-  parseOptionsOverride: Partial<TSESTreeOptions> = {},
+  parseOptionsOverride: TSESTreeOptions = {},
 ) : AST<TSESTreeOptions>
 {
   const options = {};

@@ -24,7 +24,9 @@ async function buildNST_NotImplemented(
   const driver = new Driver(
     targetLocation,
     "NST_NotImplemented",
-    classSources
+    classSources,
+    parentDir,
+    process.cwd()
   );
   driver.implements("NumberStringType", sourceLocation);
 
@@ -73,7 +75,9 @@ async function buildNST_NotImplemented_Partial(
   const driver = new Driver(
     targetLocation,
     "NST_NotImplemented",
-    classSources
+    classSources,
+    parentDir,
+    process.cwd()
   );
 
   driver.implements("NumberStringType", sourceLocation);

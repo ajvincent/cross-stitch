@@ -33,10 +33,12 @@ type SourceCodeAndAST = {
 };
 
 export default class Driver {
-  #targetLocation: string;
-  #targetClassName: string;
-  #classSources: ClassSources;
-  #userConsole?: Console;
+  readonly #targetLocation: string;
+  readonly #targetClassName: string;
+  readonly #classSources: ClassSources;
+  readonly #project: string;
+  readonly #tsconfigRootDir: string;
+  readonly #userConsole?: Console;
 
   /*
   readonly #astAccumulator: Accumulator<TSESTree.TSESTree.Program> = new Accumulator;
@@ -50,6 +52,8 @@ export default class Driver {
     targetLocation: string,
     targetClassName: string,
     classSources: ClassSources,
+    project: string,
+    tsconfigRootDir: string,
     userConsole?: Console
   )
   {
@@ -59,6 +63,10 @@ export default class Driver {
     this.#targetLocation = targetLocation;
     this.#targetClassName = targetClassName;
     this.#classSources = classSources;
+
+    this.#project = project;
+    this.#tsconfigRootDir = tsconfigRootDir;
+
     this.#userConsole = userConsole;
   }
 
@@ -150,7 +158,9 @@ export default class Driver {
     return {
       sourceCode,
       ast: ESTreeParser(sourceCode, {
-        filePath: sourceLocation
+        filePath: sourceLocation,
+        project: this.#project,
+        tsconfigRootDir: this.#tsconfigRootDir
       })
     };
   }
