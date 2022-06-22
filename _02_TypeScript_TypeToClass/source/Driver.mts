@@ -169,6 +169,8 @@ export default class Driver {
 
     if (!typeExtractor.exportTypeFound)
       throw new Error(`Export type not found for type "${typeExtractor}" in file "${pathToFile}"`);
+    if (!typeExtractor.typeNodes.size)
+      throw new Error(`No type or interface nodes found for type "${typeExtractor}" in file "${pathToFile}"`);
     return typeExtractor.typeNodes;
   }
 
