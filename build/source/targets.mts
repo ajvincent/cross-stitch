@@ -115,13 +115,18 @@ class DirStage
 
     if (files.length === 0)
       return;
-    await this.#invokeTSCWithFiles(files);
+    await this.#invokeTSCWithFiles(
+      files, path.join(this.#dir, "tsconfig.json")
+    );
   }
 
-  async #invokeTSCWithFiles(files: string[]) : Promise<void>
+  async #invokeTSCWithFiles(
+    files: string[],
+    tsconfigPath: string
+  ) : Promise<void>
   {
     const result = await InvokeTSC.withCustomConfiguration(
-      path.join(this.#dir, "tsconfig.json"),
+      tsconfigPath,
       false,
       (config) => {
         config.files = files;
@@ -154,7 +159,10 @@ class DirStage
       tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f) && f !== pathToMTS);
 
       if (tsFiles.length > 0) {
-        await this.#invokeTSCWithFiles(tsFiles);
+        await this.#invokeTSCWithFiles(
+          tsFiles,
+          path.join(this.#dir, "build", "tsconfig.json")
+        );
       }
     }
 
@@ -187,7 +195,9 @@ class DirStage
       tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f));
 
       if (tsFiles.length > 0) {
-        await this.#invokeTSCWithFiles(tsFiles);
+        await this.#invokeTSCWithFiles(
+          tsFiles, path.join(this.#dir, "spec-build", "tsconfig.json")
+        );
       }
     }
 
@@ -204,7 +214,9 @@ class DirStage
       tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f));
 
       if (tsFiles.length > 0) {
-        await this.#invokeTSCWithFiles(tsFiles);
+        await this.#invokeTSCWithFiles(
+          tsFiles, path.join(this.#dir, "spec-generated", "tsconfig.json")
+        );
       }
     }
   }
