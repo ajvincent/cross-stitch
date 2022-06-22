@@ -10,17 +10,32 @@ export interface ClassSources
   readonly classBodyFields: ReadonlySet<string>;
   readonly fileEpilogue: ReadonlySet<string>;
 
+  /**
+   * @param methodName      - The name of the method.
+   * @param signatureSource - The extracted source string for arguments and types.
+   * @param node            - The raw ESTree node.
+   *
+   * @returns True on success (false if it didn't define a method matching the name).
+   */
   defineMethod(
     methodName: string,
     signatureSource: string,
     node: TSMethodSignature
-  ) : void;
+  ) : boolean;
 
+  /**
+   *
+   * @param propertyName    - The name of the property.
+   * @param signatureSource - The extracted source string for arguments and types.
+   * @param node            - The raw ESTree node.
+   *
+   * @returns True on success (false if it didn't define a method matching the name).
+   */
   defineProperty(
     propertyName: string,
     signatureSource: string,
     node: TSPropertySignature
-  ) : void;
+  ) : boolean;
 }
 
 export abstract class ClassSourcesBase implements ClassSources
@@ -33,8 +48,13 @@ export abstract class ClassSourcesBase implements ClassSources
     methodName: string,
     signatureSource: string,
     node: TSMethodSignature
-  ): void;
+  ): boolean;
 
+  /**
+   *
+   * @param node    - the signature of the method.
+   * @param exclude - Parameters we don't need void() for.
+   */
   protected provideVoids(
     node: TSMethodSignature,
     exclude: Set<string> = new Set
@@ -54,7 +74,7 @@ export abstract class ClassSourcesBase implements ClassSources
     propertyName: string,
     signatureSource: string,
     node: TSESTree.TSESTree.TSPropertySignature
-  ): void;
+  ): boolean;
 }
 
 export class ClassSourcesNotImplemented extends ClassSourcesBase
@@ -63,7 +83,7 @@ export class ClassSourcesNotImplemented extends ClassSourcesBase
     methodName: string,
     signatureSource: string,
     node: TSESTree.TSESTree.TSMethodSignature
-  ): void
+  ): boolean
   {
     void(methodName);
     const voidLines = this.provideVoids(node).map(v => "    " + v).join("\n");
@@ -74,20 +94,24 @@ ${voidLines}
     throw new Error("not yet implemented");
   }`
     );
+    return true;
   }
 
   defineProperty(
     propertyName: string,
     signatureSource: string,
     node: TSESTree.TSESTree.TSPropertySignature
-  ): void
+  ): boolean
   {
     void(propertyName);
     void(node);
+    /*
     this.classBodyFields.add(`  get ${signatureSource}
   {
     throw new Error("not yet implemented");
   }`
     );
+    */
+    return false;
   }
 }

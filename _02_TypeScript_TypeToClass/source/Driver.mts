@@ -24,7 +24,7 @@ import { AST, TSESTreeOptions } from "@typescript-eslint/typescript-estree";
 type TypeToImportAndSource = {
   typeToImplement: string,
   sourceLocation: string,
-  implements: boolean
+  targetImplements: boolean
 };
 
 type SourceCodeAndAST = {
@@ -80,10 +80,10 @@ export default class Driver {
         return {
           typeToImplement,
           sourceLocation,
-          implements: true
+          targetImplements: true
         };
       }
-    ).implements = true;
+    ).targetImplements = true;
   }
 
   #typesAndSources: DefaultMap<string, TypeToImportAndSource> = new DefaultMap;
@@ -130,7 +130,12 @@ export default class Driver {
       typeAndSource.typeToImplement
     );
 
-    this.#fillClassDefinition(sourceAndAST.sourceCode, sourceAndAST.ast, typeNodeSet);
+    this.#fillClassDefinition(
+      sourceAndAST.sourceCode,
+      typeAndSource.typeToImplement,
+      sourceAndAST.ast,
+      typeNodeSet
+    );
   }
 
   async #parseFile(
@@ -169,6 +174,7 @@ export default class Driver {
 
   #fillClassDefinition(
     sourceCode: string,
+    typeToImplement: string,
     ast: AST<TSESTreeOptions>,
     typeNodeSet: ReadonlySet<TSTypeOrInterfaceDeclaration>
   ) : void
@@ -179,7 +185,22 @@ export default class Driver {
     typeNodeSet.forEach(typeNode => {
       traversal.traverseEnterAndLeave(typeNode, fieldIterator)
     });
+
+    if (fieldIterator.fieldsFound.size === fieldIterator.fieldsImplemented.size)
+      this.#implementedTypes.set(typeToImplement, typeToImplement);
+    else {
+      const fieldsImplementedUnion = Array.from(
+        fieldIterator.fieldsImplemented.values()
+      );
+      this.#implementedTypes.set(
+        typeToImplement, `Pick<\n  ${typeToImplement},\n${
+          fieldsImplementedUnion.map(f => `  "${f}"`).join(" |\n")
+        }\n>`
+      );
+    }
   }
+
+  readonly #implementedTypes = new Map<string, string>;
 
   async #writeFinalModule(): Promise<void>
   {
@@ -195,7 +216,7 @@ export default class Driver {
       const items = sourcesToTypeImports.getDefault(typeAndSource.sourceLocation, () => []);
       items.push(typeAndSource.typeToImplement);
 
-      if (typeAndSource.implements)
+      if (typeAndSource.targetImplements)
         typesToImplement.push(typeAndSource.typeToImplement);
     });
 
@@ -212,7 +233,9 @@ export default class Driver {
 
     this.#classSources.filePrologue.forEach(appendString);
 
-    contents += `export default class ${this.#targetClassName}\nimplements ${typesToImplement.join(", ")}\n`;
+    contents += `export default class ${this.#targetClassName}\nimplements ${
+      Array.from(this.#implementedTypes.values()).join(", ")
+    }\n`;
     contents += `{\n\n`;
 
     this.#classSources.classBodyFields.forEach(appendString);

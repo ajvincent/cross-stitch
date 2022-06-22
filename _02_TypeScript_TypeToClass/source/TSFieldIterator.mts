@@ -39,6 +39,12 @@ export class TSFieldIterator
   #sourceCode: string;
   #classSources: ClassSources;
 
+  #fieldsFound = new Set<string>;
+  readonly fieldsFound: ReadonlySet<string>;
+
+  #fieldsImplemented = new Set<string>;
+  readonly fieldsImplemented: ReadonlySet<string>;
+
   constructor(
     sourceCode: string,
     classSources: ClassSources,
@@ -48,6 +54,9 @@ export class TSFieldIterator
     super(userConsole);
     this.#sourceCode = sourceCode;
     this.#classSources = classSources;
+
+    this.fieldsFound = this.#fieldsFound;
+    this.fieldsImplemented = this.#fieldsImplemented;
   }
 
   enter(n: TSNode) : boolean
@@ -74,13 +83,16 @@ export class TSFieldIterator
 
     const name = n.key.name;
 
-    this.#classSources.defineMethod(
+    const added = this.#classSources.defineMethod(
       name,
       signature,
       n
     );
+    this.#fieldsFound.add(name);
+    if (added)
+      this.#fieldsImplemented.add(name);
 
-    return true;
+    return false;
   }
 
   enterTSPropertySignature(n: TSPropertySignature) : boolean
@@ -96,12 +108,15 @@ export class TSFieldIterator
 
     const name = n.key.name;
 
-    this.#classSources.defineProperty(
+    const added = this.#classSources.defineProperty(
       name,
       signature,
       n
     );
+    this.#fieldsFound.add(name);
+    if (added)
+      this.#fieldsImplemented.add(name);
 
-    return true;
+    return false;
   }
 }
