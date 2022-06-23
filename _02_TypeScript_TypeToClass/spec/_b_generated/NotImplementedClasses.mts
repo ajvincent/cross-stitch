@@ -1,9 +1,9 @@
 import { TSESTree } from "@typescript-eslint/typescript-estree";
-import ExportDefaultEnterLeave from "../../spec-tools/ExportDefaultEnterLeave.mjs";
+import ExportDefaultFields from "../../spec-tools/ExportDefaultEnterLeave.mjs";
 
 describe(`Generated "not-implemented" classes have correct methods and properties: `, () => {
   it(`NST_NotImplemented.mts expects ["repeatForward", "repeatBack"]`, async () => {
-    const nodes = await ExportDefaultEnterLeave("NST_NotImplemented.mts");
+    const nodes = await ExportDefaultFields("NST_NotImplemented.mts");
 
     expect(nodes.map(n => (n.key as TSESTree.Identifier).name)).toEqual([
       "repeatForward",
@@ -12,7 +12,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
   });
 
   it(`NST_NotImplemented_Partial.mts expects ["repeatForward"]`, async () => {
-    const nodes = await ExportDefaultEnterLeave("NST_NotImplemented_Partial.mts");
+    const nodes = await ExportDefaultFields("NST_NotImplemented_Partial.mts");
 
     expect(nodes.map(n => (n.key as TSESTree.Identifier).name)).toEqual([
       "repeatForward",
@@ -20,7 +20,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
   });
 
   it(`NST_Bar_NotImplemented.mts expects ["repeatForward", "repeatBack", "repeatBar"]`, async () => {
-    const nodes = await ExportDefaultEnterLeave("NST_Bar_NotImplemented.mts");
+    const nodes = await ExportDefaultFields("NST_Bar_NotImplemented.mts");
 
     expect(nodes.map(n => (n.key as TSESTree.Identifier).name)).toEqual([
       "repeatForward",
