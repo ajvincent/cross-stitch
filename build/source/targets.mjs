@@ -226,28 +226,21 @@ class DirStage {
     const target = BPSet.get("debug");
     target.addTask(async () => await runModule("./node_modules/jasmine/bin/jasmine.js", [], ["--inspect-brk"]));
 }
-/* Disabled for tsc putting typescript-eslint rule comments in .mjs files
 { // eslint
-  const target = BPSet.get("eslint");
-  target.description = "eslint support";
-  const args = [
-    "--max-warnings=0"
-  ];
-
-  let dirs = stageDirs.slice();
-  dirs.push(path.resolve("build"));
-
-  dirs = await PromiseAllParallel(dirs, async (stageDir) => {
-    const { files } = await readDirsDeep(path.resolve(stageDir));
-    return files.some(f => f.endsWith(".mjs")) ? stageDir : ""
-  });
-  args.push(...dirs.filter(Boolean));
-
-  target.addTask(
-    async () => await runModule("./node_modules/eslint/bin/eslint.js", args)
-  );
+    const target = BPSet.get("eslint");
+    target.description = "eslint support";
+    const args = [
+        "--max-warnings=0"
+    ];
+    let dirs = stageDirs.slice();
+    dirs.push(path.resolve("build"));
+    dirs = await PromiseAllParallel(dirs, async (stageDir) => {
+        const { files } = await readDirsDeep(path.resolve(stageDir));
+        return files.some(f => f.endsWith(".mjs")) ? stageDir : "";
+    });
+    args.push(...dirs.filter(Boolean));
+    target.addTask(async () => await runModule("./node_modules/eslint/bin/eslint.js", args));
 }
-*/
 { // typescript:eslint
     const jsTarget = BPSet.get("eslint");
     jsTarget.addSubtarget("typescript:eslint");
