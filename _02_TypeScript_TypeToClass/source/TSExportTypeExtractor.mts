@@ -131,7 +131,7 @@ export class TSExportTypeExtractor
       );
     }
 
-    this.#exportTypeFound = result;
+    this.#exportTypeFound ||= result;
     return result;
   }
 

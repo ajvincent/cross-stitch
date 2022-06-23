@@ -5,23 +5,25 @@ const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 const tsconfigJSON = path.join(parentDir, "tsconfig.json");
 
 import Driver from "../source/Driver.mjs";
-import { ClassSourcesNotImplemented } from "../source/ClassSources.mjs";
+import { ClassSources, ClassSourcesNotImplemented } from "../source/ClassSources.mjs";
 import { TSMethodSignature, TSPropertySignature } from "@typescript-eslint/types/dist/generated/ast-spec.js";
 
-export default async function(generatedDir: string) : Promise<void>
+const specGeneratedDir = path.join(parentDir, "spec-generated");
+const fixturesDir = path.join(parentDir, "fixtures");
+
+export default async function() : Promise<void>
 {
-  await buildNST_NotImplemented(generatedDir);
-  await buildNST_NotImplemented_Partial(generatedDir);
+  await buildNST_NotImplemented();
+  await buildNST_Bar_NotImplemented();
+  await buildNST_NotImplemented_Partial();
 }
 
-async function buildNST_NotImplemented(
-  generatedDir: string
-) : Promise<void>
+function buildDriver(
+  localTargetName: string,
+  classSources: ClassSources
+) : Driver
 {
-  const sourceLocation = path.resolve(parentDir, "fixtures/NumberStringType.mts");
-  const targetLocation = path.resolve(generatedDir, "NST_NotImplemented.mts");
-
-  const classSources = new ClassSourcesNotImplemented;
+  const targetLocation = path.resolve(specGeneratedDir, localTargetName);
   const driver = new Driver(
     targetLocation,
     "NST_NotImplemented",
@@ -29,7 +31,54 @@ async function buildNST_NotImplemented(
     tsconfigJSON,
     process.cwd()
   );
-  driver.implements("NumberStringType", sourceLocation);
+  return driver;
+}
+
+function addFixtureType(
+  driver: Driver,
+  localFileName: string,
+  typeToImplement: string
+) : void
+{
+  const fullFilePath = path.resolve(fixturesDir, localFileName);
+  driver.implements(typeToImplement, fullFilePath);
+}
+
+async function buildNST_NotImplemented() : Promise<void>
+{
+  const driver = buildDriver(
+    "NST_NotImplemented.mts",
+    new ClassSourcesNotImplemented
+  );
+  addFixtureType(
+    driver,
+    "NumberStringType.mts",
+    "NumberStringType"
+  );
+
+  await driver.run();
+}
+
+async function buildNST_Bar_NotImplemented() : Promise<void>
+{
+  const driver = buildDriver(
+    "NST_Bar_NotImplemented.mts",
+    new ClassSourcesNotImplemented
+  );
+  addFixtureType(
+    driver,
+    "NumberStringType.mts",
+    "NumberStringType"
+  );
+
+  // eslint-disable-next-line no-debugger
+  debugger;
+
+  addFixtureType(
+    driver,
+    "TypePatterns.mts",
+    "Bar"
+  );
 
   await driver.run();
 }
@@ -65,22 +114,18 @@ class NotImplemented_Partial extends ClassSourcesNotImplemented
   }
 }
 
-async function buildNST_NotImplemented_Partial(
-  generatedDir: string
-) : Promise<void>
+async function buildNST_NotImplemented_Partial() : Promise<void>
 {
-  const sourceLocation = path.resolve(parentDir, "fixtures/NumberStringType.mts");
-  const targetLocation = path.resolve(generatedDir, "NST_NotImplemented_Partial.mts");
-
-  const classSources = new NotImplemented_Partial(["repeatForward"]);
-  const driver = new Driver(
-    targetLocation,
-    "NST_NotImplemented",
-    classSources,
-    tsconfigJSON,
-    process.cwd()
+  const driver = buildDriver(
+    "NST_NotImplemented_Partial.mts",
+    new NotImplemented_Partial(["repeatBack"])
+  );
+  addFixtureType(
+    driver,
+    "NumberStringType.mts",
+    "NumberStringType"
   );
 
-  driver.implements("NumberStringType", sourceLocation);
+
   await driver.run();
 }

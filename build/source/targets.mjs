@@ -150,7 +150,7 @@ class DirStage {
         const generatedDir = path.resolve(this.#dir, "spec-generated");
         await fs.mkdir(generatedDir, { recursive: true });
         const supportModule = (await import(pathToModule)).default;
-        await supportModule(generatedDir);
+        await supportModule();
         console.log("Compiling spec-generated:");
         {
             let { files: tsFiles } = await readDirsDeep(generatedDir);

@@ -1,2 +1,2 @@
 import * as TypePatterns from "./TypePatterns.mjs";
-export { TypePatterns };
+export default TypePatterns;

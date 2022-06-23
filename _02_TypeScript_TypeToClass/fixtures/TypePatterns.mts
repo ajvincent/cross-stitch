@@ -8,7 +8,7 @@ export interface NumberStringFoo extends NumberStringType
 }
 
 // Referenced type
-type Bar = {
+export type Bar = {
   repeatBar(n: number): string;
 }
 

@@ -206,7 +206,7 @@ class DirStage
     await fs.mkdir(generatedDir, { recursive: true });
 
     const supportModule = (await import(pathToModule)).default;
-    await supportModule(generatedDir);
+    await supportModule();
 
     console.log("Compiling spec-generated:");
     {
