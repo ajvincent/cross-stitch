@@ -1,10 +1,10 @@
 import {
   TSExportTypeFilterDecider,
   TSExportTypeExtractor,
-} from "../source/TSExportTypeExtractor.mjs";
+} from "../../source/TSExportTypeExtractor.mjs";
 
-import ESTreeParser from "../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
-import ESTreeTraversal from "../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
+import ESTreeParser from "../../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
+import ESTreeTraversal from "../../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
 
 describe("TSExportTypeExtractor", () => {
   function extractExport(typeToExtract: string, source: string) : TSExportTypeExtractor

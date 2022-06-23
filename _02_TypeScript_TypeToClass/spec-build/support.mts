@@ -71,9 +71,6 @@ async function buildNST_Bar_NotImplemented() : Promise<void>
     "NumberStringType"
   );
 
-  // eslint-disable-next-line no-debugger
-  debugger;
-
   addFixtureType(
     driver,
     "TypePatterns.mts",
