@@ -305,6 +305,7 @@ class DirStage
   target.addTask(async () => await runModule("./node_modules/jasmine/bin/jasmine.js", [], ["--inspect-brk"]));
 }
 
+/* Disabled for tsc putting typescript-eslint rule comments in .mjs files
 { // eslint
   const target = BPSet.get("eslint");
   target.description = "eslint support";
@@ -325,6 +326,7 @@ class DirStage
     async () => await runModule("./node_modules/eslint/bin/eslint.js", args)
   );
 }
+*/
 
 { // typescript:eslint
   const jsTarget = BPSet.get("eslint");
