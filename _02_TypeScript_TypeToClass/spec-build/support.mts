@@ -2,6 +2,7 @@ import path from "path";
 import url from "url";
 
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
+const tsconfigJSON = path.join(parentDir, "tsconfig.json");
 
 import Driver from "../source/Driver.mjs";
 import { ClassSourcesNotImplemented } from "../source/ClassSources.mjs";
@@ -25,7 +26,7 @@ async function buildNST_NotImplemented(
     targetLocation,
     "NST_NotImplemented",
     classSources,
-    parentDir,
+    tsconfigJSON,
     process.cwd()
   );
   driver.implements("NumberStringType", sourceLocation);
@@ -76,7 +77,7 @@ async function buildNST_NotImplemented_Partial(
     targetLocation,
     "NST_NotImplemented",
     classSources,
-    parentDir,
+    tsconfigJSON,
     process.cwd()
   );
 

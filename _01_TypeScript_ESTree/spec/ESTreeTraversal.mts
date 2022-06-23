@@ -41,6 +41,7 @@ describe("ESTreeTraversal", () => {
       typesVisited: TypesVisitedSpy;
 
   beforeEach(() => {
+    // XXX ajvincent Technically, I should use parse from @typescript-eslint/parser.
     ast = TSESTree.parse(tsSource,  {
       errorOnUnknownASTType: false,
       loc: true,

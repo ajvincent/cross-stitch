@@ -14,12 +14,10 @@ import {
   SingletonPromise
 } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
 
-import ESTreeParser from "../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
+import ESTreeParser, { ASTAndScopeManager } from "../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
 import ESTreeTraversal from "../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
 import IsIdentifier from "../../_01_TypeScript_ESTree/source/IsIdentifier.mjs";
 import { TSExportTypeExtractor, TSExportTypeFilterDecider } from "./TSExportTypeExtractor.mjs";
-
-import { AST, TSESTreeOptions } from "@typescript-eslint/typescript-estree";
 
 type TypeToImportAndSource = {
   typeToImplement: string,
@@ -27,10 +25,9 @@ type TypeToImportAndSource = {
   targetImplements: boolean
 };
 
-type SourceCodeAndAST = {
-  sourceCode: string,
-  ast: AST<TSESTreeOptions>
-};
+export type SourceCode_AST_ScopeManager = {
+  sourceCode: string
+} & ASTAndScopeManager;
 
 export default class Driver {
   readonly #targetLocation: string;
@@ -95,7 +92,7 @@ export default class Driver {
   }
 
   #typesAndSources: DefaultMap<string, TypeToImportAndSource> = new DefaultMap;
-  #sourceAndAST_Promises: DefaultMap<string, Promise<SourceCodeAndAST>> = new DefaultMap;
+  #sourceAndAST_Promises: DefaultMap<string, Promise<SourceCode_AST_ScopeManager>> = new DefaultMap;
 
   async run() : Promise<void>
   {
@@ -132,6 +129,7 @@ export default class Driver {
     if (!sourceAndAST)
       throw new Error("assertion failure: we should have tried loading this file");
 
+
     const typeNodeSet: ReadonlySet<TSTypeOrInterfaceDeclaration> = this.#getExportedType(
       sourceAndAST.ast,
       typeAndSource.sourceLocation,
@@ -148,25 +146,24 @@ export default class Driver {
 
   async #parseFile(
     sourceLocation: string
-  ) : Promise<SourceCodeAndAST>
+  ) : Promise<SourceCode_AST_ScopeManager>
   {
     sourceLocation = path.normalize(path.resolve(
       process.cwd(), sourceLocation
     ));
     const sourceCode = await fs.readFile(sourceLocation, { encoding: "utf-8" });
 
-    return {
-      sourceCode,
-      ast: ESTreeParser(sourceCode, {
-        filePath: sourceLocation,
-        project: this.#project,
-        tsconfigRootDir: this.#tsconfigRootDir
-      })
-    };
+    const { ast, scopeManager } = ESTreeParser(sourceCode, {
+      filePath: sourceLocation,
+      project: this.#project,
+      tsconfigRootDir: this.#tsconfigRootDir
+    });
+
+    return { sourceCode, ast, scopeManager };
   }
 
   #getExportedType(
-    ast: AST<TSESTreeOptions>,
+    ast: SourceCode_AST_ScopeManager["ast"],
     pathToFile: string,
     typeToExtract: string
   ) : ReadonlySet<TSTypeOrInterfaceDeclaration>
@@ -187,7 +184,7 @@ export default class Driver {
   #fillClassDefinition(
     sourceCode: string,
     typeToImplement: string,
-    ast: AST<TSESTreeOptions>,
+    ast: SourceCode_AST_ScopeManager["ast"],
     typeNodeSet: ReadonlySet<TSTypeOrInterfaceDeclaration>
   ) : void
   {

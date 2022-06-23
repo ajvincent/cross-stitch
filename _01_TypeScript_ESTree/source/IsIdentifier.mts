@@ -40,7 +40,7 @@ IdentifierDecider.finalize(Decision.Skip);
 export default function IsIdentifier(s: string) : boolean
 {
   try {
-    const ast = ESTreeParser(`const ${s} = true;`);
+    const { ast } = ESTreeParser(`const ${s} = true;`);
     const traversal = new ESTreeTraversal(ast, IdentifierDecider);
 
     const enterLeave = new IdentifierEnterLeave(s);

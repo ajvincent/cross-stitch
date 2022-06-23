@@ -6,14 +6,10 @@ import {
 import ESTreeParser from "../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
 import ESTreeTraversal from "../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
 
-import type {
-  AST, TSESTreeOptions
-} from "@typescript-eslint/typescript-estree";
-
 describe("TSExportTypeExtractor", () => {
   function extractExport(typeToExtract: string, source: string) : TSExportTypeExtractor
   {
-    const ast: AST<TSESTreeOptions> = ESTreeParser(source);
+    const { ast } = ESTreeParser(source);
 
     const traversal: ESTreeTraversal = new ESTreeTraversal(
       ast, TSExportTypeFilterDecider

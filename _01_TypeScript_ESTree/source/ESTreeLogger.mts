@@ -26,7 +26,7 @@ export default class ESTreeLogger extends ESTreeEnterLeaveBase
 
   run(sourceContents: string) : void
   {
-    const ast = ESTreeParser(sourceContents);
+    const { ast } = ESTreeParser(sourceContents);
     const traversal = new ESTreeTraversal(ast, ESTreeLoggerDecider);
     traversal.traverseEnterAndLeave(ast, this);
   }
