@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "clean": "node ./build/source/mainWithBuild.mjs clean",
-    "debug": "node ./build/source/mainWithBuild.mjs debug",
+    "debug": "node --inspect-brk ./build/source/main.mjs clean stages debug",
     "eslint": "node ./build/source/mainWithBuild.mjs eslint",
     "build": "node ./build/source/mainWithBuild.mjs stages",
     "test": "node ./build/source/mainWithBuild.mjs test",
