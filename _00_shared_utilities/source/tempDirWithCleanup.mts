@@ -19,12 +19,11 @@ export default async function tempDirWithCleanup() : Promise<TemporaryDirWithPro
 {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "cross-stitch-"));
   const d = new Deferred;
-  let { promise } = new Deferred;
-  promise = promise.then(() => fs.rm(tempDir, { recursive: true }));
+  d.promise = d.promise.then(() => fs.rm(tempDir, { recursive: true }));
 
   return {
     tempDir,
     resolve: d.resolve,
-    promise,
+    promise: d.promise,
   };
 }
