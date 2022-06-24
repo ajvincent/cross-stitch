@@ -2,7 +2,7 @@ import path from "path";
 import url from "url";
 
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import ExportDefaultFields from "../../spec-tools/ExportDefaultEnterLeave.mjs";
+import ExportDefaultFields from "../../spec-build/ExportDefaultEnterLeave.mjs";
 
 const specGeneratedDir = path.resolve(url.fileURLToPath(import.meta.url), "../../../spec-generated");
 
