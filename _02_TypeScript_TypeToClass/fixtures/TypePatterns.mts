@@ -12,18 +12,21 @@ export type IsTypedNST = {
 };
 
 // Referenced type
+export type HasTypeAttribute = IsTypedNST;
+
+// Second type for an integrated class
 export type Bar = {
   repeatBar(n: number): string;
 }
 
-// Referenced type re-exported (happens a lot)
+// Imported type re-exported (happens a lot)
 export type StringNumberType = NumberStringType;
 
 // Referenced type, intersection
-export type NumberStringFooType = NumberStringType & Bar;
+export type NumberStringAndBar = NumberStringType & Bar;
 
 // Referenced type, union
-export type NumberStringOrFoo = NumberStringType | Bar;
+export type NumberStringOrBar = NumberStringType | Bar;
 
 // Mapped type
 export type NST_Keys = {
