@@ -7,6 +7,10 @@ export interface NumberStringFoo extends NumberStringType
   repeatFoo(n: number) : string;
 }
 
+export type IsTypedNST = {
+  type: string;
+};
+
 // Referenced type
 export type Bar = {
   repeatBar(n: number): string;

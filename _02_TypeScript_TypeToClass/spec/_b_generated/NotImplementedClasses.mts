@@ -203,4 +203,30 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
       () => NST.repeatBar(3)
     ).toThrowError("not yet implemented");
   });
+
+  it(`TypedClass.mts expects ["type"]`, async () => {
+    // code generation
+    const nodes = await ExportDefaultFields("TypedClass.mts");
+
+    expect(nodes.map(n => (n.key as TSESTree.Identifier).name)).toEqual([
+      "type",
+    ]);
+
+    const [t] = nodes;
+
+    // eslint-disable-next-line
+    (expect(t) as jasmine.Matchers<any> & FieldMatcherMethods).toBeMethodDefinition({
+      type: AST_NODE_TYPES.MethodDefinition,
+      static: false,
+      isPrivate: false,
+      kind: "get"
+    });
+
+    // implementation
+    const TypedClass = (await import(path.join(specGeneratedDir, "TypedClass.mjs"))).default;
+    const x = new TypedClass;
+    expect(
+      () => void(x.type)
+    ).toThrowError("not yet implemented");
+  });
 });

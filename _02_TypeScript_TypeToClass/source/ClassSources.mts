@@ -105,13 +105,11 @@ ${voidLines}
   {
     void(propertyName);
     void(node);
-    /*
-    this.classBodyFields.add(`  get ${signatureSource}
+    this.classBodyFields.add(`  get ${signatureSource.replace(/(^[^:]+)/g, "$1()")}
   {
     throw new Error("not yet implemented");
   }`
     );
-    */
-    return false;
+    return true;
   }
 }

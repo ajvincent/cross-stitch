@@ -16,6 +16,7 @@ export default async function() : Promise<void>
   await buildNST_NotImplemented();
   await buildNST_Bar_NotImplemented();
   await buildNST_NotImplemented_Partial();
+  await buildTyped();
 }
 
 function buildDriver(
@@ -123,6 +124,21 @@ async function buildNST_NotImplemented_Partial() : Promise<void>
     "NumberStringType"
   );
 
+
+  await driver.run();
+}
+
+async function buildTyped() : Promise<void>
+{
+  const driver = buildDriver(
+    "TypedClass.mts",
+    new ClassSourcesNotImplemented
+  );
+  addFixtureType(
+    driver,
+    "TypePatterns.mts",
+    "IsTypedNST"
+  );
 
   await driver.run();
 }
