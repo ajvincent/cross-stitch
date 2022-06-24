@@ -87,6 +87,11 @@ type AddedCustomMatcher<T extends jasmine.CustomMatcherFactories> = {
 
 type FieldMatcherMethods = AddedCustomMatcher<FieldMatchers>;
 
+
+declare function expect<T extends jasmine.Func>(spy: T | jasmine.Spy<T>): jasmine.FunctionMatchers<T> & FieldMatcherMethods;
+declare function expect<T>(actual: ArrayLike<T>): jasmine.ArrayLikeMatchers<T> & FieldMatcherMethods;
+declare function expect<T>(actual: T): jasmine.Matchers<T> & FieldMatcherMethods;
+
 describe(`Generated "not-implemented" classes have correct methods and properties: `, () => {
   beforeEach(() => jasmine.addMatchers(customMatcher));
 
@@ -102,7 +107,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
     const [repeatForward, repeatBack] = nodes;
 
     // eslint-disable-next-line
-    (expect(repeatForward) as jasmine.Matchers<any> & FieldMatcherMethods).toBeMethodDefinition({
+    expect(repeatForward).toBeMethodDefinition({
       type: AST_NODE_TYPES.MethodDefinition,
       static: false,
       isPrivate: false,
@@ -110,7 +115,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
     });
 
     // eslint-disable-next-line
-    (expect(repeatBack) as jasmine.Matchers<any> & FieldMatcherMethods).toBeMethodDefinition({
+    expect(repeatBack).toBeMethodDefinition({
       type: AST_NODE_TYPES.MethodDefinition,
       static: false,
       isPrivate: false,
@@ -139,7 +144,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
     const [repeatForward] = nodes;
 
     // eslint-disable-next-line
-    (expect(repeatForward) as jasmine.Matchers<any> & FieldMatcherMethods).toBeMethodDefinition({
+    expect(repeatForward).toBeMethodDefinition({
       type: AST_NODE_TYPES.MethodDefinition,
       static: false,
       isPrivate: false,
@@ -167,7 +172,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
     const [repeatForward, repeatBack, repeatBar] = nodes;
 
     // eslint-disable-next-line
-    (expect(repeatForward) as jasmine.Matchers<any> & FieldMatcherMethods).toBeMethodDefinition({
+    expect(repeatForward).toBeMethodDefinition({
       type: AST_NODE_TYPES.MethodDefinition,
       static: false,
       isPrivate: false,
@@ -175,7 +180,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
     });
 
     // eslint-disable-next-line
-    (expect(repeatBack) as jasmine.Matchers<any> & FieldMatcherMethods).toBeMethodDefinition({
+    expect(repeatBack).toBeMethodDefinition({
       type: AST_NODE_TYPES.MethodDefinition,
       static: false,
       isPrivate: false,
@@ -183,7 +188,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
     });
 
     // eslint-disable-next-line
-    (expect(repeatBar) as jasmine.Matchers<any> & FieldMatcherMethods).toBeMethodDefinition({
+    expect(repeatBar).toBeMethodDefinition({
       type: AST_NODE_TYPES.MethodDefinition,
       static: false,
       isPrivate: false,
@@ -215,7 +220,7 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
     const [t] = nodes;
 
     // eslint-disable-next-line
-    (expect(t) as jasmine.Matchers<any> & FieldMatcherMethods).toBeMethodDefinition({
+    expect(t).toBeMethodDefinition({
       type: AST_NODE_TYPES.MethodDefinition,
       static: false,
       isPrivate: false,
