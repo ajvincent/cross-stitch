@@ -29,6 +29,8 @@ For all enter/leave traps, I recommend basing implementations on [`ESTreeEnterLe
 
 `ESTreeErrorUnregistered` implements `ESTreeEnterLeaveBase` with a post-traversal method, `analyze(): void`, which lets you check for node types you missed (and throws for them).
 
+`ESTreeNodeToScope` provides a function, `mapNodesToScopes()`, to get a `WeakMap<TSNode, Scope>` for every node in an AST.
+
 There are two utilities this module provides for convenience:
 
 - [`ESTreeLogger`](source/ESTreeLogger.mts) provides a way to log the structure of the AST to the console.
