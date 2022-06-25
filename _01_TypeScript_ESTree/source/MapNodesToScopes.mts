@@ -71,7 +71,9 @@ function buildNodeToScopeMap(astAndScopes: ASTAndScopeManager) : NodeToScopeMap
   return map;
 }
 
-export default function mapNodesToScopes(astAndScopes: ASTAndScopeManager) : NodeToScopeMap
+export default function MapNodesToScopes(
+  astAndScopes: ASTAndScopeManager
+) : NodeToScopeMap
 {
   return ProgramToNodeScopeMap.getDefault(
     astAndScopes.ast,

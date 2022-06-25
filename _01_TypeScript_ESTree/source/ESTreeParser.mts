@@ -16,7 +16,9 @@ import {
 const DEFAULT_PARSE_OPTIONS: ParserOptions = {
   errorOnUnknownASTType: false,
   loc: true,
-  range: true
+  range: true,
+  sourceType: "module",
+  ecmaVersion: "latest",
 };
 
 export type ASTAndScopeManager = Pick<ReturnType<typeof parseForESLint>, "ast" | "scopeManager">
