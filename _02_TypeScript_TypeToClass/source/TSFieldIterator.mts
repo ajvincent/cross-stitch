@@ -1,5 +1,6 @@
 
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
+
 import DecideEnumTraversal, {
   Decision
 } from "../../_01_TypeScript_ESTree/source/DecideEnumTraversal.mjs";
@@ -7,7 +8,12 @@ import type {
   TSNode_DiscriminatedCallbacks
 } from "../../_01_TypeScript_ESTree/source/ESTreeEnterLeaveBase.mjs";
 import ESTreeErrorUnregistered from "../../_01_TypeScript_ESTree/source/ESTreeErrorUnregistered.mjs";
+import MapNodesToScopes, {
+  NodeToScopeMap
+} from "../../_01_TypeScript_ESTree/source/MapNodesToScopes.mjs";
+
 import type { ClassSources } from "./ClassSources.mjs";
+import type { SourceCode_AST_ScopeManager } from "./Driver.mjs";
 
 type TSNode = TSESTree.TSESTree.Node;
 type TSMethodSignature = TSESTree.TSESTree.TSMethodSignature;
@@ -37,6 +43,7 @@ export class TSFieldIterator
        implements EnterFields
 {
   #sourceCode: string;
+  #nodeToScopeMap: NodeToScopeMap;
   #classSources: ClassSources;
 
   #fieldsFound = new Set<string>;
@@ -46,17 +53,20 @@ export class TSFieldIterator
   readonly fieldsImplemented: ReadonlySet<string>;
 
   constructor(
-    sourceCode: string,
+    parsedSource: SourceCode_AST_ScopeManager,
     classSources: ClassSources,
     userConsole?: Console
   )
   {
     super(userConsole);
-    this.#sourceCode = sourceCode;
+    this.#sourceCode = parsedSource.sourceCode;
+    this.#nodeToScopeMap = MapNodesToScopes(parsedSource);
     this.#classSources = classSources;
 
     this.fieldsFound = this.#fieldsFound;
     this.fieldsImplemented = this.#fieldsImplemented;
+
+    void(this.#nodeToScopeMap);
   }
 
   enter(n: TSNode) : boolean

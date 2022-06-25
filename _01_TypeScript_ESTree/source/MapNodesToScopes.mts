@@ -15,7 +15,7 @@ import {
 } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
 type NodeToScopeMapFull = DefaultWeakMap<TSNode, Scope | null>;
-type NodeToScopeMap = Pick<NodeToScopeMapFull, "get">;
+export type NodeToScopeMap = Pick<NodeToScopeMapFull, "get">;
 
 const NodeToScopeDecision = DecideEnumTraversal.buildTypeDecider();
 NodeToScopeDecision.finalize(Decision.Accept);
@@ -67,7 +67,6 @@ function buildNodeToScopeMap(astAndScopes: ASTAndScopeManager) : NodeToScopeMap
   const traversal = new ESTreeTraversal(astAndScopes.ast, NodeToScopeDecision);
   traversal.traverseEnterAndLeave(astAndScopes.ast, enterLeave);
 
-  enterLeave.analyze(); // should not throw
   return map;
 }
 
