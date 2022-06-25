@@ -1,6 +1,12 @@
 import path from "path";
 import fs from "fs/promises";
 
+import TSESTree from "@typescript-eslint/typescript-estree";
+
+// TSNode is a union of many TSNode types, each with an unique "type" attribute
+type TSNode = TSESTree.TSESTree.Node;
+type Identifier = TSESTree.TSESTree.Identifier;
+
 import { ClassSources } from "./ClassSources.mjs";
 import { TSFieldIterator, TSFieldIteratorDecider } from "./TSFieldIterator.mjs";
 import type { TSTypeOrInterfaceDeclaration } from "./TSNode_types.mjs";
@@ -22,7 +28,9 @@ import { TSExportTypeExtractor, TSExportTypeFilterDecider } from "./TSExportType
 type TypeToImportAndSource = {
   typeToImplement: string,
   sourceLocation: string,
-  targetImplements: boolean
+  targetImplements: boolean,
+
+  exportedNodes: ReadonlySet<TSTypeOrInterfaceDeclaration>
 };
 
 export type SourceCode_AST_ScopeManager = {
@@ -36,6 +44,11 @@ export default class Driver {
   readonly #project: string;
   readonly #tsconfigRootDir: string;
   readonly #userConsole?: Console;
+
+  /**
+   * The nodes in the map's value set might not be in the same AST as the map's key!
+   */
+  readonly #identifierToDefinitionNodes = new WeakMap<Identifier, Set<TSNode>>;
 
   /*
   readonly #astAccumulator: Accumulator<TSESTree.TSESTree.Program> = new Accumulator;
@@ -65,8 +78,16 @@ export default class Driver {
     this.#tsconfigRootDir = tsconfigRootDir;
 
     this.#userConsole = userConsole;
+
+    void(this.#identifierToDefinitionNodes);
   }
 
+  /**
+   * Declare the target class must implement a particular type.
+   *
+   * @param typeToImplement - The exported type name.
+   * @param sourceLocation  - The path to the TypeScript file.
+   */
   implements(
     typeToImplement: string,
     sourceLocation: string
@@ -85,7 +106,9 @@ export default class Driver {
         return {
           typeToImplement,
           sourceLocation,
-          targetImplements: true
+          targetImplements: true,
+
+          exportedNodes: new Set,
         };
       }
     ).targetImplements = true;
@@ -105,7 +128,9 @@ export default class Driver {
       throw new Error("There must be some types to implement!");
 
     const sourceLocations: Set<string> = new Set;
-    this.#typesAndSources.forEach(({ sourceLocation }) => sourceLocations.add(sourceLocation));
+    this.#typesAndSources.forEach(
+      ({ sourceLocation }) => sourceLocations.add(sourceLocation)
+    );
 
     sourceLocations.forEach(location => this.#sourceAndAST_Promises.set(
       location, this.#parseFile(location)
@@ -114,34 +139,21 @@ export default class Driver {
     await PromiseAllSequence(
       Array.from(this.#typesAndSources.values()),
       async (typeAndSource) => {
-        await this.#iterateOverType(typeAndSource);
+        await this.#fillExportedNodes(typeAndSource);
+      }
+    );
+
+    // At this point, I must the references of the exported nodes.
+    // For references to imported types, sometimes I'll need to asynchronously parse the imported modules...
+
+    await PromiseAllSequence(
+      Array.from(this.#typesAndSources.values()),
+      async (typeAndSource) => {
+        await this.#fillClassDefinition(typeAndSource);
       }
     );
 
     await this.#writeFinalModule();
-  }
-
-  async #iterateOverType(
-    typeAndSource: TypeToImportAndSource
-  ) : Promise<void>
-  {
-    const sourceAndAST = await this.#sourceAndAST_Promises.get(typeAndSource.sourceLocation);
-    if (!sourceAndAST)
-      throw new Error("assertion failure: we should have tried loading this file");
-
-
-    const typeNodeSet: ReadonlySet<TSTypeOrInterfaceDeclaration> = this.#getExportedType(
-      sourceAndAST.ast,
-      typeAndSource.sourceLocation,
-      typeAndSource.typeToImplement
-    );
-
-    this.#fillClassDefinition(
-      sourceAndAST.sourceCode,
-      typeAndSource.typeToImplement,
-      sourceAndAST.ast,
-      typeNodeSet
-    );
   }
 
   async #parseFile(
@@ -162,47 +174,86 @@ export default class Driver {
     return { sourceCode, ast, scopeManager };
   }
 
-  #getExportedType(
-    ast: SourceCode_AST_ScopeManager["ast"],
-    pathToFile: string,
-    typeToExtract: string
-  ) : ReadonlySet<TSTypeOrInterfaceDeclaration>
+  /**
+   * Find type and interface nodes matching the desired type, and determine if those types are exported.
+   * Assign retrieved nodes to the exportedNodes field.
+   * @param typeAndSource - the desired type and source location.
+   */
+  async #fillExportedNodes(
+    typeAndSource: TypeToImportAndSource
+  ) : Promise<void>
   {
-    const traversal = new ESTreeTraversal(ast, TSExportTypeFilterDecider);
+    const sourceAndAST = await this.#sourceAndAST_Promises.get(typeAndSource.sourceLocation);
+    if (!sourceAndAST)
+      throw new Error("assertion failure: we should have tried loading this file");
 
-    const typeExtractor = new TSExportTypeExtractor(typeToExtract, this.#userConsole);
+    const pathToFile = typeAndSource.sourceLocation,
+          typeToExtract = typeAndSource.typeToImplement;
 
-    traversal.traverseEnterAndLeave(ast, typeExtractor);
+    const traversal = new ESTreeTraversal(
+      sourceAndAST.ast,
+      TSExportTypeFilterDecider
+    );
+    const typeExtractor = new TSExportTypeExtractor(
+      typeToExtract,
+      this.#userConsole
+    );
+
+    traversal.traverseEnterAndLeave(sourceAndAST.ast, typeExtractor);
 
     if (!typeExtractor.exportTypeFound)
       throw new Error(`Export type not found for type "${typeToExtract}" in file "${pathToFile}"`);
     if (!typeExtractor.typeNodes.size)
       throw new Error(`No type or interface nodes found for type "${typeToExtract}" in file "${pathToFile}"`);
-    return typeExtractor.typeNodes;
+    typeAndSource.exportedNodes = typeExtractor.typeNodes;
   }
 
-  #fillClassDefinition(
-    sourceCode: string,
-    typeToImplement: string,
-    ast: SourceCode_AST_ScopeManager["ast"],
-    typeNodeSet: ReadonlySet<TSTypeOrInterfaceDeclaration>
-  ) : void
+  /**
+   * Generate the class fields for a requested type.
+   * @param typeAndSource - the desired type and source location.
+   */
+  async #fillClassDefinition(
+    typeAndSource: TypeToImportAndSource
+  ) : Promise<void>
   {
-    const traversal = new ESTreeTraversal(ast, TSFieldIteratorDecider);
-    const fieldIterator = new TSFieldIterator(sourceCode, this.#classSources, this.#userConsole);
+    const sourceAndAST = await this.#sourceAndAST_Promises.get(
+      typeAndSource.sourceLocation
+    );
+    if (!sourceAndAST)
+      throw new Error("assertion failure: we should have tried loading this file");
 
-    typeNodeSet.forEach(typeNode => {
+    // Through the TSFieldIterator, we notify the class sources of each method to implement.
+    const traversal = new ESTreeTraversal(
+      sourceAndAST.ast,
+      TSFieldIteratorDecider
+    );
+    const fieldIterator = new TSFieldIterator(
+      sourceAndAST,
+      this.#classSources,
+      this.#userConsole
+    );
+
+    typeAndSource.exportedNodes.forEach(typeNode => {
       traversal.traverseEnterAndLeave(typeNode, fieldIterator)
     });
 
-    if (fieldIterator.fieldsFound.size === fieldIterator.fieldsImplemented.size)
-      this.#implementedTypes.set(typeToImplement, typeToImplement);
+    // Presumably the caller's class sources have been fully populated.
+    // We still need to declare the 'implements' field.
+    if (fieldIterator.fieldsFound.size === fieldIterator.fieldsImplemented.size) {
+      this.#implementedTypes.set(
+        typeAndSource.typeToImplement,
+        typeAndSource.typeToImplement
+      );
+    }
     else {
+      // Some fields are missing.  Generate a `Pick<>` type.
       const fieldsImplementedUnion = Array.from(
         fieldIterator.fieldsImplemented.values()
       );
+
       this.#implementedTypes.set(
-        typeToImplement, `Pick<\n  ${typeToImplement},\n${
+        typeAndSource.typeToImplement,
+        `Pick<\n  ${typeAndSource.typeToImplement},\n${
           fieldsImplementedUnion.map(f => `  "${f}"`).join(" |\n")
         }\n>`
       );
