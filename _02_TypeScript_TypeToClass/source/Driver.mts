@@ -12,6 +12,13 @@ import { TSFieldIterator, TSFieldIteratorDecider } from "./TSFieldIterator.mjs";
 import type { TSTypeOrInterfaceDeclaration } from "./TSNode_types.mjs";
 
 import {
+  MapNodesToScopes,
+  /*
+  NodeToScopeMap
+  */
+} from "../../_01_TypeScript_ESTree/source/MapNodesToScopes.mjs";
+
+import {
   DefaultMap
 } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
@@ -143,7 +150,7 @@ export default class Driver {
       }
     );
 
-    // At this point, I must the references of the exported nodes.
+    // At this point, I must look up the references of the exported nodes.
     // For references to imported types, sometimes I'll need to asynchronously parse the imported modules...
 
     await PromiseAllSequence(
@@ -186,6 +193,8 @@ export default class Driver {
     const sourceAndAST = await this.#sourceAndAST_Promises.get(typeAndSource.sourceLocation);
     if (!sourceAndAST)
       throw new Error("assertion failure: we should have tried loading this file");
+
+    MapNodesToScopes(sourceAndAST);
 
     const pathToFile = typeAndSource.sourceLocation,
           typeToExtract = typeAndSource.typeToImplement;

@@ -3,37 +3,28 @@ import type { Scope, ScopeManager } from "@typescript-eslint/scope-manager";
 
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
 type TSNode = TSESTree.TSESTree.Node;
-type TSProgram = TSESTree.TSESTree.Program;
 
 import ESTreeErrorUnregistered from "./ESTreeErrorUnregistered.mjs";
 import DecideEnumTraversal, { Decision } from "./DecideEnumTraversal.mjs";
 import type { ASTAndScopeManager } from "./ESTreeParser.mjs";
 import ESTreeTraversal from "./ESTreeTraversal.mjs";
 
-import {
-  DefaultWeakMap
-} from "../../_00_shared_utilities/source/DefaultMap.mjs";
-
-type NodeToScopeMapFull = DefaultWeakMap<TSNode, Scope | null>;
-export type NodeToScopeMap = Pick<NodeToScopeMapFull, "get">;
+export const NodeToScopeMap = new WeakMap<TSNode, Scope>;
 
 const NodeToScopeDecision = DecideEnumTraversal.buildTypeDecider();
 NodeToScopeDecision.finalize(Decision.Accept);
 
 class NodeToScopeEnterLeave extends ESTreeErrorUnregistered
 {
-  #map: NodeToScopeMapFull;
   #scopeManager: ScopeManager;
   #currentScope: Scope | null = null;
   #scopeStack: (Scope | null)[] = [];
 
   constructor(
-    map: NodeToScopeMapFull,
     scopeManager: ScopeManager,
   )
   {
     super();
-    this.#map = map;
     this.#scopeManager = scopeManager;
   }
 
@@ -46,7 +37,7 @@ class NodeToScopeEnterLeave extends ESTreeErrorUnregistered
       this.#currentScope = s;
     }
 
-    this.#map.set(n, this.#currentScope);
+    NodeToScopeMap.set(n, this.#currentScope as Scope);
     return true;
   }
 
@@ -57,25 +48,15 @@ class NodeToScopeEnterLeave extends ESTreeErrorUnregistered
   }
 }
 
-const ProgramToNodeScopeMap = new DefaultWeakMap<TSProgram, NodeToScopeMap>;
-
-function buildNodeToScopeMap(astAndScopes: ASTAndScopeManager) : NodeToScopeMap
+export function MapNodesToScopes(
+  astAndScopes: ASTAndScopeManager
+) : void
 {
-  const map: NodeToScopeMapFull = new DefaultWeakMap;
-  const enterLeave = new NodeToScopeEnterLeave(map, astAndScopes.scopeManager);
+  if (NodeToScopeMap.has(astAndScopes.ast))
+    return;
+
+  const enterLeave = new NodeToScopeEnterLeave(astAndScopes.scopeManager);
 
   const traversal = new ESTreeTraversal(astAndScopes.ast, NodeToScopeDecision);
   traversal.traverseEnterAndLeave(astAndScopes.ast, enterLeave);
-
-  return map;
-}
-
-export default function MapNodesToScopes(
-  astAndScopes: ASTAndScopeManager
-) : NodeToScopeMap
-{
-  return ProgramToNodeScopeMap.getDefault(
-    astAndScopes.ast,
-    () => buildNodeToScopeMap(astAndScopes)
-  );
 }
