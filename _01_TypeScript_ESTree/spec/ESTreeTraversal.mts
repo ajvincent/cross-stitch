@@ -189,6 +189,30 @@ describe("ESTreeTraversal", () => {
     expect(typesVisited.spyLeave).toHaveBeenCalledTimes(3);
   });
 
+  it("on reject grandchildren, accepts children but excludes grandchildren of the node", () => {
+    decider.runFilter(
+      [AST_NODE_TYPES.ExportNamedDeclaration], true, Decision.RejectGrandchildren
+    );
+    decideRemainingAsAccept();
+
+    traversal = new ESTreeTraversal(ast, decider);
+    traversal.traverseEnterAndLeave(ast, typesVisited);
+
+    typesVisited.stack.expectEmpty();
+    typesVisited.stack.expectEmpty();
+    [
+      "Program",
+      "ExportNamedDeclaration",
+      "TSTypeAliasDeclaration",
+    ].forEach(type => {
+      expect(typesVisited.spyEnter).toHaveBeenCalledWith(type);
+      expect(typesVisited.spyLeave).toHaveBeenCalledWith(type);
+    });
+
+    expect(typesVisited.spyEnter).toHaveBeenCalledTimes(3);
+    expect(typesVisited.spyLeave).toHaveBeenCalledTimes(3);
+  });
+
   it("throws in the constructor if the decider has some unassigned values", () => {
     decider.runFilter(
       [AST_NODE_TYPES.TSLiteralType], true, Decision.Reject

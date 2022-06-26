@@ -10,10 +10,12 @@ import {
  * "Skip":           visit children.
  * "Reject":         do nothing
  * "RejectChildren": visit the enter and leave traps.
+ * "RejectGrandchildren": visit the enter and leave traps, but set a flag to prevent recursion.
  */
 export enum Decision {
   Accept = "Accept",
   RejectChildren = "RejectChildren",
+  RejectGrandchildren = "RejectGrandchildren",
   Skip = "Skip",
   Reject = "Reject"
 }

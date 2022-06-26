@@ -2,6 +2,15 @@
  * This file implements the actual traversal I use.  It combines the AST from
  * ESTreeParser.mts with the decisions from DecideEnumTraversal, and the
  * ESTreeEnterLeave interface, to drive traversal of a tree of nodes.
+ *
+ * "So, you've reinvented estraverse."
+ * @see {@link https://github.com/estools/estraverse/}
+ *
+ * I suppose so, unintentionally.  I like this design better for its
+ * DecideEnumTraversal support, and the "RejectGrandchildren" feature
+ * allows me to visit children but not grandchildren of a node.
+ *
+ * I still have to implement a "Break" capability, but I haven't needed it yet.
  */
 
 import DecideEnumTraversal from "./DecideEnumTraversal.mjs";
@@ -114,6 +123,7 @@ export default class ESTreeTraversal
 
   #decider: DecideEnumTraversal<TSNode["type"]>;
   #observer: ESTreeEnterLeave | null;
+  #rejectGrandchildren = false;
 
   /**
    * Visit a node and/or its children, pending a traversal decision.
@@ -135,7 +145,7 @@ export default class ESTreeTraversal
       return;
 
     const mustSkip = decision === "Skip";
-    let rejectChildren = decision === "RejectChildren";
+    let rejectChildren = (decision === "RejectChildren" || this.#rejectGrandchildren);
 
     // If the enter trap returns false, do not visit children.
     if (!mustSkip) {
@@ -144,10 +154,18 @@ export default class ESTreeTraversal
     }
 
     if (!rejectChildren) {
+      if (decision === "RejectGrandchildren")
+        this.#rejectGrandchildren = true;
+
       // decision === "Accept" and enter trap returned true
+      // decision === "RejectGrandchildren" and enter trap returned true
       // decision === "Skip"
       const children = this.#parentToChildren.get(node) ?? [];
+
       children.forEach(this.#traverseEnterAndLeave);
+
+      if (decision === "RejectGrandchildren")
+        this.#rejectGrandchildren = false;
     }
 
     if (!mustSkip) {

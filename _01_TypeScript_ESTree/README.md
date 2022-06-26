@@ -4,12 +4,14 @@ For parsing, I rely on [`"@typescript-eslint/typescript-estree"`](https://github
 
 Traversal is actually less complicated.  There are three parts to an in-order traversal: an enter trap, a visit-children-recursively step, and a leave trap.  Enter and leave are a pair:  you must call leave if you call enter.  This leads to four possibilites for each node we visit, which I define as an enum I call [`Decision`](source/DecideEnumTraversal.mts).
 
-| Enter and leave | Visit children                 | Decision       |
-|-----------------|--------------------------------|----------------|
-| Yes             | If the enter trap returns true | Accept         |
-| Yes             | No                             | RejectChildren |
-| No              | Yes                            | Skip           |
-| No              | No                             | Reject         |
+| Enter and leave | Visit children                 | Decision            |
+|-----------------|--------------------------------|---------------------|
+| Yes             | If the enter trap returns true | Accept              |
+| Yes             | No                             | RejectChildren      |
+| Yes             | If the enter trap returns true | RejectGrandchildren |
+|                 | but exclude grandchildren      |                     |
+| No              | Yes                            | Skip                |
+| No              | No                             | Reject              |
 
 Each AST node has a `type` property, which is a an element of a `AST_NODE_TYPES` enum, and a string.  These properties mean we can decide _before traversal begins_ what node types we _might_ want to call the enter/leave traps on, and which types we want to visit children of.  This is the purpose of the [`DecideEnumTraversal`](source/DecideEnumTraversal.mts) class and its `static buildTypeDecider()` method.
 
