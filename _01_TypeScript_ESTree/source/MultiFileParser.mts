@@ -21,7 +21,8 @@ const TypeNodesByIdDecision = DecideEnumTraversal.buildTypeDecider();
 TypeNodesByIdDecision.runFilter(
   [
     AST_NODE_TYPES.TSTypeAliasDeclaration,
-    AST_NODE_TYPES.TSInterfaceDeclaration
+    AST_NODE_TYPES.TSInterfaceDeclaration,
+    AST_NODE_TYPES.ImportSpecifier,
   ],
   true,
   Decision.RejectChildren
@@ -42,6 +43,9 @@ class TypeNodesToIdentifiers extends ESTreeErrorUnregistered
         (n.type === "TSInterfaceDeclaration"))
     {
       this.map.getDefault(n.id.name, () => []).push(n);
+    }
+    else if (n.type === "ImportSpecifier") {
+      this.map.getDefault(n.local.name, () => []).push(n);
     }
     return true;
   }
