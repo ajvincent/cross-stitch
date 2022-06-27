@@ -87,7 +87,7 @@ export class TSExportTypeExtractor
   /**
    * All type nodes matching the identifier.
    */
-  get typeNodes() : ReadonlySet<TSTypeOrInterfaceDeclaration>
+  get typeNodes() : Set<TSTypeOrInterfaceDeclaration>
   {
     return this.#typeNodes;
   }

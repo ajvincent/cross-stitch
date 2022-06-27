@@ -234,4 +234,30 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
       () => void(x.type)
     ).toThrowError("not yet implemented");
   });
+
+  it(`HasTypeAttribute.mts expects ["type"]`, async () => {
+    // code generation
+    const nodes = await ExportDefaultFields("HasTypeAttribute.mts");
+
+    expect(nodes.map(n => (n.key as TSESTree.Identifier).name)).toEqual([
+      "type",
+    ]);
+
+    const [t] = nodes;
+
+    // eslint-disable-next-line
+    expect(t).toBeMethodDefinition({
+      type: AST_NODE_TYPES.MethodDefinition,
+      static: false,
+      isPrivate: false,
+      kind: "get"
+    });
+
+    // implementation
+    const TypedClass = (await import(path.join(specGeneratedDir, "HasTypeAttribute.mjs"))).default;
+    const x = new TypedClass;
+    expect(
+      () => void(x.type)
+    ).toThrowError("not yet implemented");
+  });
 });

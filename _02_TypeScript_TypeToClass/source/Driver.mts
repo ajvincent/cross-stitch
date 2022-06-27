@@ -6,6 +6,7 @@ import TSESTree from "@typescript-eslint/typescript-estree";
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
 type TSNode = TSESTree.TSESTree.Node;
 type Identifier = TSESTree.TSESTree.Identifier;
+type TSTypeReference = TSESTree.TSESTree.TSTypeReference;
 
 import { ClassSources } from "./ClassSources.mjs";
 import { TSFieldIterator, TSFieldIteratorDecider } from "./TSFieldIterator.mjs";
@@ -30,7 +31,7 @@ type TypeToImportAndSource = {
   sourceLocation: string,
   targetImplements: boolean,
 
-  exportedNodes: ReadonlySet<TSTypeOrInterfaceDeclaration>
+  exportedNodes: Set<TSTypeOrInterfaceDeclaration>
 };
 
 export default class Driver {
@@ -139,6 +140,12 @@ export default class Driver {
 
     // At this point, I must look up the references of the exported nodes.
     // For references to imported types, sometimes I'll need to asynchronously parse the imported modules...
+    await PromiseAllSequence(
+      Array.from(this.#typesAndSources.values()),
+      async (typeAndSource) => {
+        await this.#replaceAllReferencesTopLevel(typeAndSource);
+      }
+    );
 
     await PromiseAllSequence(
       Array.from(this.#typesAndSources.values()),
@@ -182,6 +189,90 @@ export default class Driver {
     if (!typeExtractor.typeNodes.size)
       throw new Error(`No type or interface nodes found for type "${typeToExtract}" in file "${pathToFile}"`);
     typeAndSource.exportedNodes = typeExtractor.typeNodes;
+  }
+
+  /**
+   * Loop over all exported nodes repeatedly to resolve type references.
+   *
+   * @param typeAndSource - The type data.
+   */
+  async #replaceAllReferencesTopLevel(
+    typeAndSource: TypeToImportAndSource
+  ): Promise<void>
+  {
+    const exportedNodes = Array.from(typeAndSource.exportedNodes);
+    let references: TSTypeOrInterfaceDeclaration[] = [];
+
+    /* Each pass should replace a reference with an unknown number of other
+     * type aliases.  Ultimately, I should be able to eliminate all type
+     * references at the top level this way.
+     *
+     * Note: This is likely throwaway code, as later I'll have to deal with
+     * unions, intersections, and parameterized types containing type
+     * references, for starters.  I have tests, though, so it should be safe to
+     * rewrite in the future.
+     */
+    do {
+      references = exportedNodes.filter(exportedNode => {
+        if ((exportedNode.type === "TSTypeAliasDeclaration") &&
+            (exportedNode.typeAnnotation.type === "TSTypeReference"))
+          return true;
+        return false;
+      });
+
+      await PromiseAllSequence(
+        references,
+        async (referenceNode: TSTypeOrInterfaceDeclaration) => {
+          await this.#replaceOneReference(exportedNodes, referenceNode, true);
+        }
+      );
+    } while (references.length);
+
+    typeAndSource.exportedNodes = new Set(exportedNodes);
+  }
+
+  /**
+   * Replace one type reference with the underlying type aliases and interface declarations.
+   *
+   * @param exportedNodes - the current list of nodes to export.
+   * @param referenceNode - a member of exported nodes, to replace.
+   * @param mustImport    - True if we should look up an imported type.
+   */
+  async #replaceOneReference(
+    exportedNodes: TSTypeOrInterfaceDeclaration[],
+    referenceNode: TSTypeOrInterfaceDeclaration,
+    mustImport: boolean
+  ) : Promise<void>
+  {
+    let typeReference: TSTypeReference;
+    if ((referenceNode.type === "TSTypeAliasDeclaration") &&
+        (referenceNode.typeAnnotation.type === "TSTypeReference"))
+    {
+      typeReference = referenceNode.typeAnnotation;
+    }
+    else {
+      throw new Error("assertion failure: how'd we get a reference node that wasn't a type alias?")
+    }
+
+    // The replacements may live in another file.
+    const replacements = await this.#parser.dereferenceIdentifier(
+      typeReference, mustImport
+    );
+
+    if (!replacements.every(
+      n => (n.type === "TSTypeAliasDeclaration") || (n.type === "TSInterfaceDeclaration")
+    ))
+    {
+      throw new Error("Unexpected: didn't find type aliases for all replacements");
+    }
+
+    // Do the replacement.  If there are other type references, trust the caller
+    // to handle them.
+    exportedNodes.splice(
+      exportedNodes.indexOf(referenceNode),
+      1,
+      ...(replacements as TSTypeOrInterfaceDeclaration[])
+    );
   }
 
   /**

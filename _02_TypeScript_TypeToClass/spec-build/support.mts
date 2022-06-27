@@ -13,10 +13,13 @@ const fixturesDir = path.join(parentDir, "fixtures");
 
 export default async function() : Promise<void>
 {
-  await buildNST_NotImplemented();
-  await buildNST_Bar_NotImplemented();
-  await buildNST_NotImplemented_Partial();
-  await buildTyped();
+  await Promise.all([
+    buildNST_NotImplemented(),
+    buildNST_Bar_NotImplemented(),
+    buildNST_NotImplemented_Partial(),
+    buildTyped(),
+    buildHasTypeAttribute(),
+  ]);
 }
 
 function buildDriver(
@@ -124,7 +127,6 @@ async function buildNST_NotImplemented_Partial() : Promise<void>
     "NumberStringType"
   );
 
-
   await driver.run();
 }
 
@@ -138,6 +140,21 @@ async function buildTyped() : Promise<void>
     driver,
     "TypePatterns.mts",
     "IsTypedNST"
+  );
+
+  await driver.run();
+}
+
+async function buildHasTypeAttribute() : Promise<void>
+{
+  const driver = buildDriver(
+    "HasTypeAttribute.mts",
+    new ClassSourcesNotImplemented
+  );
+  addFixtureType(
+    driver,
+    "TypePatterns.mts",
+    "HasTypeAttribute"
   );
 
   await driver.run();
