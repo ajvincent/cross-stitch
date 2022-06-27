@@ -12,13 +12,6 @@ import { TSFieldIterator, TSFieldIteratorDecider } from "./TSFieldIterator.mjs";
 import type { TSTypeOrInterfaceDeclaration } from "./TSNode_types.mjs";
 
 import {
-  MapNodesToScopes,
-  /*
-  NodeToScopeMap
-  */
-} from "../../_01_TypeScript_ESTree/source/MapNodesToScopes.mjs";
-
-import {
   DefaultMap
 } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
@@ -27,7 +20,7 @@ import {
   SingletonPromise
 } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
 
-import ESTreeParser, { ASTAndScopeManager } from "../../_01_TypeScript_ESTree/source/ESTreeParser.mjs";
+import MultiFileParser, { SourceCode_AST_ScopeManager } from "../../_01_TypeScript_ESTree/source/MultiFileParser.mjs";
 import ESTreeTraversal from "../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
 import IsIdentifier from "../../_01_TypeScript_ESTree/source/IsIdentifier.mjs";
 import { TSExportTypeExtractor, TSExportTypeFilterDecider } from "./TSExportTypeExtractor.mjs";
@@ -40,16 +33,11 @@ type TypeToImportAndSource = {
   exportedNodes: ReadonlySet<TSTypeOrInterfaceDeclaration>
 };
 
-export type SourceCode_AST_ScopeManager = {
-  sourceCode: string
-} & ASTAndScopeManager;
-
 export default class Driver {
   readonly #targetLocation: string;
   readonly #targetClassName: string;
   readonly #classSources: ClassSources;
-  readonly #project: string;
-  readonly #tsconfigRootDir: string;
+  readonly #parser: MultiFileParser;
   readonly #userConsole?: Console;
 
   /**
@@ -81,8 +69,7 @@ export default class Driver {
     this.#targetClassName = targetClassName;
     this.#classSources = classSources;
 
-    this.#project = project;
-    this.#tsconfigRootDir = tsconfigRootDir;
+    this.#parser = new MultiFileParser(project, tsconfigRootDir);
 
     this.#userConsole = userConsole;
 
@@ -140,7 +127,7 @@ export default class Driver {
     );
 
     sourceLocations.forEach(location => this.#sourceAndAST_Promises.set(
-      location, this.#parseFile(location)
+      location, this.#parser.getSourcesAndAST(location)
     ));
 
     await PromiseAllSequence(
@@ -163,24 +150,6 @@ export default class Driver {
     await this.#writeFinalModule();
   }
 
-  async #parseFile(
-    sourceLocation: string
-  ) : Promise<SourceCode_AST_ScopeManager>
-  {
-    sourceLocation = path.normalize(path.resolve(
-      process.cwd(), sourceLocation
-    ));
-    const sourceCode = await fs.readFile(sourceLocation, { encoding: "utf-8" });
-
-    const { ast, scopeManager } = ESTreeParser(sourceCode, {
-      filePath: sourceLocation,
-      project: this.#project,
-      tsconfigRootDir: this.#tsconfigRootDir
-    });
-
-    return { sourceCode, ast, scopeManager };
-  }
-
   /**
    * Find type and interface nodes matching the desired type, and determine if those types are exported.
    * Assign retrieved nodes to the exportedNodes field.
@@ -193,8 +162,6 @@ export default class Driver {
     const sourceAndAST = await this.#sourceAndAST_Promises.get(typeAndSource.sourceLocation);
     if (!sourceAndAST)
       throw new Error("assertion failure: we should have tried loading this file");
-
-    MapNodesToScopes(sourceAndAST);
 
     const pathToFile = typeAndSource.sourceLocation,
           typeToExtract = typeAndSource.typeToImplement;

@@ -10,7 +10,7 @@ import type {
 import ESTreeErrorUnregistered from "../../_01_TypeScript_ESTree/source/ESTreeErrorUnregistered.mjs";
 
 import type { ClassSources } from "./ClassSources.mjs";
-import type { SourceCode_AST_ScopeManager } from "./Driver.mjs";
+import type { SourceCode_AST_ScopeManager } from "../../_01_TypeScript_ESTree/source/MultiFileParser.mjs";
 
 type TSNode = TSESTree.TSESTree.Node;
 type TSMethodSignature = TSESTree.TSESTree.TSMethodSignature;
