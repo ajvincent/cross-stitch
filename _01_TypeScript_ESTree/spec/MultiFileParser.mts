@@ -125,7 +125,7 @@ describe("MultiFileParser", () => {
     });
   });
 
-  describe(".dereferenceVariable()", () => {
+  describe(".dereferenceIdentifier()", () => {
     it("finds a single type node for an inline type alias", async () => {
       const Bar_0_nodes = parser.getTypeAliasesByIdentifier(
         astAndSource.ast,
@@ -149,7 +149,7 @@ describe("MultiFileParser", () => {
       if (reference.type !== "TSTypeReference")
         return;
 
-      const dereferenced = await parser.dereferenceVariable(reference, false);
+      const dereferenced = await parser.dereferenceIdentifier(reference, false);
       expect(dereferenced).toEqual(Bar_0_nodes);
     });
 
@@ -176,7 +176,7 @@ describe("MultiFileParser", () => {
       if (reference.type !== "TSTypeReference")
         return;
 
-      const dereferenced = await parser.dereferenceVariable(reference, false);
+      const dereferenced = await parser.dereferenceIdentifier(reference, false);
       expect(dereferenced).toEqual(Wop_0_nodes);
     });
 
@@ -203,7 +203,7 @@ describe("MultiFileParser", () => {
       if (reference.type !== "TSTypeReference")
         return;
 
-      const dereferenced = await parser.dereferenceVariable(reference, false);
+      const dereferenced = await parser.dereferenceIdentifier(reference, false);
       expect(dereferenced).toEqual(Foo_0_nodes);
     });
 
@@ -230,7 +230,7 @@ describe("MultiFileParser", () => {
       if (reference.type !== "TSTypeReference")
         return;
 
-      const dereferenced = await parser.dereferenceVariable(reference, true);
+      const dereferenced = await parser.dereferenceIdentifier(reference, true);
       expect(dereferenced).not.toEqual(Foo_0_nodes);
 
       const { ast: exportedAST } = await parser.getSourcesAndAST(

@@ -1,6 +1,6 @@
 # TypeScript parsing and traversal utilities
 
-For parsing, I rely on [`"@typescript-eslint/typescript-estree"`](https://github.com/typescript-eslint/typescript-eslint/tree/main/packages/typescript-estree) to build an abstract syntax tree (AST).  [ESTreeParser.mts](source/ESTreeParser.mts) populates this.
+For parsing, I rely on [`"@typescript-eslint/typescript-estree"`](https://github.com/typescript-eslint/typescript-eslint/tree/main/packages/typescript-estree) to build an abstract syntax tree (AST).  [ESTreeParser.mts](source/ESTreeParser.mts) populates this.  To go from one file to multiple files, I provide [MultiFileParser.mts](source/MultiFileParser.mts), which has methods for looking up types from references across files.
 
 Traversal is actually less complicated.  There are three parts to an in-order traversal: an enter trap, a visit-children-recursively step, and a leave trap.  Enter and leave are a pair:  you must call leave if you call enter.  This leads to four possibilites for each node we visit, which I define as an enum I call [`Decision`](source/DecideEnumTraversal.mts).
 

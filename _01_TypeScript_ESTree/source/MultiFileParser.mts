@@ -1,3 +1,4 @@
+// #region imports
 import path from "path";
 import fs from "fs/promises";
 import url from "url";
@@ -13,6 +14,8 @@ import {
 } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
 import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
+
+// #endregion imports
 
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
 type TSNode = TSESTree.TSESTree.Node;
@@ -36,6 +39,10 @@ TypeNodesByIdDecision.finalize(
 
 type IDToNodeSet = ReadonlyMap<string, TSNode[]>
 
+/**
+ * A helper to collect type declarations into an IDToNodeSet.
+ * @see getTypeAliasesByIdentifier below.
+ */
 class TypeNodesToIdentifiers extends ESTreeErrorUnregistered
 {
   readonly map = new DefaultMap<string, TSNode[]>;
@@ -65,10 +72,20 @@ class TypeNodesToIdentifiers extends ESTreeErrorUnregistered
 const NodeToSourceLocationDecision = DecideEnumTraversal.buildTypeDecider();
 NodeToSourceLocationDecision.finalize(Decision.Accept);
 
+/**
+ * A helper to map every TSNode to the source file it came from.
+ * Useful for importing types from other files.
+ */
 class NodeToSourceLocationEnterLeave extends ESTreeErrorUnregistered
 {
   readonly #sourceLocation: string;
   readonly #nodeMap: WeakMap<TSNode, string>;
+
+  /**
+   * @param sourceLocation - The location of the TypeScript file.
+   * @param nodeMap        - A shared WeakMap from MultiFileParser.
+   * @see MultiFileParser.#nodeToSourceLocation
+   */
   constructor(
     sourceLocation: string,
     nodeMap: WeakMap<TSNode, string>,
@@ -94,8 +111,8 @@ class NodeToSourceLocationEnterLeave extends ESTreeErrorUnregistered
 // #endregion nodeToSourceLocation support
 
 export type SourceCode_AST_ScopeManager = {
-  sourceCode: string;
   sourceLocation: string;
+  sourceCode: string;
 } & ASTAndScopeManager;
 
 export default class MultiFileParser
@@ -103,6 +120,13 @@ export default class MultiFileParser
   readonly #project: string;
   readonly #tsconfigRootDir: string;
 
+  /**
+   * 
+   * @param project         - The project directory for TypeScript-ESLint's parser.
+   * @param tsconfigRootDir - The TSConfig root directory for TypeScript-ESLint's parser.
+   *
+   * @see {@link https://github.com/typescript-eslint/typescript-eslint/tree/main/packages/typescript-estree#parseandgenerateservicescode-options}
+   */
   constructor(
     project: string,
     tsconfigRootDir: string,
@@ -115,6 +139,13 @@ export default class MultiFileParser
     this.#tsconfigRootDir = tsconfigRootDir;
   }
 
+  // #region initial parsing of a module
+
+  /**
+   * Get the AST and scope manager for a module.
+   * @param sourceLocation - The location of the module file.
+   * @returns The parsed data.
+   */
   async getSourcesAndAST(
     sourceLocation: string
   ) : Promise<SourceCode_AST_ScopeManager>
@@ -140,6 +171,11 @@ export default class MultiFileParser
 
   #nodeToSourceLocation = new WeakMap<TSNode, string>;
 
+  /**
+   * Get the AST and scope manager for a module.
+   * @param sourceLocation - The location of the module file.
+   * @returns The parsed data.
+   */
   async #parseFile(
     sourceLocation: string
   ) : Promise<SourceCode_AST_ScopeManager>
@@ -152,7 +188,7 @@ export default class MultiFileParser
       tsconfigRootDir: this.#tsconfigRootDir
     });
 
-    MapNodesToScopes({ ast, scopeManager});
+    MapNodesToScopes({ ast, scopeManager });
 
     { // map id's to nodes
       const enterLeave = new TypeNodesToIdentifiers;
@@ -162,7 +198,7 @@ export default class MultiFileParser
       this.#astToIdAndNodeSet.set(ast, enterLeave.map);
     }
 
-    { // mark sources for nodes
+    { // mark source location for nodes
       const enterLeave = new NodeToSourceLocationEnterLeave(
         sourceLocation,
         this.#nodeToSourceLocation
@@ -171,9 +207,22 @@ export default class MultiFileParser
       traversal.traverseEnterAndLeave(ast, enterLeave);
     }
 
-    return { sourceCode, sourceLocation, ast, scopeManager };
+    return {
+      sourceLocation,
+      sourceCode,
+      ast,
+      scopeManager
+    };
   }
 
+  // #endregion initial parsing of a module
+
+  /**
+   * Get a list of type alias references by an identifier's name.
+   * @param root - A program containing the id.
+   * @param id   - The id to look up.
+   * @returns The list of matching nodes, or undefined if there are none.
+   */
   getTypeAliasesByIdentifier(
     root: TSESTree.TSESTree.Program,
     id: string
@@ -182,7 +231,13 @@ export default class MultiFileParser
     return this.#astToIdAndNodeSet.get(root)?.get(id);
   }
 
-  async dereferenceVariable(
+  /**
+   * Get the definitions for a particular type reference.
+   * @param reference      - The type reference to look up.
+   * @param resolveToFinal - True if we should look up `import from` modules.
+   * @returns
+   */
+  async dereferenceIdentifier(
     reference: TSTypeReference,
     resolveToFinal: boolean
   ) : Promise<TSNode[]>
@@ -198,12 +253,15 @@ export default class MultiFileParser
     4. ImportSpecifier and ImportDeclaration
     */
 
+    // Identifier name
     const typeName = reference.typeName;
     if (typeName.type !== "Identifier")
     {
+      // There's one other type, QualifiedName, I think.
       throw new Error("Unexpected typeName.type: " + typeName.type);
     }
 
+    // Find the scope with this variable.
     while (!scope.set.has(typeName.name))
     {
       scope = scope.upper ?? undefined;
@@ -211,11 +269,13 @@ export default class MultiFileParser
         throw new Error("Didn't find a scope for the desired type?");
     }
 
+    // Variable definitions
     const Variable = scope.set.get(typeName.name);
     if (!Variable)
       throw new Error("No variable found?");
     let nodes: TSNode[] = Variable.defs.map(d => d.node) ?? [];
 
+    // Import from another file, if we have to.
     if (resolveToFinal &&
         (nodes.length === 1) &&
         (nodes[0].type === "ImportSpecifier"))
@@ -237,6 +297,11 @@ export default class MultiFileParser
     return nodes;
   }
 
+  /**
+   * Try to find a TypeScript source file matching an import.
+   * @param decl - The import declaration.
+   * @returns The resolved location.
+   */
   async #resolveFileLocation(decl: ImportDeclaration) : Promise<string>
   {
     const sourceLocation = this.#nodeToSourceLocation.get(decl) as string;
