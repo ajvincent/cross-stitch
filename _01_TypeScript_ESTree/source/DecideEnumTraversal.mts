@@ -43,6 +43,11 @@ export default class DecideEnumTraversal<T extends string>
   readonly #setOfKeys: ReadonlySet<T>;
 
   /**
+   * The list of remaining keys.
+   */
+  readonly #remainingKeys: Set<T>;
+
+  /**
    * Decisions not yet committed.  I don't commit directly to #map because a
    * Function filter might throw an exception, which would leave us in an
    * inconsistent state.
@@ -80,6 +85,7 @@ export default class DecideEnumTraversal<T extends string>
       throw new Error("Why do you want to subclass this?");
 
     this.#setOfKeys = new Set(setOfKeys);
+    this.#remainingKeys = new Set(setOfKeys);
     this.decisionMap = this.#map;
   }
 
@@ -88,9 +94,7 @@ export default class DecideEnumTraversal<T extends string>
    */
   get remaining() : T[]
   {
-    return Array.from(this.#setOfKeys).filter(
-      key => !this.#map.has(key)
-    );
+    return Array.from(this.#remainingKeys.values());
   }
 
   /**
@@ -123,9 +127,10 @@ export default class DecideEnumTraversal<T extends string>
     }
 
     // Commit our changes, since the filter didn't throw.
-    this.#pendingMap.forEach(
-      (decision, key) => this.#map.set(key, decision)
-    );
+    this.#pendingMap.forEach((decision, key) => {
+      this.#map.set(key, decision);
+      this.#remainingKeys.delete(key);
+    });
 
     // Clean up.
     const rv = this.#conflictingDecisions;
@@ -144,6 +149,7 @@ export default class DecideEnumTraversal<T extends string>
   {
     const remainingKeys = this.remaining;
     remainingKeys.forEach(key => this.#map.set(key, result));
+    this.#remainingKeys.clear();
   }
 
   /**
