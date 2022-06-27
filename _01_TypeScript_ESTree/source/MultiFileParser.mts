@@ -1,5 +1,7 @@
 import path from "path";
 import fs from "fs/promises";
+import url from "url";
+import { createRequire } from 'module';
 
 import ESTreeParser, { ASTAndScopeManager } from "./ESTreeParser.mjs";
 import { NodeToScopeMap, MapNodesToScopes } from "./MapNodesToScopes.mjs";
@@ -15,6 +17,7 @@ import TSESTree, { AST_NODE_TYPES } from "@typescript-eslint/typescript-estree";
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
 type TSNode = TSESTree.TSESTree.Node;
 type TSTypeReference = TSESTree.TSESTree.TSTypeReference;
+type ImportDeclaration = TSESTree.TSESTree.ImportDeclaration;
 
 // #region getTypeNodesByIdentifier support
 const TypeNodesByIdDecision = DecideEnumTraversal.buildTypeDecider();
@@ -49,6 +52,7 @@ class TypeNodesToIdentifiers extends ESTreeErrorUnregistered
     }
     return true;
   }
+
   leave(n: TSNode) : void
   {
     void(n);
@@ -57,8 +61,41 @@ class TypeNodesToIdentifiers extends ESTreeErrorUnregistered
 
 // #endregion getTypeNodesByIdentifier support
 
+// #region nodeToSourceLocation support
+const NodeToSourceLocationDecision = DecideEnumTraversal.buildTypeDecider();
+NodeToSourceLocationDecision.finalize(Decision.Accept);
+
+class NodeToSourceLocationEnterLeave extends ESTreeErrorUnregistered
+{
+  readonly #sourceLocation: string;
+  readonly #nodeMap: WeakMap<TSNode, string>;
+  constructor(
+    sourceLocation: string,
+    nodeMap: WeakMap<TSNode, string>,
+  )
+  {
+    super();
+    this.#sourceLocation = sourceLocation;
+    this.#nodeMap = nodeMap;
+  }
+
+  enter(n: TSNode) : boolean
+  {
+    this.#nodeMap.set(n, this.#sourceLocation);
+    return true;
+  }
+
+  leave(n: TSNode): void
+  {
+    void(n);
+  }
+}
+
+// #endregion nodeToSourceLocation support
+
 export type SourceCode_AST_ScopeManager = {
-  sourceCode: string
+  sourceCode: string;
+  sourceLocation: string;
 } & ASTAndScopeManager;
 
 export default class MultiFileParser
@@ -101,6 +138,8 @@ export default class MultiFileParser
     IDToNodeSet
   >;
 
+  #nodeToSourceLocation = new WeakMap<TSNode, string>;
+
   async #parseFile(
     sourceLocation: string
   ) : Promise<SourceCode_AST_ScopeManager>
@@ -123,7 +162,16 @@ export default class MultiFileParser
       this.#astToIdAndNodeSet.set(ast, enterLeave.map);
     }
 
-    return { sourceCode, ast, scopeManager };
+    { // mark sources for nodes
+      const enterLeave = new NodeToSourceLocationEnterLeave(
+        sourceLocation,
+        this.#nodeToSourceLocation
+      );
+      const traversal = new ESTreeTraversal(ast, NodeToSourceLocationDecision);
+      traversal.traverseEnterAndLeave(ast, enterLeave);
+    }
+
+    return { sourceCode, sourceLocation, ast, scopeManager };
   }
 
   getTypeAliasesByIdentifier(
@@ -136,7 +184,7 @@ export default class MultiFileParser
 
   async dereferenceVariable(
     reference: TSTypeReference,
-    resolveImports: boolean
+    resolveToFinal: boolean
   ) : Promise<TSNode[]>
   {
     let scope = NodeToScopeMap.get(reference);
@@ -162,14 +210,58 @@ export default class MultiFileParser
       if (!scope)
         throw new Error("Didn't find a scope for the desired type?");
     }
+
     const Variable = scope.set.get(typeName.name);
     if (!Variable)
       throw new Error("No variable found?");
-    const nodes = Variable.defs.map(d => d.node) ?? [];
+    let nodes: TSNode[] = Variable.defs.map(d => d.node) ?? [];
 
-    if (resolveImports) {
-      throw new Error("resolveImports not yet implemented");
+    if (resolveToFinal &&
+        (nodes.length === 1) &&
+        (nodes[0].type === "ImportSpecifier"))
+    {
+      const specifier = nodes[0];
+
+      const decl = specifier.parent as ImportDeclaration;
+      const importedLocation = await this.#resolveFileLocation(decl);
+
+      const { ast: exportedAST } = await this.getSourcesAndAST(importedLocation);
+      const exportedNodes = this.getTypeAliasesByIdentifier(
+        exportedAST, specifier.imported.name
+      );
+      if (!exportedNodes)
+        throw new Error("Couldn't get the exported nodes for " + importedLocation);
+      nodes = exportedNodes;
     }
+
     return nodes;
   }
+
+  async #resolveFileLocation(decl: ImportDeclaration) : Promise<string>
+  {
+    const sourceLocation = this.#nodeToSourceLocation.get(decl) as string;
+    const sourceURL = url.pathToFileURL(sourceLocation);
+    const require = createRequire(sourceURL);
+    const firstOption = require.resolve(decl.source.value);
+
+    if (firstOption !== sourceLocation)
+    {
+      try {
+        const candidate = firstOption.replace(/\.([A-Za-z]*)js$/, ".$1ts");
+        await fs.stat(candidate);
+        return candidate;
+      }
+      catch {
+        // do nothing, this is normal
+      }
+    }
+
+    // Think twice about resolving to @types/node or anywhere else...
+    // After all, why would we want to build a class based on a type we don't own?
+
+    throw new Error("no match found for resolving file location: " + sourceLocation);
+  }
 }
+
+Object.freeze(MultiFileParser);
+Object.freeze(MultiFileParser.prototype);

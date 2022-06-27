@@ -9,6 +9,7 @@ const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 const tsconfigJSON = path.join(parentDir, "tsconfig.json");
 
 const VariableLookupsPath = path.resolve(parentDir, "fixtures/VariableLookups.mts");
+const SimpleStringPath = path.resolve(parentDir, "fixtures/SimpleStringType.mts");
 
 describe("MultiFileParser", () => {
   const parser = new MultiFileParser(
@@ -204,6 +205,41 @@ describe("MultiFileParser", () => {
 
       const dereferenced = await parser.dereferenceVariable(reference, false);
       expect(dereferenced).toEqual(Foo_0_nodes);
+    });
+
+    it("retrieves an imported set of type nodes", async () => {
+      const Foo_0_nodes = parser.getTypeAliasesByIdentifier(
+        astAndSource.ast,
+        "Foo_0"
+      );
+      if (!Foo_0_nodes)
+        return fail("Foo_0 has no import specifier nodes");
+
+      const Foo_1_nodes = parser.getTypeAliasesByIdentifier(
+        astAndSource.ast,
+        "Foo_1"
+      );
+      if (!Foo_1_nodes)
+        return fail("Foo_1 has no type alias nodes");
+      const Foo_1 = Foo_1_nodes[0];
+      if (Foo_1.type !== "TSTypeAliasDeclaration")
+        return fail("Foo_1 has no type alias nodes");
+
+      const reference = Foo_1.typeAnnotation;
+      expect(reference.type).toBe("TSTypeReference");
+      if (reference.type !== "TSTypeReference")
+        return;
+
+      const dereferenced = await parser.dereferenceVariable(reference, true);
+      expect(dereferenced).not.toEqual(Foo_0_nodes);
+
+      const { ast: exportedAST } = await parser.getSourcesAndAST(
+        SimpleStringPath
+      );
+      const exportedNodes = parser.getTypeAliasesByIdentifier(exportedAST, "Foo");
+      expect(exportedNodes).not.toBe(undefined);
+      if (exportedNodes)
+        expect(dereferenced).toEqual(exportedNodes);
     });
   });
 });
