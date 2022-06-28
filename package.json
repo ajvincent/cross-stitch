@@ -11,7 +11,8 @@
     "debug": "node ./build/source/mainWithBuild.mjs debug",
     "build-debug": "node --inspect-brk ./build/source/main.mjs clean stages",
     "all": "node ./build/source/mainWithBuild.mjs clean stages test eslint",
-    "parseTS": "node ./_01_TypeScript_ESTree/source/LoggerCLI.mjs"
+    "parseTS": "node ./_01_TypeScript_ESTree/source/LoggerCLI.mjs",
+    "searchTS": "node ./_01_TypeScript_ESTree/source/TSNodeSearchCLI.mjs"
   },
   "repository": {
     "type": "git",
