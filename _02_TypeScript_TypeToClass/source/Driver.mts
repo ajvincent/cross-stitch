@@ -6,11 +6,9 @@ import TSESTree from "@typescript-eslint/typescript-estree";
 // TSNode is a union of many TSNode types, each with an unique "type" attribute
 type TSNode = TSESTree.TSESTree.Node;
 type Identifier = TSESTree.TSESTree.Identifier;
-type TSTypeReference = TSESTree.TSESTree.TSTypeReference;
 
 import { ClassSources } from "./ClassSources.mjs";
 import { TSFieldIterator, TSFieldIteratorDecider } from "./TSFieldIterator.mjs";
-import type { TSTypeOrInterfaceDeclaration } from "./TSNode_types.mjs";
 
 import {
   DefaultMap
@@ -31,7 +29,7 @@ type TypeToImportAndSource = {
   sourceLocation: string,
   targetImplements: boolean,
 
-  exportedNodes: Set<TSTypeOrInterfaceDeclaration>
+  exportedNodes: Set<TSNode>
 };
 
 export default class Driver {
@@ -201,34 +199,52 @@ export default class Driver {
   ): Promise<void>
   {
     const exportedNodes = Array.from(typeAndSource.exportedNodes);
-    let references: TSTypeOrInterfaceDeclaration[] = [];
+    let references: TSNode[] = Driver.#filterForReferences(exportedNodes);
 
     /* Each pass should replace a reference with an unknown number of other
      * type aliases.  Ultimately, I should be able to eliminate all type
      * references at the top level this way.
      *
      * Note: This is likely throwaway code, as later I'll have to deal with
-     * unions, intersections, and parameterized types containing type
-     * references, for starters.  I have tests, though, so it should be safe to
-     * rewrite in the future.
+     * unions and parameterized types containing type references, for starters.
+     * I have tests, though, so it should be safe to rewrite in the future.
      */
-    do {
-      references = exportedNodes.filter(exportedNode => {
-        if ((exportedNode.type === "TSTypeAliasDeclaration") &&
-            (exportedNode.typeAnnotation.type === "TSTypeReference"))
-          return true;
-        return false;
-      });
 
+    while (references.length) {
       await PromiseAllSequence(
         references,
-        async (referenceNode: TSTypeOrInterfaceDeclaration) => {
-          await this.#replaceOneReference(exportedNodes, referenceNode, true);
+        async (referenceNode: TSNode) => {
+          if (referenceNode.type === "TSTypeAliasDeclaration")
+            referenceNode = referenceNode.typeAnnotation;
+          if ((referenceNode.type === "TSTypeReference") ||
+              (referenceNode.type === "TSIntersectionType")) {
+            await this.#replaceOneReference(exportedNodes, referenceNode, true);
+          }
+          else {
+            throw new Error("assertion failure: unsupported type reference?")
+          }
         }
       );
-    } while (references.length);
+
+      references = Driver.#filterForReferences(exportedNodes);
+    }
 
     typeAndSource.exportedNodes = new Set(exportedNodes);
+  }
+
+  static #filterForReferences(exportedNodes: TSNode[]) : TSNode[]
+  {
+    return exportedNodes.filter(exportedNode => {
+      if (exportedNode.type === "TSTypeAliasDeclaration")
+        exportedNode = exportedNode.typeAnnotation;
+
+      if (exportedNode.type === "TSTypeReference")
+        return true;
+      if (exportedNode.type === "TSIntersectionType")
+        return true;
+
+      return false;
+    });
   }
 
   /**
@@ -239,31 +255,25 @@ export default class Driver {
    * @param mustImport    - True if we should look up an imported type.
    */
   async #replaceOneReference(
-    exportedNodes: TSTypeOrInterfaceDeclaration[],
-    referenceNode: TSTypeOrInterfaceDeclaration,
+    exportedNodes: TSNode[],
+    referenceNode: TSNode,
     mustImport: boolean
   ) : Promise<void>
   {
-    let typeReference: TSTypeReference;
-    if ((referenceNode.type === "TSTypeAliasDeclaration") &&
-        (referenceNode.typeAnnotation.type === "TSTypeReference"))
+    let replacements: TSNode[] = [];
+    if (referenceNode.type === "TSTypeReference")
     {
-      typeReference = referenceNode.typeAnnotation;
+      // The replacements may live in another file.
+      replacements = await this.#parser.dereferenceIdentifier(
+        referenceNode, mustImport
+      );
+    }
+    else if (referenceNode.type === "TSIntersectionType")
+    {
+      replacements = referenceNode.types;
     }
     else {
-      throw new Error("assertion failure: how'd we get a reference node that wasn't a type alias?")
-    }
-
-    // The replacements may live in another file.
-    const replacements = await this.#parser.dereferenceIdentifier(
-      typeReference, mustImport
-    );
-
-    if (!replacements.every(
-      n => (n.type === "TSTypeAliasDeclaration") || (n.type === "TSInterfaceDeclaration")
-    ))
-    {
-      throw new Error("Unexpected: didn't find type aliases for all replacements");
+      throw new Error("assertion failure: unsupported type reference?")
     }
 
     // Do the replacement.  If there are other type references, trust the caller
@@ -271,7 +281,7 @@ export default class Driver {
     exportedNodes.splice(
       exportedNodes.indexOf(referenceNode),
       1,
-      ...(replacements as TSTypeOrInterfaceDeclaration[])
+      ...replacements
     );
   }
 
@@ -291,7 +301,7 @@ export default class Driver {
 
   async #fillClassForTypeNode(
     typeAndSource: TypeToImportAndSource,
-    typeNode: TSTypeOrInterfaceDeclaration
+    typeNode: TSNode
   ) : Promise<void>
   {
     const sourceAndAST = await this.#parser.getSourcesAndASTByNode(typeNode);

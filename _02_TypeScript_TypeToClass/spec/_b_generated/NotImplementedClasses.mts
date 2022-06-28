@@ -298,4 +298,54 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
       () => NST.repeatBack(3, "foo")
     ).toThrowError("not yet implemented");
   });
+
+  it(`NumberStringAndBar.mts expects ["repeatForward", "repeatBack", "repeatBar"]`, async () => {
+    // code generation
+    const nodes = await ExportDefaultFields("NumberStringAndBar.mts");
+
+    expect(nodes.map(n => (n.key as TSESTree.Identifier).name)).toEqual([
+      "repeatForward",
+      "repeatBack",
+      "repeatBar",
+    ]);
+
+    const [repeatForward, repeatBack, repeatBar] = nodes;
+
+    // eslint-disable-next-line
+    expect(repeatForward).toBeMethodDefinition({
+      type: AST_NODE_TYPES.MethodDefinition,
+      static: false,
+      isPrivate: false,
+      kind: "method"
+    });
+
+    // eslint-disable-next-line
+    expect(repeatBack).toBeMethodDefinition({
+      type: AST_NODE_TYPES.MethodDefinition,
+      static: false,
+      isPrivate: false,
+      kind: "method"
+    });
+
+    // eslint-disable-next-line
+    expect(repeatBar).toBeMethodDefinition({
+      type: AST_NODE_TYPES.MethodDefinition,
+      static: false,
+      isPrivate: false,
+      kind: "method"
+    });
+
+    // implementation
+    const NST_Bar_NotImplemented = (await import(path.join(specGeneratedDir, "NST_Bar_NotImplemented.mjs"))).default;
+    const NST = new NST_Bar_NotImplemented;
+    expect(
+      () => NST.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+    expect(
+      () => NST.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+    expect(
+      () => NST.repeatBar(3)
+    ).toThrowError("not yet implemented");
+  });
 });
