@@ -20,7 +20,8 @@ const targetType = process.argv[2];
 if (!(targetType in AST_NODE_TYPES))
   throw new Error("Unknown target type: " + targetType);
 
-const filesParsed: [string, ASTAndScopeManager][] = await (async () => {
+const filesParsed = await (async () : Promise<[string, ASTAndScopeManager][]> =>
+{
   const PROJECT_ROOT = path.resolve(
     url.fileURLToPath(import.meta.url), "../../.."
   );
@@ -60,6 +61,7 @@ class EnterLeaveFile implements ESTreeEnterLeave
 
   enter(n: TSNode) : boolean
   {
+    void(n);
     if (!this.#logged) {
       this.#logged = true;
       console.log(this.#fileName);
