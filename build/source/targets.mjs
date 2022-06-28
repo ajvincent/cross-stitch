@@ -84,7 +84,7 @@ class DirStage {
     }
     async #runTSC() {
         const excludedDirs = new Set(["build", "spec-build", "spec-generated"]);
-        let { files } = await readDirsDeep(this.#dir, localDir => excludedDirs.has(path.basename(localDir)));
+        let { files } = await readDirsDeep(this.#dir, localDir => !excludedDirs.has(path.basename(localDir)));
         files = files.filter(f => {
             return /(?<!\.d)\.mts$/.test(f);
         });
