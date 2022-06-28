@@ -137,6 +137,8 @@ export default class MultiFileParser
 
     this.#project = project;
     this.#tsconfigRootDir = tsconfigRootDir;
+
+    Object.freeze(this);
   }
 
   // #region initial parsing of a module
@@ -231,6 +233,16 @@ export default class MultiFileParser
     return this.#astToIdAndNodeSet.get(root)?.get(id);
   }
 
+  async getSourcesAndASTByNode(
+    node: TSNode
+  ) : Promise<SourceCode_AST_ScopeManager>
+  {
+    const sourceLocation = this.#nodeToSourceLocation.get(node);
+    if (!sourceLocation)
+      throw new Error("No source location for node?  How?")
+    return this.getSourcesAndAST(sourceLocation);
+  }
+
   /**
    * Get the definitions for a particular type reference.
    * @param reference      - The type reference to look up.
@@ -257,7 +269,7 @@ export default class MultiFileParser
     const typeName = reference.typeName;
     if (typeName.type !== "Identifier")
     {
-      // There's one other type, QualifiedName, I think.
+      // There's one other type, TSQualifiedName.
       throw new Error("Unexpected typeName.type: " + typeName.type);
     }
 

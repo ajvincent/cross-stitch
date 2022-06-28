@@ -283,11 +283,18 @@ export default class Driver {
     typeAndSource: TypeToImportAndSource
   ) : Promise<void>
   {
-    const sourceAndAST = await this.#sourceAndAST_Promises.get(
-      typeAndSource.sourceLocation
+    await PromiseAllSequence(
+      Array.from(typeAndSource.exportedNodes),
+      async typeNode => await this.#fillClassForTypeNode(typeAndSource, typeNode)
     );
-    if (!sourceAndAST)
-      throw new Error("assertion failure: we should have tried loading this file");
+  }
+
+  async #fillClassForTypeNode(
+    typeAndSource: TypeToImportAndSource,
+    typeNode: TSTypeOrInterfaceDeclaration
+  ) : Promise<void>
+  {
+    const sourceAndAST = await this.#parser.getSourcesAndASTByNode(typeNode);
 
     // Through the TSFieldIterator, we notify the class sources of each method to implement.
     const traversal = new ESTreeTraversal(
@@ -300,9 +307,7 @@ export default class Driver {
       this.#userConsole
     );
 
-    typeAndSource.exportedNodes.forEach(typeNode => {
-      traversal.traverseEnterAndLeave(typeNode, fieldIterator)
-    });
+    traversal.traverseEnterAndLeave(typeNode, fieldIterator);
 
     // Presumably the caller's class sources have been fully populated.
     // We still need to declare the 'implements' field.

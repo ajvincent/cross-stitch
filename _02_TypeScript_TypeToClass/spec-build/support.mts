@@ -19,6 +19,7 @@ export default async function() : Promise<void>
     buildNST_NotImplemented_Partial(),
     buildTyped(),
     buildHasTypeAttribute(),
+    buildStringNumberType(),
   ]);
 }
 
@@ -155,6 +156,21 @@ async function buildHasTypeAttribute() : Promise<void>
     driver,
     "TypePatterns.mts",
     "HasTypeAttribute"
+  );
+
+  await driver.run();
+}
+
+async function buildStringNumberType() : Promise<void>
+{
+  const driver = buildDriver(
+    "StringNumberType.mts",
+    new ClassSourcesNotImplemented
+  );
+  addFixtureType(
+    driver,
+    "TypePatterns.mts",
+    "StringNumberType"
   );
 
   await driver.run();

@@ -260,4 +260,42 @@ describe(`Generated "not-implemented" classes have correct methods and propertie
       () => void(x.type)
     ).toThrowError("not yet implemented");
   });
+
+  it(`StringNumberType.mts expects ["repeatForward", "repeatBack"]`, async () => {
+    // code generation
+    const nodes = await ExportDefaultFields("StringNumberType.mts");
+
+    expect(nodes.map(n => (n.key as TSESTree.Identifier).name)).toEqual([
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const [repeatForward, repeatBack] = nodes;
+
+    // eslint-disable-next-line
+    expect(repeatForward).toBeMethodDefinition({
+      type: AST_NODE_TYPES.MethodDefinition,
+      static: false,
+      isPrivate: false,
+      kind: "method"
+    });
+
+    // eslint-disable-next-line
+    expect(repeatBack).toBeMethodDefinition({
+      type: AST_NODE_TYPES.MethodDefinition,
+      static: false,
+      isPrivate: false,
+      kind: "method"
+    });
+
+    // implementation
+    const NST_NotImplemented = (await import(path.join(specGeneratedDir, "NST_NotImplemented.mjs"))).default;
+    const NST = new NST_NotImplemented;
+    expect(
+      () => NST.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+    expect(
+      () => NST.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+  });
 });
