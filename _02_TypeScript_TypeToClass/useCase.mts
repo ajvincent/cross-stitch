@@ -19,7 +19,7 @@ type ExtendedObjectType<T extends object, E> = {
     T[K]
 }
 
-type ExtendedNumberStringClass = ExtendedObjectType<NumberStringType, boolean>;
+type ExtendedNumberStringType = ExtendedObjectType<NumberStringType, boolean>;
 /*
 I'm running as a nodejs + npm project.
 How do I ask @typescript-eslint/parser or the typescript compiler API / language service to:
@@ -28,7 +28,7 @@ How do I ask @typescript-eslint/parser or the typescript compiler API / language
 */
 
 // The goal is to generate a stub:
-export default class ENSC implements ExtendedNumberStringClass
+export default class ENSC implements ExtendedNumberStringType
 {
   repeatForward(extra: boolean, s: string, n: number): string {
     void(extra);
@@ -48,4 +48,6 @@ export default class ENSC implements ExtendedNumberStringClass
   {
     throw new Error("not yet implemented");
   }
+
+  // etc.
 }
