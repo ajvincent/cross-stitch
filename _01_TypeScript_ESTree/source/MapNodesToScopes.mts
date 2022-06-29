@@ -6,7 +6,7 @@ type TSNode = TSESTree.TSESTree.Node;
 
 import ESTreeErrorUnregistered from "./ESTreeErrorUnregistered.mjs";
 import DecideEnumTraversal, { Decision } from "./DecideEnumTraversal.mjs";
-import type { ASTAndScopeManager } from "./ESTreeParser.mjs";
+import type { ParseForESLintResult } from "./ESTreeParser.mjs";
 import ESTreeTraversal from "./ESTreeTraversal.mjs";
 
 export const NodeToScopeMap = new WeakMap<TSNode, Scope>;
@@ -49,7 +49,7 @@ class NodeToScopeEnterLeave extends ESTreeErrorUnregistered
 }
 
 export function MapNodesToScopes(
-  astAndScopes: ASTAndScopeManager
+  astAndScopes: ParseForESLintResult
 ) : void
 {
   if (NodeToScopeMap.has(astAndScopes.ast))

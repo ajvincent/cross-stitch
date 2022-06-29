@@ -19,7 +19,7 @@ import {
   SingletonPromise
 } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
 
-import MultiFileParser, { SourceCode_AST_ScopeManager } from "../../_01_TypeScript_ESTree/source/MultiFileParser.mjs";
+import MultiFileParser, { ParseForESLintResult_Sources } from "../../_01_TypeScript_ESTree/source/MultiFileParser.mjs";
 import ESTreeTraversal from "../../_01_TypeScript_ESTree/source/ESTreeTraversal.mjs";
 import IsIdentifier from "../../_01_TypeScript_ESTree/source/IsIdentifier.mjs";
 import { TSExportTypeExtractor, TSExportTypeFilterDecider } from "./TSExportTypeExtractor.mjs";
@@ -108,7 +108,7 @@ export default class Driver {
   }
 
   #typesAndSources: DefaultMap<string, TypeToImportAndSource> = new DefaultMap;
-  #sourceAndAST_Promises: DefaultMap<string, Promise<SourceCode_AST_ScopeManager>> = new DefaultMap;
+  #sourceAndAST_Promises: DefaultMap<string, Promise<ParseForESLintResult_Sources>> = new DefaultMap;
 
   async run() : Promise<void>
   {

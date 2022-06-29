@@ -11,7 +11,7 @@ import {
   PromiseAllParallel, PromiseAllSequence
 } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
 
-import ESTreeParser, { ASTAndScopeManager } from "./ESTreeParser.mjs";
+import ESTreeParser, { ParseForESLintResult } from "./ESTreeParser.mjs";
 import DecideEnumTraversal, { Decision } from "./DecideEnumTraversal.mjs";
 import ESTreeTraversal, { ESTreeEnterLeave } from "./ESTreeTraversal.mjs";
 
@@ -20,7 +20,7 @@ const targetType = process.argv[2];
 if (!(targetType in AST_NODE_TYPES))
   throw new Error("Unknown target type: " + targetType);
 
-const filesParsed = await (async () : Promise<[string, ASTAndScopeManager][]> =>
+const filesParsed = await (async () : Promise<[string, ParseForESLintResult][]> =>
 {
   const PROJECT_ROOT = path.resolve(
     url.fileURLToPath(import.meta.url), "../../.."

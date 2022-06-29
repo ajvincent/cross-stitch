@@ -4,7 +4,7 @@ import fs from "fs/promises";
 import url from "url";
 import { createRequire } from 'module';
 
-import ESTreeParser, { ASTAndScopeManager } from "./ESTreeParser.mjs";
+import ESTreeParser, { ParseForESLintResult } from "./ESTreeParser.mjs";
 import { NodeToScopeMap, MapNodesToScopes } from "./MapNodesToScopes.mjs";
 import DecideEnumTraversal, { Decision } from "./DecideEnumTraversal.mjs";
 import ESTreeTraversal from "./ESTreeTraversal.mjs";
@@ -110,10 +110,10 @@ class NodeToSourceLocationEnterLeave extends ESTreeErrorUnregistered
 
 // #endregion nodeToSourceLocation support
 
-export type SourceCode_AST_ScopeManager = {
+export type ParseForESLintResult_Sources = {
   sourceLocation: string;
   sourceCode: string;
-} & ASTAndScopeManager;
+} & ParseForESLintResult;
 
 export default class MultiFileParser
 {
@@ -150,7 +150,7 @@ export default class MultiFileParser
    */
   async getSourcesAndAST(
     sourceLocation: string
-  ) : Promise<SourceCode_AST_ScopeManager>
+  ) : Promise<ParseForESLintResult_Sources>
   {
     sourceLocation = path.normalize(path.resolve(
       process.cwd(), sourceLocation
@@ -163,7 +163,7 @@ export default class MultiFileParser
 
   #sourceAndAST_Promises: DefaultMap<
     string,
-    Promise<SourceCode_AST_ScopeManager>
+    Promise<ParseForESLintResult_Sources>
   > = new DefaultMap;
 
   #astToIdAndNodeSet = new WeakMap<
@@ -180,17 +180,18 @@ export default class MultiFileParser
    */
   async #parseFile(
     sourceLocation: string
-  ) : Promise<SourceCode_AST_ScopeManager>
+  ) : Promise<ParseForESLintResult_Sources>
   {
     const sourceCode = await fs.readFile(sourceLocation, { encoding: "utf-8" });
 
-    const { ast, scopeManager } = ESTreeParser(sourceCode, {
+    const result = ESTreeParser(sourceCode, {
       filePath: sourceLocation,
       project: this.#project,
       tsconfigRootDir: this.#tsconfigRootDir
     });
+    const {ast} = result;
 
-    MapNodesToScopes({ ast, scopeManager });
+    MapNodesToScopes(result);
 
     { // map id's to nodes
       const enterLeave = new TypeNodesToIdentifiers;
@@ -212,8 +213,7 @@ export default class MultiFileParser
     return {
       sourceLocation,
       sourceCode,
-      ast,
-      scopeManager
+      ...result
     };
   }
 
@@ -235,7 +235,7 @@ export default class MultiFileParser
 
   async getSourcesAndASTByNode(
     node: TSNode
-  ) : Promise<SourceCode_AST_ScopeManager>
+  ) : Promise<ParseForESLintResult_Sources>
   {
     const sourceLocation = this.#nodeToSourceLocation.get(node);
     if (!sourceLocation)

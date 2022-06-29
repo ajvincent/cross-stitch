@@ -1,5 +1,5 @@
 import MultiFileParser, {
-  SourceCode_AST_ScopeManager
+  ParseForESLintResult_Sources
 } from "../source/MultiFileParser.mjs";
 
 import path from "path";
@@ -16,7 +16,7 @@ describe("MultiFileParser", () => {
     tsconfigJSON,
     parentDir
   );
-  let astAndSource: SourceCode_AST_ScopeManager;
+  let astAndSource: ParseForESLintResult_Sources;
   beforeAll(async () => {
     astAndSource = await parser.getSourcesAndAST(
       VariableLookupsPath

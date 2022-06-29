@@ -21,20 +21,19 @@ const DEFAULT_PARSE_OPTIONS: ParserOptions = {
   ecmaVersion: "latest",
 };
 
-export type ASTAndScopeManager = Pick<ReturnType<typeof parseForESLint>, "ast" | "scopeManager">
+export type ParseForESLintResult = ReturnType<typeof parseForESLint>;
 
 export default function ESTreeParser(
   contents: string,
   parseOptionsOverride: Partial<ParserOptions> = {}
-) : ASTAndScopeManager
+) : ParseForESLintResult
 {
   const options = {};
   Object.assign(options, DEFAULT_PARSE_OPTIONS);
   Object.assign(options, parseOptionsOverride);
 
-  const {ast, scopeManager} = parseForESLint(
+  return parseForESLint(
     contents,
     options
   );
-  return {ast, scopeManager};
 }
