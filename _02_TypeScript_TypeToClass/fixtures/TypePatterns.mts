@@ -33,5 +33,7 @@ export type NST_Keys = {
   [P in keyof NumberStringType]: P
 }
 
-// Built-in parameterized type
+// Built-in parameterized types
 export type RepeatForwardType = Pick<NumberStringType, "repeatForward">;
+
+export type NumberStringExcludesBar = Exclude<NumberStringOrBar, Bar>;
