@@ -5,7 +5,10 @@ import url from "url";
 
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 
-import TypeToClass from "../source/TypeToClass.mjs";
+import TypeToClass, {
+  FieldDeclaration
+} from "../source/TypeToClass.mjs";
+import { PromiseAllParallel } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
 
 export default async function() : Promise<void>
 {
@@ -29,50 +32,79 @@ export default async function() : Promise<void>
   const fixturesDir = project.getDirectoryOrThrow(path.join(parentDir, "fixtures"));
   const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated"));
 
-  await buildNumberStringClass(fixturesDir, generatedDir);
+  await PromiseAllParallel([
+    buildNumberStringTypeClass,
+    buildNumberStringInterfaceClass
+  ], callback => callback(fixturesDir, generatedDir));
 }
 
-async function buildNumberStringClass(
+const notImplemented = `throw new Error("not yet implemented");`;
+function notImplementedCallback
+(
+  classNode: ts.ClassDeclaration,
+  propertyName: string | symbol,
+  propertyNode: FieldDeclaration,
+) : boolean
+{
+  if (ts.Node.isMethodDeclaration(propertyNode)) {
+    propertyNode.addStatements(notImplemented)
+  }
+  else {
+    propertyNode.remove();
+    if (typeof propertyName === "symbol")
+      throw new Error("unexpected symbol property name");
+    classNode.addGetAccessor({
+      name: propertyName,
+      statements: notImplemented
+    });
+    classNode.addSetAccessor({
+      name: propertyName,
+      statements: notImplemented
+    });
+  }
+
+  return true;
+}
+
+async function buildNumberStringTypeClass(
   fixturesDir: ts.Directory,
   generatedDir: ts.Directory
 ) : Promise<void>
 {
+  const srcFile = fixturesDir.addSourceFileAtPath("NumberStringType.mts");
   const destFile = generatedDir.createSourceFile("NumberStringTypeClass.mts");
-  const srcFile = fixturesDir.getSourceFileOrThrow("NumberStringType.mts");
-
-  const notImplemented = `throw new Error("not yet implemented");`;
 
   const TTC = new TypeToClass(
     destFile,
     "NumberStringTypeClass",
-    (
-      classNode, propertyName, propertyNode
-    ) : boolean =>
-    {
-      if (ts.Node.isMethodDeclaration(propertyNode)) {
-        propertyNode.addStatements(notImplemented)
-      }
-      else {
-        propertyNode.remove();
-        if (typeof propertyName === "symbol")
-          throw new Error("unexpected symbol property name");
-        classNode.addGetAccessor({
-          name: propertyName,
-          statements: notImplemented
-        });
-        classNode.addSetAccessor({
-          name: propertyName,
-          statements: notImplemented
-        });
-      }
-
-      return true;
-    }
+    notImplementedCallback
   );
 
   TTC.addType(
     srcFile,
     "NumberStringType",
+  );
+
+  await destFile.save();
+}
+
+async function buildNumberStringInterfaceClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("NumberStringInterface.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringInterfaceClass.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "NumberStringInterfaceClass",
+    notImplementedCallback
+  );
+
+  TTC.addType(
+    srcFile,
+    "NumberStringInterface",
   );
 
   await destFile.save();

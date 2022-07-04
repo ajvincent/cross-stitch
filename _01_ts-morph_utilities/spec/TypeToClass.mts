@@ -28,4 +28,22 @@ describe("TypeToClass supports", () => {
       () => instance.repeatBack(3, "foo")
     ).toThrowError("not yet implemented");
   });
+
+  it("interface split across two declarations", async () => {
+    const NSTC = await getModuleDefault<[], NumberStringType>("NumberStringInterfaceClass.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+  });
 });

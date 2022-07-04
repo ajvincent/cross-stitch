@@ -1,7 +1,7 @@
 import ts from "ts-morph";
 
 type InterfaceOrTypeAlias = ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
-type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
+export type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
 
 type TypeToClassCallback = (
   classNode: ts.ClassDeclaration,

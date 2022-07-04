@@ -3,7 +3,7 @@
 ## TypeToClass Checklist
 
 - [x] Type alias to literal
-- [ ] Interface split across two declarations
+- [x] Interface split across two declarations
 - [ ] Multiple types on implementation
 - [ ] Partial type implementation
 - [ ] Imported & re-exported type
