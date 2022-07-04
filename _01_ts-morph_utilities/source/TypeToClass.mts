@@ -203,6 +203,7 @@ export default class TypeToClass
     allProperties.add(name);
   
     let propertyNode: FieldDeclaration
+
     if (isMethod) {
       const childStructure = child.getStructure();
       propertyNode = this.#targetClass.addMethod({
@@ -213,8 +214,10 @@ export default class TypeToClass
       });
     }
     else {
+      const childStructure = child.getStructure();
       propertyNode = this.#targetClass.addProperty({
-        name
+        name,
+        type: childStructure.type
       });
     }
 
@@ -235,7 +238,10 @@ export default class TypeToClass
     fieldName: string
   ) : void
   {
-    const method = this.#targetClass.getInstanceMethod(fieldName);
+    type MethodType = ts.MethodDeclaration | ts.SetAccessorDeclaration;
+    let method: MethodType | undefined = this.#targetClass.getInstanceMethod(fieldName);
+    if (!method)
+      method = this.#targetClass.getSetAccessor(fieldName);
     if (!method)
       return;
   
@@ -250,7 +256,7 @@ export default class TypeToClass
     parameters.forEach(p => {
       const id = p.getName();
       if (!found.has(id)) {
-        method.insertStatements(0, `void(${id});`);
+        (method as MethodType).insertStatements(0, `void(${id});`);
       }
     });
   }

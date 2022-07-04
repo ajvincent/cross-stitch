@@ -34,8 +34,11 @@ export default async function() : Promise<void>
 
   await PromiseAllParallel([
     buildNumberStringTypeClass,
-    buildNumberStringInterfaceClass
+    buildNumberStringInterfaceClass,
+    buildIsTypedNST
   ], callback => callback(fixturesDir, generatedDir));
+
+  //await buildIsTypedNST(fixturesDir, generatedDir);
 }
 
 const notImplemented = `throw new Error("not yet implemented");`;
@@ -50,15 +53,24 @@ function notImplementedCallback
     propertyNode.addStatements(notImplemented)
   }
   else {
+    const returnType = propertyNode.getTypeNodeOrThrow().getText();
+
     propertyNode.remove();
     if (typeof propertyName === "symbol")
       throw new Error("unexpected symbol property name");
+
     classNode.addGetAccessor({
       name: propertyName,
-      statements: notImplemented
+      statements: notImplemented,
+      returnType,
     });
+
     classNode.addSetAccessor({
       name: propertyName,
+      parameters: [{
+        name: "value",
+        type: returnType
+      }],
       statements: notImplemented
     });
   }
@@ -105,6 +117,28 @@ async function buildNumberStringInterfaceClass(
   TTC.addType(
     srcFile,
     "NumberStringInterface",
+  );
+
+  await destFile.save();
+}
+
+async function buildIsTypedNST(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  const destFile = generatedDir.createSourceFile("IsTypedNST.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "HasTypeString",
+    notImplementedCallback
+  );
+
+  TTC.addType(
+    srcFile,
+    "IsTypedNST",
   );
 
   await destFile.save();
