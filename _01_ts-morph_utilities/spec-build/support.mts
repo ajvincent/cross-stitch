@@ -39,6 +39,7 @@ export default async function() : Promise<void>
     buildNumberStringWithTypeClass,
     buildPartialType,
     buildStringNumberTypeClass,
+    buildIsTypedNSTWithConstructor,
   ], callback => callback(fixturesDir, generatedDir));
 
   //await buildIsTypedNST(fixturesDir, generatedDir);
@@ -224,6 +225,60 @@ async function buildStringNumberTypeClass(
   TTC.addType(
     srcFile,
     "StringNumberType",
+  );
+
+  await destFile.save();
+}
+
+async function buildIsTypedNSTWithConstructor(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  const destFile = generatedDir.createSourceFile("IsTypedNSTWithConstructor.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "HasTypeString",
+    (
+      classNode: ts.ClassDeclaration,
+      propertyName: string | symbol,
+      propertyNode: FieldDeclaration,
+    ) : boolean =>
+    {
+      if (ts.Node.isMethodDeclaration(propertyNode)) {
+        return notImplementedCallback(
+          classNode,
+          propertyName,
+          propertyNode
+        );
+      }
+
+      const ctors = classNode.getConstructors();
+      let targetCtor: ts.ConstructorDeclaration;
+      if (!ctors.length) {
+        targetCtor = classNode.addConstructor();
+      }
+      else {
+        targetCtor = ctors[0];
+      }
+
+      if (propertyName !== "type")
+        throw new Error("unexpected property name: " + propertyName.toString());
+
+      const returnType = propertyNode.getTypeNodeOrThrow().getText();
+      if (returnType !== "string")
+        throw new Error("unexpected property type: " + returnType);
+
+      targetCtor.addStatements(`this.type = "foo";`);
+      return true;
+    }
+  );
+
+  TTC.addType(
+    srcFile,
+    "IsTypedNST",
   );
 
   await destFile.save();
