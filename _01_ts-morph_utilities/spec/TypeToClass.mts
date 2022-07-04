@@ -87,4 +87,20 @@ describe("TypeToClass supports", () => {
       () => instance.type
     ).toThrowError("not yet implemented");
   });
+
+  it("partial type implementation", async () => {
+    const NSTC = await getModuleDefault<
+      [], Pick<NumberStringType, "repeatForward">
+    >("NumberStringPartial.mjs");
+
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+  });
 });

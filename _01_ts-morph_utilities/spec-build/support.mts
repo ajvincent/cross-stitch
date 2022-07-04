@@ -37,6 +37,7 @@ export default async function() : Promise<void>
     buildNumberStringInterfaceClass,
     buildIsTypedNST,
     buildNumberStringWithTypeClass,
+    buildPartialType,
   ], callback => callback(fixturesDir, generatedDir));
 
   //await buildIsTypedNST(fixturesDir, generatedDir);
@@ -168,6 +169,38 @@ async function buildNumberStringWithTypeClass(
   TTC.addType(
     srcFile,
     "IsTypedNST"
+  );
+
+  await destFile.save();
+}
+
+async function buildPartialType(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("NumberStringType.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringPartial.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "PartialType",
+
+    function(
+      classNode: ts.ClassDeclaration,
+      propertyName: string | symbol,
+      propertyNode: FieldDeclaration,
+    ) : boolean
+    {
+      if (propertyName === "repeatBack")
+        return false;
+      return notImplementedCallback(classNode, propertyName, propertyNode);
+    }
+  );
+
+  TTC.addType(
+    srcFile,
+    "NumberStringType",
   );
 
   await destFile.save();
