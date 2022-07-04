@@ -23,6 +23,7 @@ export type Bar = {
 export type StringNumberType = NumberStringType;
 
 // Referenced type, intersection
+export type NumberStringAndType = NumberStringType & IsTypedNST;
 export type NumberStringAndBar = NumberStringType & Bar;
 
 // Referenced type, union

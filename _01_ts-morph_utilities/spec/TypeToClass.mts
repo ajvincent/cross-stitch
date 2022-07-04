@@ -1,7 +1,10 @@
 //const specGeneratedDir = path.resolve(url.fileURLToPath(import.meta.url), "../../spec-generated");
 
 import { NumberStringType } from "../fixtures/NumberStringType.mjs";
-import { IsTypedNST } from "../fixtures/TypePatterns.mjs";
+import {
+  IsTypedNST,
+  NumberStringAndType,
+} from "../fixtures/TypePatterns.mjs";
 
 describe("TypeToClass supports", () => {
   // Required because a completely resolved URI at build time doesn't exist.
@@ -56,6 +59,30 @@ describe("TypeToClass supports", () => {
     ]);
 
     const instance = new TypedClass;
+    expect(
+      () => instance.type
+    ).toThrowError("not yet implemented");
+  });
+
+  it(`multiple types on implementation`, async () => {
+    const TypedClass = await getModuleDefault<[], NumberStringAndType>("NumberStringAndTypeClass.mjs");
+    expect(Reflect.ownKeys(TypedClass.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+      "type",
+    ]);
+
+    const instance = new TypedClass;
+
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+
     expect(
       () => instance.type
     ).toThrowError("not yet implemented");

@@ -35,7 +35,8 @@ export default async function() : Promise<void>
   await PromiseAllParallel([
     buildNumberStringTypeClass,
     buildNumberStringInterfaceClass,
-    buildIsTypedNST
+    buildIsTypedNST,
+    buildNumberStringWithTypeClass,
   ], callback => callback(fixturesDir, generatedDir));
 
   //await buildIsTypedNST(fixturesDir, generatedDir);
@@ -139,6 +140,34 @@ async function buildIsTypedNST(
   TTC.addType(
     srcFile,
     "IsTypedNST",
+  );
+
+  await destFile.save();
+}
+
+async function buildNumberStringWithTypeClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  let srcFile = fixturesDir.addSourceFileAtPath("NumberStringType.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringAndTypeClass.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "NumberStringTypeClass",
+    notImplementedCallback
+  );
+
+  TTC.addType(
+    srcFile,
+    "NumberStringType",
+  );
+
+  srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  TTC.addType(
+    srcFile,
+    "IsTypedNST"
   );
 
   await destFile.save();
