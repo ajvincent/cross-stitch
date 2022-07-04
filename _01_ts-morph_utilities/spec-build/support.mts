@@ -29,7 +29,7 @@ export default async function() : Promise<void>
   const fixturesDir = project.getDirectoryOrThrow(path.join(parentDir, "fixtures"));
   const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated"));
 
-  //await buildNumberStringClass(fixturesDir, generatedDir);
+  await buildNumberStringClass(fixturesDir, generatedDir);
 }
 
 async function buildNumberStringClass(
@@ -37,19 +37,18 @@ async function buildNumberStringClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const destFile = generatedDir.createSourceFile("NumberStringClass.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringTypeClass.mts");
   const srcFile = fixturesDir.getSourceFileOrThrow("NumberStringType.mts");
-  const NumberStringType_Node = srcFile.getInterfaceOrThrow("NumberStringType");
 
   const notImplemented = `throw new Error("not yet implemented");`;
 
-  await TypeToClass(
-    "NumberStringClass",
+  const TTC = new TypeToClass(
     destFile,
-    [NumberStringType_Node],
+    "NumberStringTypeClass",
     (
       classNode, propertyName, propertyNode
-    ) : boolean => {
+    ) : boolean =>
+    {
       if (ts.Node.isMethodDeclaration(propertyNode)) {
         propertyNode.addStatements(notImplemented)
       }
@@ -70,8 +69,14 @@ async function buildNumberStringClass(
       return true;
     }
   );
+
+  TTC.addType(
+    srcFile,
+    "NumberStringType",
+  );
+
+  await destFile.save();
 }
-void(buildNumberStringClass);
 
 // #region garbage
 class InterfaceMap extends Map<string, ts.InterfaceDeclaration | ts.TypeAliasDeclaration | null>
