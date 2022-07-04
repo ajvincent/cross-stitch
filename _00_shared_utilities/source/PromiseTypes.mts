@@ -37,6 +37,19 @@ export async function TimeoutPromise(delay = 5000) : Promise<never>
   throw new Error("Time limit expired");
 }
 
+export async function Invert(p: Promise<unknown>) : Promise<unknown>
+{
+  try {
+    await p;
+  }
+  catch (ex) {
+    return ex;
+  }
+
+  throw new Error("Promise resolved when we didn't expect it to!");
+}
+
+
 export class SingletonPromise<T>
 {
   #resolve: PromiseResolver<void>;
