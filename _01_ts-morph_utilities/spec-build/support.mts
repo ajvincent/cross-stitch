@@ -29,7 +29,7 @@ export default async function() : Promise<void>
   const fixturesDir = project.getDirectoryOrThrow(path.join(parentDir, "fixtures"));
   const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated"));
 
-  await buildNumberStringClass(fixturesDir, generatedDir);
+  //await buildNumberStringClass(fixturesDir, generatedDir);
 }
 
 async function buildNumberStringClass(
@@ -71,6 +71,7 @@ async function buildNumberStringClass(
     }
   );
 }
+void(buildNumberStringClass);
 
 // #region garbage
 class InterfaceMap extends Map<string, ts.InterfaceDeclaration | ts.TypeAliasDeclaration | null>
