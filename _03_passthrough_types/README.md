@@ -417,7 +417,7 @@ This is a __lot__ of boilerplate code.  No one wants to write that by hand, espe
 
 But... if we can parse the original type ourselves into an abstract syntax tree, we should be able to walk that tree and generate this code automatically.  Then we simply ask TypeScript to transpile it at a later stage in our build.
 
-So... [let's do](../_01_TypeScript_ESTree/) [exactly that.](../_02_TypeScript_TypeToClass/)
+So... [let's do exactly that.](../_01_ts-morph_utilities/)
 
 ## Decorators implementing aspects
 
