@@ -38,6 +38,7 @@ export default async function() : Promise<void>
     buildIsTypedNST,
     buildNumberStringWithTypeClass,
     buildPartialType,
+    buildStringNumberTypeClass,
   ], callback => callback(fixturesDir, generatedDir));
 
   //await buildIsTypedNST(fixturesDir, generatedDir);
@@ -206,111 +207,24 @@ async function buildPartialType(
   await destFile.save();
 }
 
-// #region garbage
-class InterfaceMap extends Map<string, ts.InterfaceDeclaration | ts.TypeAliasDeclaration | null>
+async function buildStringNumberTypeClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
 {
-  #sourceFile: ts.SourceFile;
-  constructor(sourceFile: ts.SourceFile)
-  {
-    super();
-    this.#sourceFile = sourceFile;
-  }
+  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  const destFile = generatedDir.createSourceFile("StringNumberTypeClass.mts");
 
-  #getNode(name: string) : ts.InterfaceDeclaration | ts.TypeAliasDeclaration
-  {
-    const interfaceDecl = this.#sourceFile.getInterface(name);
-    if (interfaceDecl)
-      return interfaceDecl;
-  
-    return this.#sourceFile.getTypeAliasOrThrow(name);
-  }
-
-  getInterface(name: string) : ts.InterfaceDeclaration | ts.TypeAliasDeclaration
-  {
-    if (!this.has(name)) {
-      this.set(name, this.#getNode(name));
-    }
-
-    return this.get(name) as ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
-  }
-}
-
-class TypeMap extends Map<string, ts.Type>
-{
-  #interfaceMap: InterfaceMap;
-  constructor(interfaceMap: InterfaceMap) {
-    super();
-    this.#interfaceMap = interfaceMap;
-  }
-
-  getType(name: string): ts.Type {
-    return this.#interfaceMap.getInterface(name).getType();
-  }
-}
-
-async function foo() : Promise<void>
-{
-  const project = new ts.Project({
-    compilerOptions: {
-      lib: ["es2021"],
-      target: ts.ScriptTarget.ES2022,
-      module: ts.ModuleKind.ES2022,
-      moduleResolution: ts.ModuleResolutionKind.Node16,
-      sourceMap: true,
-      declaration: true,
-      strict: true,
-      esModuleInterop: true,
-      skipLibCheck: true,
-      forceConsistentCasingInFileNames: true,
-    }
-  });
-
-  const useCase = project.addSourceFileAtPath(path.join(parentDir, "useCase.mts"));
-  //console.log(useCase.getStructure());
-
-  const interfaceMap = new InterfaceMap(useCase);
-  const typeMap = new TypeMap(interfaceMap)
-
-  const Nodes = {
-    ExtendedNumberStringType: interfaceMap.getInterface("ExtendedNumberStringType"),
-    ExtendedObjectType: interfaceMap.getInterface("ExtendedObjectType"),
-    NumberStringType: interfaceMap.getInterface("NumberStringType"),
-  };
-  void(Nodes);
-
-  const Types = {
-    ExtendedNumberStringType: typeMap.getType("ExtendedNumberStringType"),
-    ExtendedObjectType: typeMap.getType("ExtendedObjectType"),
-    NumberStringType: typeMap.getType("NumberStringType"),
-  }
-  void(Types);
-
-  // eslint-disable-next-line no-debugger
-  debugger;
-
-  const markup = Types.ExtendedNumberStringType.getText(
-    Nodes.ExtendedNumberStringType
+  const TTC = new TypeToClass(
+    destFile,
+    "StringNumberTypeClass",
+    notImplementedCallback
   );
-  console.log(markup);
 
-  // eslint-disable-next-line no-debugger
-  debugger;
+  TTC.addType(
+    srcFile,
+    "StringNumberType",
+  );
 
-  /*
-  const repeatForwardExtended = Types.ExtendedNumberStringType.getPropertyOrThrow("repeatForward")
-                                     .getTypeAtLocation(Nodes.ExtendedNumberStringType);
-  console.log(repeatForwardExtended.getText());
-
-  const repeatForwardSignatures = repeatForwardExtended.getCallSignatures();
-  */
-
-  //console.log(sourceType);
-
-  const targetFile = project.createSourceFile(path.join(parentDir, "spec-generated/junk.mts"), `
-import type { ExtendedNumberStringType } from "../useCase.mjs";
-  `.trim() + "\n");
-  await targetFile.save();
+  await destFile.save();
 }
-
-void(foo);
-// #endregion garbage
