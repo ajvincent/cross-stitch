@@ -134,4 +134,28 @@ describe("TypeToClass supports", () => {
     ]);
     expect(instance.type).toBe("foo");
   });
+
+  it(`intersection of a referenced type`, async () => {
+    const TypedClass = await getModuleDefault<[], NumberStringAndType>("NumberStringAndTypeClass.mjs");
+    expect(Reflect.ownKeys(TypedClass.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+      "type",
+    ]);
+
+    const instance = new TypedClass;
+
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.type
+    ).toThrowError("not yet implemented");
+  });
 });

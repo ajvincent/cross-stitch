@@ -180,8 +180,8 @@ export default class TypeToClass
     const pos = this.#targetClass.getEnd() - 1;
     this.#targetClass.insertText(
       pos,
-      "  " + text + (
-        addBlock ? "\n  {\n  }" : ""
+      "    " + text + (
+        addBlock ? "\n    {\n    }" : ""
       ) + "\n\n"
       /*
       this.#writer.writeLine(text).toString() + (
