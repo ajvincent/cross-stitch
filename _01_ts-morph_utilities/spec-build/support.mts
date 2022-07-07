@@ -103,7 +103,7 @@ async function buildNumberStringTypeClass(
     notImplementedCallback
   );
 
-  TTC.addType(
+  TTC.addTypeAliasOrInterface(
     srcFile,
     "NumberStringType",
   );
@@ -125,7 +125,7 @@ async function buildNumberStringInterfaceClass(
     notImplementedCallback
   );
 
-  TTC.addType(
+  TTC.addTypeAliasOrInterface(
     srcFile,
     "NumberStringInterface",
   );
@@ -155,13 +155,13 @@ async function buildNumberStringWithTypeClass(
     notImplementedCallback
   );
 
-  TTC.addType(
+  TTC.addTypeAliasOrInterface(
     srcFile,
     "NumberStringType",
   );
 
   srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  TTC.addType(
+  TTC.addTypeAliasOrInterface(
     srcFile,
     "IsTypedNST"
   );
@@ -193,7 +193,7 @@ async function buildPartialType(
     }
   );
 
-  TTC.addType(
+  TTC.addTypeAliasOrInterface(
     srcFile,
     "NumberStringType",
   );
@@ -260,7 +260,7 @@ async function buildIsTypedNSTWithConstructor(
     }
   );
 
-  TTC.addType(
+  TTC.addTypeAliasOrInterface(
     srcFile,
     "IsTypedNST",
   );
@@ -297,7 +297,7 @@ async function throwNumberStringOrBar(
 
   let pass = false;
   try {
-    TTC.addType(
+    TTC.addTypeAliasOrInterface(
       srcFile,
       "NumberStringOrBar",
     );
@@ -407,7 +407,7 @@ async function buildNumberStringAndSymbolClass(
   );
 
 
-  TTC.addType(
+  TTC.addTypeAliasOrInterface(
     srcFile,
     "NumberStringAndSymbol",
   );
@@ -431,7 +431,7 @@ async function buildSingleTypePattern(
     notImplementedCallback
   );
 
-  TTC.addType(
+  TTC.addTypeAliasOrInterface(
     srcFile,
     typeName,
   );

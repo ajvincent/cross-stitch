@@ -61,7 +61,7 @@ export default class TypeToClass
    * @param sourceFile - The source file.
    * @param typeName   - The type to extract.
    */
-  addType(
+  addTypeAliasOrInterface(
     sourceFile: ts.SourceFile,
     typeName: string
   ) : void
