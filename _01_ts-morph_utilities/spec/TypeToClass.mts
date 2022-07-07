@@ -241,4 +241,22 @@ describe("TypeToClass supports", () => {
       () => instance.repeatBack(3, "foo")
     ).toThrowError("not yet implemented");
   });
+
+  it("mapped type", async () => {
+    const NSTC = await getModuleDefault<[], NumberStringExcludesBar>("NST_Keys_Class.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack
+    ).toThrowError("not yet implemented");
+  });
 });
