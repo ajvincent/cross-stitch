@@ -406,7 +406,6 @@ async function buildNumberStringAndSymbolClass(
     notImplementedCallback
   );
 
-
   TTC.addTypeAliasOrInterface(
     srcFile,
     "NumberStringAndSymbol",
