@@ -143,7 +143,11 @@ export default class TypeToClass
   ) : void
   {
     const typeAtNode = property.getTypeAtLocation(firstTypeNode);
-    const name = property.getName();
+
+    // Symbol keys appear at the end of the fully qualified name.
+    const fullName = property.getFullyQualifiedName();
+    const name = fullName.substring(fullName.lastIndexOf(".") + 1);
+
     let text: string = typeAtNode.getText(
       undefined,
       ts.TypeFormatFlags.NoTruncation |
@@ -275,5 +279,7 @@ export default class TypeToClass
     else {
       decl.addNamedImport(typeName);
     }
+
+    this.#destFile.fixMissingImports();
   }
 }

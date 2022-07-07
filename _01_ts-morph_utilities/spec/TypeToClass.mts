@@ -10,6 +10,8 @@ import {
   NumberStringExcludesBar,
   NumberStringFoo,
   UnionArgument,
+  SymbolTypeKey,
+  NumberStringAndSymbol,
 } from "../fixtures/TypePatterns.mjs";
 
 describe("TypeToClass supports", () => {
@@ -280,6 +282,29 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+  });
+
+  it("symbol key in type", async () => {
+    const NSTC = await getModuleDefault<[], NumberStringAndSymbol>("NumberStringAndSymbolClass.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+      SymbolTypeKey,
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance[SymbolTypeKey]
     ).toThrowError("not yet implemented");
   });
 });

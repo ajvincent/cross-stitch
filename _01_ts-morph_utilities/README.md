@@ -17,4 +17,4 @@
 - [x] Parameterized type
 - [x] Mapped type
 - [x] Conditional type
-- [ ] Symbol key in type
+- [x] Symbol key in type

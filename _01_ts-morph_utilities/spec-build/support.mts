@@ -48,6 +48,7 @@ export default async function() : Promise<void>
     buildNumberStringConditionalClass,
   ], callback => callback(fixturesDir, generatedDir));
 
+  await buildNumberStringAndSymbolClass(fixturesDir, generatedDir);
   //await buildIsTypedNST(fixturesDir, generatedDir);
 }
 
@@ -389,6 +390,29 @@ async function buildNumberStringConditionalClass(
     "NumberStringConditionalClass.mts",
     "NumberStringConditional"
   );
+}
+
+async function buildNumberStringAndSymbolClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringAndSymbolClass.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "NumberStringClass",
+    notImplementedCallback
+  );
+
+
+  TTC.addType(
+    srcFile,
+    "NumberStringAndSymbol",
+  );
+
+  await destFile.save();
 }
 
 async function buildSingleTypePattern(

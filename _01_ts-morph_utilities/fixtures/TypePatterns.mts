@@ -53,3 +53,10 @@ export type NST_Keys = {
 export type RepeatForwardType = Pick<NumberStringType, "repeatForward">;
 
 export type NumberStringExcludesBar = Exclude<NumberStringOrBar, Bar>;
+
+// symbol key
+export const SymbolTypeKey = Symbol("type");
+
+export type NumberStringAndSymbol = NumberStringType & {
+  [SymbolTypeKey]: boolean;
+}
