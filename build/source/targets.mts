@@ -305,6 +305,17 @@ class DirStage
   target.addTask(async () => await runModule("./node_modules/jasmine/bin/jasmine.js", [], ["--inspect-brk"]));
 }
 
+/*
+We're damned if we do and damned if we don't with this code:
+
+try {
+  // do something
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+catch (ex: any) {
+  // do something else
+}
+
 { // eslint
   const target = BPSet.get("eslint");
   target.description = "eslint support";
@@ -325,7 +336,7 @@ class DirStage
     async () => await runModule("./node_modules/eslint/bin/eslint.js", args)
   );
 }
-
+*/
 
 { // typescript:eslint
   const jsTarget = BPSet.get("eslint");

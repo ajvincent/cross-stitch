@@ -226,21 +226,38 @@ class DirStage {
     const target = BPSet.get("debug");
     target.addTask(async () => await runModule("./node_modules/jasmine/bin/jasmine.js", [], ["--inspect-brk"]));
 }
-{ // eslint
-    const target = BPSet.get("eslint");
-    target.description = "eslint support";
-    const args = [
-        "--max-warnings=0"
-    ];
-    let dirs = stageDirs.slice();
-    dirs.push(path.resolve("build"));
-    dirs = await PromiseAllParallel(dirs, async (stageDir) => {
-        const { files } = await readDirsDeep(path.resolve(stageDir));
-        return files.some(f => f.endsWith(".mjs")) ? stageDir : "";
-    });
-    args.push(...dirs.filter(Boolean));
-    target.addTask(async () => await runModule("./node_modules/eslint/bin/eslint.js", args));
+/*
+We're damned if we do and damned if we don't with this code:
+
+try {
+  // do something
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+catch (ex: any) {
+  // do something else
+}
+
+{ // eslint
+  const target = BPSet.get("eslint");
+  target.description = "eslint support";
+  const args = [
+    "--max-warnings=0"
+  ];
+
+  let dirs = stageDirs.slice();
+  dirs.push(path.resolve("build"));
+
+  dirs = await PromiseAllParallel(dirs, async (stageDir) => {
+    const { files } = await readDirsDeep(path.resolve(stageDir));
+    return files.some(f => f.endsWith(".mjs")) ? stageDir : ""
+  });
+  args.push(...dirs.filter(Boolean));
+
+  target.addTask(
+    async () => await runModule("./node_modules/eslint/bin/eslint.js", args)
+  );
+}
+*/
 { // typescript:eslint
     const jsTarget = BPSet.get("eslint");
     jsTarget.addSubtarget("typescript:eslint");
