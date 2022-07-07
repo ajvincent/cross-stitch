@@ -237,27 +237,32 @@ catch (ex: any) {
   // do something else
 }
 
-{ // eslint
-  const target = BPSet.get("eslint");
-  target.description = "eslint support";
-  const args = [
-    "--max-warnings=0"
-  ];
+The fix?
 
-  let dirs = stageDirs.slice();
-  dirs.push(path.resolve("build"));
-
-  dirs = await PromiseAllParallel(dirs, async (stageDir) => {
-    const { files } = await readDirsDeep(path.resolve(stageDir));
-    return files.some(f => f.endsWith(".mjs")) ? stageDir : ""
-  });
-  args.push(...dirs.filter(Boolean));
-
-  target.addTask(
-    async () => await runModule("./node_modules/eslint/bin/eslint.js", args)
-  );
+try {
+  // do something
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+catch (ex: unknown) {
+  if ((ex as Error).message === "foo")
+    // do something else
 }
 */
+{ // eslint
+    const target = BPSet.get("eslint");
+    target.description = "eslint support";
+    const args = [
+        "--max-warnings=0"
+    ];
+    let dirs = stageDirs.slice();
+    dirs.push(path.resolve("build"));
+    dirs = await PromiseAllParallel(dirs, async (stageDir) => {
+        const { files } = await readDirsDeep(path.resolve(stageDir));
+        return files.some(f => f.endsWith(".mjs")) ? stageDir : "";
+    });
+    args.push(...dirs.filter(Boolean));
+    target.addTask(async () => await runModule("./node_modules/eslint/bin/eslint.js", args));
+}
 { // typescript:eslint
     const jsTarget = BPSet.get("eslint");
     jsTarget.addSubtarget("typescript:eslint");

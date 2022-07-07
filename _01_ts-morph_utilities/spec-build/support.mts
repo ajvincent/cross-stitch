@@ -327,9 +327,8 @@ async function throwNumberStringOrBar(
       "NumberStringOrBar",
     );
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  catch (ex: any) {
-    if (ex.message !== "You cannot add a type which is a union of two or more types!  (How should I know which type to support?)")
+  catch (ex: unknown) {
+    if ((ex as Error).message !== "You cannot add a type which is a union of two or more types!  (How should I know which type to support?)")
       throw ex;
     pass = true;
   }

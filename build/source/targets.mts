@@ -316,6 +316,18 @@ catch (ex: any) {
   // do something else
 }
 
+The fix?
+
+try {
+  // do something
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+catch (ex: unknown) {
+  if ((ex as Error).message === "foo")
+    // do something else
+}
+*/
+
 { // eslint
   const target = BPSet.get("eslint");
   target.description = "eslint support";
@@ -336,7 +348,6 @@ catch (ex: any) {
     async () => await runModule("./node_modules/eslint/bin/eslint.js", args)
   );
 }
-*/
 
 { // typescript:eslint
   const jsTarget = BPSet.get("eslint");
