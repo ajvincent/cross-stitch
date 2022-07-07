@@ -16,6 +16,5 @@
 - [x] Union in arguments of a method (should be legal)
 - [x] Parameterized type
 - [x] Mapped type
-- [ ] Conditional type
+- [x] Conditional type
 - [ ] Symbol key in type
-- [ ] Discriminated union type (map + conditional)

@@ -3,8 +3,10 @@
 import { NumberStringType } from "../fixtures/NumberStringType.mjs";
 import {
   IsTypedNST,
+  NST_Keys,
   NumberStringAndIllegal,
   NumberStringAndType,
+  NumberStringConditional,
   NumberStringExcludesBar,
   NumberStringFoo,
   UnionArgument,
@@ -243,7 +245,7 @@ describe("TypeToClass supports", () => {
   });
 
   it("mapped type", async () => {
-    const NSTC = await getModuleDefault<[], NumberStringExcludesBar>("NST_Keys_Class.mjs");
+    const NSTC = await getModuleDefault<[], NST_Keys>("NST_Keys_Class.mjs");
     expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
       "constructor",
       "repeatForward",
@@ -257,6 +259,27 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.repeatBack
+    ).toThrowError("not yet implemented");
+  });
+
+  it("conditional type", async () => {
+    const NumberStringClass = await getModuleDefault<
+      [], NumberStringConditional
+    >("NumberStringConditionalClass.mjs");
+
+    expect(Reflect.ownKeys(NumberStringClass.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const instance = new NumberStringClass;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
     ).toThrowError("not yet implemented");
   });
 });

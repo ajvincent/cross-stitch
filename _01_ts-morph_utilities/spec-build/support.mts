@@ -45,6 +45,7 @@ export default async function() : Promise<void>
     buildUnionArgumentClass,
     buildNumberStringExcludesBarClass,
     buildNST_Keys,
+    buildNumberStringConditionalClass,
   ], callback => callback(fixturesDir, generatedDir));
 
   //await buildIsTypedNST(fixturesDir, generatedDir);
@@ -449,6 +450,28 @@ async function buildNST_Keys(
   TTC.addType(
     srcFile,
     "NST_Keys",
+  );
+
+  await destFile.save();
+}
+
+async function buildNumberStringConditionalClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringConditionalClass.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "NumberStringClass",
+    notImplementedCallback
+  );
+
+  TTC.addType(
+    srcFile,
+    "NumberStringConditional",
   );
 
   await destFile.save();

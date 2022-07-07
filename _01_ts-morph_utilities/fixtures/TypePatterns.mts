@@ -41,7 +41,8 @@ export type UnionArgument = {
 };
 
 // Conditional (and parameterized) type
-export type ObjectType<T> = T extends object ? T : never;
+type ObjectType<T> = T extends object ? T : never;
+export type NumberStringConditional = ObjectType<NumberStringType>;
 
 // Mapped type
 export type NST_Keys = {
