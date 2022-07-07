@@ -137,21 +137,7 @@ async function buildIsTypedNST(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("IsTypedNST.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "HasTypeString",
-    notImplementedCallback
-  );
-
-  TTC.addType(
-    srcFile,
-    "IsTypedNST",
-  );
-
-  await destFile.save();
+  return await buildSingleTypePattern(fixturesDir, generatedDir, "IsTypedNST.mts", "IsTypedNST");
 }
 
 async function buildNumberStringWithTypeClass(
@@ -219,21 +205,12 @@ async function buildStringNumberTypeClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("StringNumberTypeClass.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "StringNumberTypeClass",
-    notImplementedCallback
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "StringNumberTypeClass.mts",
+    "StringNumberType"
   );
-
-  TTC.addType(
-    srcFile,
-    "StringNumberType",
-  );
-
-  await destFile.save();
 }
 
 async function buildIsTypedNSTWithConstructor(
@@ -295,21 +272,12 @@ async function buildNumberStringAndTypeClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("NumberStringAndTypeClass.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "NumberStringTypeClass",
-    notImplementedCallback
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "NumberStringAndTypeClass.mts",
+    "NumberStringAndType"
   );
-
-  TTC.addType(
-    srcFile,
-    "NumberStringAndType",
-  );
-
-  await destFile.save();
 }
 
 async function throwNumberStringOrBar(
@@ -350,21 +318,12 @@ async function buildFooExtendsNumberStringClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("FooExtendsNumberString.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "FooExtendsNumberStringClass",
-    notImplementedCallback
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "FooExtendsNumberString.mts",
+    "NumberStringFoo"
   );
-
-  TTC.addType(
-    srcFile,
-    "NumberStringFoo",
-  );
-
-  await destFile.save();
 }
 
 async function buildNumberStringAndIllegalClass(
@@ -372,21 +331,12 @@ async function buildNumberStringAndIllegalClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("NumberStringAndIllegal.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "NumberStringClass",
-    notImplementedCallback
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "NumberStringAndIllegal.mts",
+    "NumberStringAndIllegal"
   );
-
-  TTC.addType(
-    srcFile,
-    "NumberStringAndIllegal",
-  );
-
-  await destFile.save();
 }
 
 async function buildUnionArgumentClass(
@@ -394,21 +344,12 @@ async function buildUnionArgumentClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("UnionArgumentClass.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "UnionArgumentClass",
-    notImplementedCallback
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "UnionArgumentClass.mts",
+    "UnionArgument"
   );
-
-  TTC.addType(
-    srcFile,
-    "UnionArgument",
-  );
-
-  await destFile.save();
 }
 
 async function buildNumberStringExcludesBarClass(
@@ -416,21 +357,12 @@ async function buildNumberStringExcludesBarClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("NumberStringExcludesBarClass.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "NumberStringClass",
-    notImplementedCallback
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "NumberStringExcludesBarClass.mts",
+    "NumberStringExcludesBar"
   );
-
-  TTC.addType(
-    srcFile,
-    "NumberStringExcludesBar",
-  );
-
-  await destFile.save();
 }
 
 async function buildNST_Keys(
@@ -438,21 +370,12 @@ async function buildNST_Keys(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("NST_Keys_Class.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "NumberStringClass",
-    notImplementedCallback
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "NST_Keys_Class.mts",
+    "NST_Keys"
   );
-
-  TTC.addType(
-    srcFile,
-    "NST_Keys",
-  );
-
-  await destFile.save();
 }
 
 async function buildNumberStringConditionalClass(
@@ -460,8 +383,23 @@ async function buildNumberStringConditionalClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "NumberStringConditionalClass.mts",
+    "NumberStringConditional"
+  );
+}
+
+async function buildSingleTypePattern(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory,
+  fileName: string,
+  typeName: string
+) : Promise<void>
+{
   const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("NumberStringConditionalClass.mts");
+  const destFile = generatedDir.createSourceFile(fileName);
 
   const TTC = new TypeToClass(
     destFile,
@@ -471,7 +409,7 @@ async function buildNumberStringConditionalClass(
 
   TTC.addType(
     srcFile,
-    "NumberStringConditional",
+    typeName,
   );
 
   await destFile.save();
