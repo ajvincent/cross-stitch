@@ -11,7 +11,7 @@
 - [x] Properties of a type in a constructor
 - [x] Extended interfaces
 - [x] Intersection of a referenced type
-- [ ] Never key in type
+- [x] Never key in type
 - [x] Union of a referenced type (should be illegal)
 - [ ] Union in arguments of a method (should be legal)
 - [ ] Parameterized type

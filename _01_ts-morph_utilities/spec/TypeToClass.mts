@@ -3,6 +3,7 @@
 import { NumberStringType } from "../fixtures/NumberStringType.mjs";
 import {
   IsTypedNST,
+  NumberStringAndIllegal,
   NumberStringAndType,
   NumberStringFoo,
 } from "../fixtures/TypePatterns.mjs";
@@ -181,6 +182,29 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.repeatFoo(3)
+    ).toThrowError("not yet implemented");
+  });
+
+  it("never key in type", async () => {
+    const NSTC = await getModuleDefault<[], NumberStringAndIllegal>("NumberStringAndIllegal.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+      "illegal"
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.illegal
     ).toThrowError("not yet implemented");
   });
 });

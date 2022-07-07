@@ -11,6 +11,13 @@ export type IsTypedNST = {
   type: string;
 };
 
+// never type
+type neverProperty = {
+  illegal: never;
+}
+
+export type NumberStringAndIllegal = NumberStringType & neverProperty;
+
 // Referenced type
 export type HasTypeAttribute = IsTypedNST;
 

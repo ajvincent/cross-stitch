@@ -41,6 +41,7 @@ export default async function() : Promise<void>
     buildNumberStringAndTypeClass,
     throwNumberStringOrBar,
     buildFooExtendsNumberStringClass,
+    buildNumberStringAndIllegalClass,
   ], callback => callback(fixturesDir, generatedDir));
 
   //await buildIsTypedNST(fixturesDir, generatedDir);
@@ -357,6 +358,28 @@ async function buildFooExtendsNumberStringClass(
   TTC.addType(
     srcFile,
     "NumberStringFoo",
+  );
+
+  await destFile.save();
+}
+
+async function buildNumberStringAndIllegalClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringAndIllegal.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "NumberStringClass",
+    notImplementedCallback
+  );
+
+  TTC.addType(
+    srcFile,
+    "NumberStringAndIllegal",
   );
 
   await destFile.save();
