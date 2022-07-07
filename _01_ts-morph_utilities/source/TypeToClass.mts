@@ -1,4 +1,7 @@
 import ts from "ts-morph";
+/*
+import CodeBlockWriter from "code-block-writer";
+*/
 
 type InterfaceOrTypeAlias = ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
 export type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
@@ -31,11 +34,6 @@ export default class TypeToClass
       throw new Error("Destination file must be empty!");
 
     this.#destFile = destFile;
-    this.#targetClass = destFile.addClass({
-      name: className,
-      isDefaultExport: true,
-      isExported: true,
-    });
     this.#callback = callback;
 
     destFile.insertStatements(0, `
@@ -43,7 +41,19 @@ export default class TypeToClass
    Instead, edit the types this file imports.
 */
     `.trim());
+
+    this.#targetClass = destFile.addClass({
+      name: className,
+      isDefaultExport: true,
+      isExported: true,
+    });
   }
+
+  /*
+  #writer = new CodeBlockWriter({
+    indentNumberOfSpaces: 2,
+  });
+  */
 
   /**
    * Add a type from a source file.  This will invoke the user's callback for members of that type.
@@ -56,18 +66,23 @@ export default class TypeToClass
     typeName: string
   ) : void
   {
-    const typeNodes = this.#extractTypeNodes(sourceFile, typeName);
+    const firstTypeNode = this.#extractFirstTypeNode(sourceFile, typeName);
+    const type = firstTypeNode.getType(), properties = type.getProperties();
+    if (properties.length === 0)
+      throw new Error("No properties to add?");
+
+    if (type.getUnionTypes().length)
+      throw new Error("You cannot add a type which is a union of two or more types!  (How should I know which type to support?)");
 
     const acceptedProperties = new Set<string>;
     const allProperties = new Set<string>;
-  
-    typeNodes.forEach(
-      typeNode => this.#processTypeNode(
-        typeNode,
-        acceptedProperties,
-        allProperties
-      )
-    );
+
+    properties.forEach(property => this.#addProperty(
+      firstTypeNode,
+      property,
+      acceptedProperties,
+      allProperties
+    ));
 
     if (acceptedProperties.size === 0)
       throw new Error(`For type ${typeName}, no properties or methods were accepted!`);
@@ -89,149 +104,115 @@ export default class TypeToClass
    * @param typeName   - The type to extract.
    * @returns an interface or type alias node.
    */
-  #extractTypeNodes(
+  #extractFirstTypeNode(
     sourceFile: ts.SourceFile,
     typeName: string,
-  ) : InterfaceOrTypeAlias[]
+  ) : InterfaceOrTypeAlias
   {
     let firstBaseNode: InterfaceOrTypeAlias | undefined;
     firstBaseNode = sourceFile.getTypeAlias(typeName);
-    if (firstBaseNode)
-      return [firstBaseNode];
-  
-    firstBaseNode = sourceFile.getInterface(typeName);
-  
+    if (!firstBaseNode)
+      firstBaseNode = sourceFile.getInterface(typeName);
+
     if (!firstBaseNode)
       throw new Error(`No interface or type alias found for type name "${typeName}"!`);
-  
-    const symbol = firstBaseNode.getType().getSymbolOrThrow();
-    const nodes = symbol.getDeclarations();
-    if (!nodes.every(
-      d => ts.Node.isInterfaceDeclaration(d) || ts.Node.isTypeAliasDeclaration(d)
-    ))
-      throw new Error("Unexpected declaration");
-  
-    const declarations = nodes as InterfaceOrTypeAlias[];
-    if (!declarations.every(baseNode => baseNode.isExported()))
-      throw new Error("Base nodes must be exported for the destination file to import it!");
-  
-    return declarations;
+
+    if (!firstBaseNode.isExported())
+      throw new Error("Base node must be exported for the destination file to import it!");
+
+    return firstBaseNode;
   }
 
   /**
-   * Iterate over the fields of a type alias or interface.
+   * Add a property, then call the user callback to see if we should keep it.
    *
-   * @param typeNode           - The type alias or interface.
-   * @param acceptedProperties - A running total of accepted property names.
-   * @param allProperties      - A running total of all found property names.
-   */
-  #processTypeNode(
-    typeNode: InterfaceOrTypeAlias,
-    acceptedProperties: Set<string>,
-    allProperties: Set<string>
-  ) : void
-  {
-    const resolvedNode = this.#resolveToPropertiesNode(typeNode);
-  
-    const resolvedTypeNode = ts.Node.isTypeAliasDeclaration(resolvedNode)
-      ? resolvedNode.getTypeNodeOrThrow()
-      : resolvedNode;
-
-    resolvedTypeNode.forEachChild(child => this.#addProperty(
-      typeNode, child, acceptedProperties, allProperties,
-    ));
-  
-    if (resolvedNode !== typeNode)
-      resolvedNode.remove();
-  }
-
-  /**
-   * Get a fully-resolved interface or type alias node from ts-morph.
+   * @param firstTypeNode      - The type alias or first interface declaration node.
+   * @param property           - The property symbol.
+   * @param acceptedProperties - A list of accepted properties.
+   * @param allProperties      - All candidate properties.
    *
-   * @param typeNode - The original type node.
-   * @returns The equivalent type node.
-   */
-  #resolveToPropertiesNode(
-    typeNode: InterfaceOrTypeAlias,
-  ) : InterfaceOrTypeAlias
-  {
-    const structure = typeNode.getStructure();
-    if (ts.Structure.isInterface(structure))
-    {
-      if (structure.methods?.length || structure.properties?.length)
-        return typeNode;
-      throw new Error("unexpected interface without methods or properties");
-    }
-  
-    const kids = typeNode.getChildren();
-    if (kids.some(kid => ts.Node.isMethodSignature(kid) || ts.Node.isPropertySignature(kid)))
-      return typeNode;
-  
-    const typeText = typeNode.getType().getText(typeNode);
-    const FakeTypeAlias: ts.TypeAliasDeclaration = this.#destFile.addTypeAlias({
-      name: "__FakeType__",
-      type: typeText
-    });
-  
-    return FakeTypeAlias;
-  }
-
-  /**
-   * Add a field to the target class and invoke the user's callback.
-   *
-   * @param typeNode           - The type node we're iterating over.
-   * @param child              - The current child of the type node.
-   * @param acceptedProperties - A running total of accepted property names.
-   * @param allProperties      - A running total of all found property names.
-   * @returns 
+   * @see {@link https://stackoverflow.com/questions/68531850/typescript-compiler-api-get-type-structure}
    */
   #addProperty(
-    typeNode: InterfaceOrTypeAlias,
-    child: ts.Node,
+    firstTypeNode: InterfaceOrTypeAlias,
+    property: ts.Symbol,
     acceptedProperties: Set<string>,
     allProperties: Set<string>,
   ) : void
   {
-    const isMethod   = ts.Node.isMethodSignature(child);
-    const isProperty = ts.Node.isPropertySignature(child);
-    if (!isMethod && !isProperty) {
-      return;
-    }
-  
-    // XXX ajvincent test the symbol case!
-    const name = child.getName();
-    allProperties.add(name);
-  
-    let propertyNode: FieldDeclaration
+    const typeAtNode = property.getTypeAtLocation(firstTypeNode);
+    const name = property.getName();
+    let text: string = typeAtNode.getText(
+      undefined,
+      ts.TypeFormatFlags.NoTruncation |
+      ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope
+    );
 
-    if (isMethod) {
-      const childStructure = child.getStructure();
-      propertyNode = this.#targetClass.addMethod({
-        name,
-        parameters: childStructure.parameters,
-        typeParameters: childStructure.typeParameters,
-        returnType: childStructure.returnType,
-      });
+    let addBlock = false;
+    if ((property.getFlags() & ts.SymbolFlags.Method)) {
+      addBlock = true;
+      // ts-morph, or more likely TypeScript itself, writes arrow function types, but specifies methods:
+      // " => returnType" versus " : returnType".
+      const signatures = typeAtNode.getCallSignatures();
+      if (signatures.length > 1) {
+        /* From the TypeScript Handbook
+        https://www.typescriptlang.org/docs/handbook/2/functions.html#function-overloads
+        function len(s: string): number;
+        function len(arr: any[]): number;
+        function len(x: any) {
+          return x.length;
+        }
+
+        I think that's what ts-morph is referring to...
+        */
+
+        throw new Error("TypeToClass in cross-stitch does not know how to fix method printouts with multiple call signatures.  Please file a bug.");
+      }
+
+      const returnType = signatures[0].getReturnType().getText();
+      const beforeReturn = text.substring(0, text.length - returnType.length);
+      text = name + beforeReturn.replace(/ => $/, " : ") + returnType;
     }
     else {
-      const childStructure = child.getStructure();
-      propertyNode = this.#targetClass.addProperty({
-        name,
-        type: childStructure.type
-      });
+      text = name + ": " + text;
     }
 
-    if (this.#callback(this.#targetClass, name, propertyNode, typeNode)) {
+    const pos = this.#targetClass.getEnd() - 1;
+    this.#targetClass.insertText(
+      pos,
+      "  " + text + (
+        addBlock ? "\n  {\n  }" : ""
+      ) + "\n\n"
+      /*
+      this.#writer.writeLine(text).toString() + (
+        addBlock ? this.#writer.block().toString() : ""
+      )
+      */
+    );
+
+    /** @see {@link https://ts-morph.com/manipulation/#strongwarningstrong} */
+    this.#targetClass = this.#destFile.getClass(
+      this.#targetClass.getName() as string
+    ) as ts.ClassDeclaration;
+
+    allProperties.add(name);
+    const child = this.#targetClass.getMember(name);
+
+    if (!ts.Node.isMethodDeclaration(child) && !ts.Node.isPropertyDeclaration(child))
+      throw new Error("assertion failure: we should have a property or a method now");
+
+    if (this.#callback(this.#targetClass, name, child, firstTypeNode)) {
       acceptedProperties.add(name);
       this.#voidUnusedParameters(name);
     }
     else {
-      propertyNode.remove();
+      child.remove();
     }
   }
 
   /**
    * Ensure unused parameters pass eslint by adding void() statements.
+   *
    * @param fieldName - The name of the field.
    */
   #voidUnusedParameters(
@@ -265,6 +246,7 @@ export default class TypeToClass
 
   /**
    * Add a type import for the target file.
+   *
    * @param sourceFile - The source file.
    * @param typeName   - The type to import.
    */
