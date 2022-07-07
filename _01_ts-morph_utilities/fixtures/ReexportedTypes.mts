@@ -1,2 +1,2 @@
-import * as TypePatterns from "./TypePatterns.mjs";
-export default TypePatterns;
+import type { NumberStringType } from "./NumberStringType.mjs";
+export type { NumberStringType };

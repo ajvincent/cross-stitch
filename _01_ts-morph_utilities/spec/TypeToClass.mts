@@ -65,7 +65,7 @@ describe("TypeToClass supports", () => {
   });
 
   it(`multiple types on implementation`, async () => {
-    const TypedClass = await getModuleDefault<[], NumberStringAndType>("NumberStringAndTypeClass.mjs");
+    const TypedClass = await getModuleDefault<[], NumberStringAndType>("NumberStringWithTypeClass.mjs");
     expect(Reflect.ownKeys(TypedClass.prototype)).toEqual([
       "constructor",
       "repeatForward",

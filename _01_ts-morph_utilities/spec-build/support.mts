@@ -27,9 +27,7 @@ export default async function() : Promise<void>
     }
   });
 
-  project.addSourceFileAtPath(path.join(parentDir, "fixtures/NumberStringType.mts"));
-
-  const fixturesDir = project.getDirectoryOrThrow(path.join(parentDir, "fixtures"));
+  const fixturesDir = project.addDirectoryAtPath(path.join(parentDir, "fixtures"));
   const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated"));
 
   await PromiseAllParallel([
@@ -154,7 +152,7 @@ async function buildNumberStringWithTypeClass(
 ) : Promise<void>
 {
   let srcFile = fixturesDir.addSourceFileAtPath("NumberStringType.mts");
-  const destFile = generatedDir.createSourceFile("NumberStringAndTypeClass.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringWithTypeClass.mts");
 
   const TTC = new TypeToClass(
     destFile,

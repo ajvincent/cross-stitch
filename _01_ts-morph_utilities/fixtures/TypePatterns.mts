@@ -19,7 +19,7 @@ export type Bar = {
   repeatBar(n: number): string;
 }
 
-// Imported type re-exported (happens a lot)
+// Renamed type
 export type StringNumberType = NumberStringType;
 
 // Referenced type, intersection

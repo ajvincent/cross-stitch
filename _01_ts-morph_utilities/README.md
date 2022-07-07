@@ -9,6 +9,7 @@
 - [x] Imported & re-exported type
 - [x] Properties of a type as "not implemented" getter
 - [x] Properties of a type in a constructor
+- [ ] Extended interfaces
 - [ ] Intersection of a referenced type
 - [ ] Never key in type
 - [ ] Union of a referenced type (should be illegal)
