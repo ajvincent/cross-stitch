@@ -39,6 +39,7 @@ export default async function() : Promise<void>
     buildStringNumberTypeClass,
     buildIsTypedNSTWithConstructor,
     buildNumberStringAndTypeClass,
+    throwNumberStringOrBar,
   ], callback => callback(fixturesDir, generatedDir));
 
   //await buildIsTypedNST(fixturesDir, generatedDir);
@@ -303,4 +304,38 @@ async function buildNumberStringAndTypeClass(
   );
 
   await destFile.save();
+}
+
+async function throwNumberStringOrBar(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringOrBarClass.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "NumberStringTypeClass",
+    notImplementedCallback
+  );
+
+  let pass = false;
+  try {
+    TTC.addType(
+      srcFile,
+      "NumberStringOrBar",
+    );
+  }
+  // eslint-disable-next-line no-implicit-any
+  catch (ex: any) {
+    if (ex.message !== "You cannot add a type which is a union of two or more types!  (How should I know which type to support?)")
+      throw ex;
+    pass = true;
+  }
+
+  if (!pass)
+    throw new Error("Expected exception for NumberStringOrType, but none was thrown!");
+
+  await destFile.delete();
 }

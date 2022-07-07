@@ -49,7 +49,6 @@ export async function Invert(p: Promise<unknown>) : Promise<unknown>
   throw new Error("Promise resolved when we didn't expect it to!");
 }
 
-
 export class SingletonPromise<T>
 {
   #resolve: PromiseResolver<void>;

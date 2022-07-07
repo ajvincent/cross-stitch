@@ -67,12 +67,14 @@ export default class TypeToClass
   ) : void
   {
     const firstTypeNode = this.#extractFirstTypeNode(sourceFile, typeName);
-    const type = firstTypeNode.getType(), properties = type.getProperties();
-    if (properties.length === 0)
-      throw new Error("No properties to add?");
+    const type = firstTypeNode.getType();
 
     if (type.getUnionTypes().length)
       throw new Error("You cannot add a type which is a union of two or more types!  (How should I know which type to support?)");
+
+    const properties = type.getProperties();
+    if (properties.length === 0)
+      throw new Error("No properties to add?");
 
     const acceptedProperties = new Set<string>;
     const allProperties = new Set<string>;
