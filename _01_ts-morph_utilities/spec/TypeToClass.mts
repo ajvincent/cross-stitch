@@ -6,6 +6,7 @@ import {
   NumberStringAndIllegal,
   NumberStringAndType,
   NumberStringFoo,
+  UnionArgument,
 } from "../fixtures/TypePatterns.mjs";
 
 describe("TypeToClass supports", () => {
@@ -205,6 +206,20 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.illegal
+    ).toThrowError("not yet implemented");
+  });
+
+
+  it("union in arguments of a method", async () => {
+    const NSTC = await getModuleDefault<[], UnionArgument>("UnionArgumentClass.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "doSomething"
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.doSomething("foo")
     ).toThrowError("not yet implemented");
   });
 });

@@ -36,6 +36,10 @@ export type NumberStringAndBar = NumberStringType & Bar;
 // Referenced type, union
 export type NumberStringOrBar = NumberStringType | Bar;
 
+export type UnionArgument = {
+  doSomething(x: number | string): void
+};
+
 // Mapped type
 export type NST_Keys = {
   [P in keyof NumberStringType]: P
