@@ -5,6 +5,7 @@ import {
   IsTypedNST,
   NumberStringAndIllegal,
   NumberStringAndType,
+  NumberStringExcludesBar,
   NumberStringFoo,
   UnionArgument,
 } from "../fixtures/TypePatterns.mjs";
@@ -220,6 +221,24 @@ describe("TypeToClass supports", () => {
     const instance = new NSTC;
     expect(
       () => instance.doSomething("foo")
+    ).toThrowError("not yet implemented");
+  });
+
+  it("parameterized type", async () => {
+    const NSTC = await getModuleDefault<[], NumberStringExcludesBar>("NumberStringExcludesBarClass.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
     ).toThrowError("not yet implemented");
   });
 });

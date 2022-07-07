@@ -43,6 +43,7 @@ export default async function() : Promise<void>
     buildFooExtendsNumberStringClass,
     buildNumberStringAndIllegalClass,
     buildUnionArgumentClass,
+    buildNumberStringExcludesBarClass,
   ], callback => callback(fixturesDir, generatedDir));
 
   //await buildIsTypedNST(fixturesDir, generatedDir);
@@ -403,6 +404,28 @@ async function buildUnionArgumentClass(
   TTC.addType(
     srcFile,
     "UnionArgument",
+  );
+
+  await destFile.save();
+}
+
+async function buildNumberStringExcludesBarClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringExcludesBarClass.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "NumberStringClass",
+    notImplementedCallback
+  );
+
+  TTC.addType(
+    srcFile,
+    "NumberStringExcludesBar",
   );
 
   await destFile.save();

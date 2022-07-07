@@ -40,6 +40,9 @@ export type UnionArgument = {
   doSomething(x: number | string): void
 };
 
+// Conditional (and parameterized) type
+export type ObjectType<T> = T extends object ? T : never;
+
 // Mapped type
 export type NST_Keys = {
   [P in keyof NumberStringType]: P

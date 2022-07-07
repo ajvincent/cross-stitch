@@ -14,7 +14,7 @@
 - [x] Never key in type
 - [x] Union of a referenced type (should be illegal)
 - [x] Union in arguments of a method (should be legal)
-- [ ] Parameterized type
+- [x] Parameterized type
 - [ ] Mapped type
 - [ ] Conditional type
 - [ ] Symbol key in type
