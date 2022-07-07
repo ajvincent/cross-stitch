@@ -4,6 +4,7 @@ import { NumberStringType } from "../fixtures/NumberStringType.mjs";
 import {
   IsTypedNST,
   NumberStringAndType,
+  NumberStringFoo,
 } from "../fixtures/TypePatterns.mjs";
 
 describe("TypeToClass supports", () => {
@@ -156,6 +157,30 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.type
+    ).toThrowError("not yet implemented");
+  });
+
+  it(`extended interfaces`, async () => {
+    const TypedClass = await getModuleDefault<[], NumberStringFoo>("FooExtendsNumberString.mjs");
+    expect(Reflect.ownKeys(TypedClass.prototype)).toEqual([
+      "constructor",
+      "repeatFoo",
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const instance = new TypedClass;
+
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatFoo(3)
     ).toThrowError("not yet implemented");
   });
 });
