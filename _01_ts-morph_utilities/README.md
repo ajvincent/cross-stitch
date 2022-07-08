@@ -6,6 +6,8 @@ One of TypeScript's greatest strengths is the ability to transform one object ty
 
 That said, if you have a parameterized type, or a mapped type, or a conditional type, it can be difficult to figure out what the correct methods are.  The `TypeToClass` utility exists to help.  I built it on top of [ts-morph](https://ts-morph.com/), and users of `TypeToClass` should be somewhat familiar with it, as it provides enough power to get the job done.
 
+### Inputs
+
 `TypeToClass` is a class requiring five basic values.  To the constructor:
 
 1. A destination file from `ts-morph` (which must be empty)
@@ -33,6 +35,7 @@ To the method `addTypeAliasOrInterface()`,
   - If the callback returns false, `TypeToClass` removes the field.
 - `TypeToClass` adds an `implements` clause to the generated class, either matching the full type, or `Partial` for the type if not all properties exist.
 - `TypeToClass` then asks `ts-morph` to fill in missing imports.
+- The user is responsible for saving the destination file when they finish calling on `TypeToClass`.
 
 __The callback is ultimately responsible for implementing the body of each field.__  For a method, you can add content directly using `ts-morph`'s API's.  For a property, you may wish to alter a constructor (no, `TypeToClass` doesn't provide one) to define the property, or set a value directly.  Private and/or static methods are the responsibility of the callback, or of functions it calls.
 
@@ -56,7 +59,6 @@ export type NumberStringType = {
 }
 
 // in the file invoking TypeToClass
-
 async function buildNumberStringTypeClass(
   fixturesDir: ts.Directory,
   generatedDir: ts.Directory
