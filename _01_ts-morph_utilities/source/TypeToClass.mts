@@ -142,20 +142,64 @@ export default class TypeToClass
     allProperties: Set<string>,
   ) : void
   {
-    const typeAtNode = property.getTypeAtLocation(firstTypeNode);
-
     // Symbol keys appear at the end of the fully qualified name.
     const fullName = property.getFullyQualifiedName();
     const name = fullName.substring(fullName.lastIndexOf(".") + 1);
 
-    let text: string = typeAtNode.getText(
+    this.#insertTextOfProperty(firstTypeNode, property, name);
+
+    /** @see {@link https://ts-morph.com/manipulation/#strongwarningstrong} */
+    this.#targetClass = this.#destFile.getClass(
+      this.#targetClass.getName() as string
+    ) as ts.ClassDeclaration;
+
+    allProperties.add(name);
+    const child = this.#targetClass.getMember(name);
+
+    if (!ts.Node.isMethodDeclaration(child) && !ts.Node.isPropertyDeclaration(child))
+      throw new Error("assertion failure: we should have a property or a method now");
+
+    const result = this.#callback(this.#targetClass, name, child, firstTypeNode);
+
+    this.#targetClass = this.#destFile.getClass(
+      this.#targetClass.getName() as string
+    ) as ts.ClassDeclaration;
+
+    if (result) {
+      acceptedProperties.add(name);
+      this.#voidUnusedParameters(name);
+    }
+    else {
+      child.remove();
+    }
+  }
+
+  /**
+   * Insert the initial text for a class field.
+   *
+   * @param firstTypeNode - The type alias or interface node.
+   * @param field         - The symbol for the underlying field.
+   * @param name          - The name of the field.
+   *
+   * @remarks This does an insertText() operation, so the callers must refresh the
+   * class afterwards.
+   */
+  #insertTextOfProperty(
+    firstTypeNode: InterfaceOrTypeAlias,
+    field: ts.Symbol,
+    name: string
+  ) : void
+  {
+    const typeAtNode = field.getTypeAtLocation(firstTypeNode);
+
+    let text = typeAtNode.getText(
       undefined,
       ts.TypeFormatFlags.NoTruncation |
       ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope
     );
 
     let addBlock = false;
-    if ((property.getFlags() & ts.SymbolFlags.Method)) {
+    if ((field.getFlags() & ts.SymbolFlags.Method)) {
       addBlock = true;
       // ts-morph, or more likely TypeScript itself, writes arrow function types, but specifies methods:
       // " => returnType" versus " : returnType".
@@ -195,31 +239,6 @@ export default class TypeToClass
       )
       */
     );
-
-    /** @see {@link https://ts-morph.com/manipulation/#strongwarningstrong} */
-    this.#targetClass = this.#destFile.getClass(
-      this.#targetClass.getName() as string
-    ) as ts.ClassDeclaration;
-
-    allProperties.add(name);
-    const child = this.#targetClass.getMember(name);
-
-    if (!ts.Node.isMethodDeclaration(child) && !ts.Node.isPropertyDeclaration(child))
-      throw new Error("assertion failure: we should have a property or a method now");
-
-    const result = this.#callback(this.#targetClass, name, child, firstTypeNode);
-
-    this.#targetClass = this.#destFile.getClass(
-      this.#targetClass.getName() as string
-    ) as ts.ClassDeclaration;
-
-    if (result) {
-      acceptedProperties.add(name);
-      this.#voidUnusedParameters(name);
-    }
-    else {
-      child.remove();
-    }
   }
 
   /**
