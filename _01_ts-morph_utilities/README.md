@@ -60,6 +60,8 @@ export type NumberStringType = {
 }
 
 // in the file invoking TypeToClass
+import ts from "ts-morph";
+
 async function buildNumberStringTypeClass(
   fixturesDir: ts.Directory,
   generatedDir: ts.Directory
