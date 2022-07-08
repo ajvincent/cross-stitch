@@ -6,9 +6,7 @@ One of TypeScript's greatest strengths is the ability to transform one object ty
 
 That said, if you have a parameterized type, or a mapped type, or a conditional type, it can be difficult to figure out what the correct methods are.  The `TypeToClass` utility exists to help.  I built it on top of [ts-morph](https://ts-morph.com/), and users of `TypeToClass` should be somewhat familiar with it, as it provides enough power to get the job done.
 
-TypeToClass is a class requiring five basic values:
-
-To the constructor:
+`TypeToClass` is a class requiring five basic values.  To the constructor:
 
 1. A destination file from `ts-morph` (which must be empty)
 2. A target class name
@@ -59,6 +57,28 @@ export type NumberStringType = {
 
 // in the file invoking TypeToClass
 
+async function buildNumberStringTypeClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const srcFile = sourceDir.addSourceFileAtPath("NumberStringType.mts");
+  const destFile = generatedDir.createSourceFile("NumberStringTypeClass.mts");
+
+  const TTC = new TypeToClass(
+    destFile,
+    "NumberStringTypeClass",
+    notImplementedCallback
+  );
+
+  TTC.addTypeAliasOrInterface(
+    srcFile,
+    "NumberStringType",
+  );
+
+  await destFile.save();
+}
+
 const notImplemented = `throw new Error("not yet implemented");`;
 function notImplementedCallback
 (
@@ -93,28 +113,6 @@ function notImplementedCallback
   }
 
   return true;
-}
-
-async function buildNumberStringTypeClass(
-  fixturesDir: ts.Directory,
-  generatedDir: ts.Directory
-) : Promise<void>
-{
-  const srcFile = sourceDir.addSourceFileAtPath("NumberStringType.mts");
-  const destFile = generatedDir.createSourceFile("NumberStringTypeClass.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "NumberStringTypeClass",
-    notImplementedCallback
-  );
-
-  TTC.addTypeAliasOrInterface(
-    srcFile,
-    "NumberStringType",
-  );
-
-  await destFile.save();
 }
 ```
 
