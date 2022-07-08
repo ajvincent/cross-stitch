@@ -38,7 +38,7 @@ __The callback is ultimately responsible for implementing the body of each field
 
 `TypeToClass` is a _helper_, generating just enough code for the callback to fill in the rest.  If the callback isn't filling in the fields correctly, then TypeScript will not be able to compile the destination file.
 
-_You can call `addTypeAliasOrInterface()` more than once per instance._  If you want to implement multiple types on a class, `TypeToClass` will happily support you in doing so.  (Though if types have conflicting names or property types, you're on your own: TypeScript will not compile your code, and neither `TypeToClass` nor `ts-morph` will necessarily warn you about that footgun.)
+_You can call `addTypeAliasOrInterface()` more than once per instance._  If you want to implement multiple types on a class, `TypeToClass` will happily support you in doing so.  If types have conflicting names or property types, you're on your own: TypeScript will not compile your code, and neither `TypeToClass` nor `ts-morph` will necessarily warn you about that footgun.  This you can easily remedy ahead of time with an [intersection type alias](https://www.typescriptlang.org/docs/handbook/2/objects.html#intersection-types).
 
 ### Why require a type alias or an interface?
 
