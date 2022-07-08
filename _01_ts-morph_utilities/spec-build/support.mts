@@ -61,7 +61,7 @@ function notImplementedCallback
 ) : boolean
 {
   if (ts.Node.isMethodDeclaration(propertyNode)) {
-    propertyNode.addStatements(notImplemented)
+    propertyNode.addStatements(notImplemented);
   }
   else {
     const returnType = propertyNode.getTypeNodeOrThrow().getText();
