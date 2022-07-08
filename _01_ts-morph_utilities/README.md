@@ -63,7 +63,7 @@ export type NumberStringType = {
 import ts from "ts-morph";
 
 async function buildNumberStringTypeClass(
-  fixturesDir: ts.Directory,
+  sourceDir: ts.Directory,
   generatedDir: ts.Directory
 ) : Promise<void>
 {
