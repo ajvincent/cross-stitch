@@ -17,6 +17,7 @@ That said, if you have a parameterized type, or a mapped type, or a conditional 
    - The property name as a string.  (Symbols will be encased in square brackets.)
    - A `ts-morph` `MethodDeclaration` or `PropertyDeclaration` for the property name.
    - A `ts-morph` `TypeAliasDeclaration` or `InterfaceDeclaration` for the type we're iterating over.
+   - This callback must return true to preserve the field, or false to tell `TypeToClass` to delete it.
 
 To the method `addTypeAliasOrInterface()`,
 
@@ -26,9 +27,9 @@ To the method `addTypeAliasOrInterface()`,
 ### How it works
 
 - In the constructor, `TypeToClass` adds in a "generated code" comment and a default class to export.
-- The user calls `addTypeAliasOrInterface`, which gets the list of properties to define.
+- The user calls `addTypeAliasOrInterface`, which gets the list of properties to define from `ts-morph`.
 - For each property:
-  - Using ts-morph, `TypeToClass` creates a stub field, __missing all implementation__.
+  - Using `ts-morph`, `TypeToClass` creates a stub field, __missing all implementation__.
   - The class calls the user's callback, expecting it to either:
     - populate the field and return true (indicating the field should be kept), or
     - return false (indicating the field should be dropped)
@@ -41,7 +42,7 @@ __The callback is ultimately responsible for implementing the body of each field
 
 `TypeToClass` is a _helper_, generating just enough code for the callback to fill in the rest.  If the callback isn't filling in the fields correctly, then TypeScript will not be able to compile the destination file.
 
-_You can call `addTypeAliasOrInterface()` more than once per instance._  If you want to implement multiple types on a class, `TypeToClass` will happily support you in doing so.  If types have conflicting names or property types, you're on your own: TypeScript will not compile your code, and neither `TypeToClass` nor `ts-morph` will necessarily warn you about that footgun.  This you can easily remedy ahead of time with an [intersection type alias](https://www.typescriptlang.org/docs/handbook/2/objects.html#intersection-types).
+_You can call `addTypeAliasOrInterface()` more than once per instance._  If you want to implement multiple types on a class, `TypeToClass` will happily support you in doing so.  If types have conflicting names or property types, you're on your own: TypeScript will not compile your code, and neither `TypeToClass` nor `ts-morph` will necessarily warn you about that footgun.  This you can easily detect ahead of time with an [intersection type alias](https://www.typescriptlang.org/docs/handbook/2/objects.html#intersection-types).
 
 ### Why require a type alias or an interface?
 
