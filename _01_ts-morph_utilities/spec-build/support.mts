@@ -56,7 +56,7 @@ const notImplemented = `throw new Error("not yet implemented");`;
 function notImplementedCallback
 (
   classNode: ts.ClassDeclaration,
-  propertyName: string | symbol,
+  propertyName: string,
   propertyNode: FieldDeclaration,
 ) : boolean
 {
@@ -67,8 +67,6 @@ function notImplementedCallback
     const returnType = propertyNode.getTypeNodeOrThrow().getText();
 
     propertyNode.remove();
-    if (typeof propertyName === "symbol")
-      throw new Error("unexpected symbol property name");
 
     classNode.addGetAccessor({
       name: propertyName,
@@ -183,7 +181,7 @@ async function buildPartialType(
 
     function(
       classNode: ts.ClassDeclaration,
-      propertyName: string | symbol,
+      propertyName: string,
       propertyNode: FieldDeclaration,
     ) : boolean
     {
@@ -227,7 +225,7 @@ async function buildIsTypedNSTWithConstructor(
     "HasTypeString",
     (
       classNode: ts.ClassDeclaration,
-      propertyName: string | symbol,
+      propertyName: string,
       propertyNode: FieldDeclaration,
     ) : boolean =>
     {

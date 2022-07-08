@@ -8,7 +8,7 @@ export type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
 
 type TypeToClassCallback = (
   classNode: ts.ClassDeclaration,
-  propertyName: string | symbol,
+  propertyName: string,
   propertyNode: FieldDeclaration,
   baseNode: InterfaceOrTypeAlias,
 ) => boolean;
