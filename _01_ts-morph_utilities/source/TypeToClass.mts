@@ -207,7 +207,13 @@ export default class TypeToClass
     if (!ts.Node.isMethodDeclaration(child) && !ts.Node.isPropertyDeclaration(child))
       throw new Error("assertion failure: we should have a property or a method now");
 
-    if (this.#callback(this.#targetClass, name, child, firstTypeNode)) {
+    const result = this.#callback(this.#targetClass, name, child, firstTypeNode);
+
+    this.#targetClass = this.#destFile.getClass(
+      this.#targetClass.getName() as string
+    ) as ts.ClassDeclaration;
+
+    if (result) {
       acceptedProperties.add(name);
       this.#voidUnusedParameters(name);
     }
