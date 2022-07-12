@@ -72,27 +72,35 @@ export default class TypeToClass
     if (type.getUnionTypes().length)
       throw new Error("You cannot add a type which is a union of two or more types!  (How should I know which type to support?)");
 
-    const properties = type.getProperties();
-    if (properties.length === 0)
+    const fields = type.getProperties();
+    if (fields.length === 0)
       throw new Error("No properties to add?");
 
-    const acceptedProperties = new Set<string>;
-    const allProperties = new Set<string>;
+    const allFieldsMap = new Map<string, string>;
+    fields.forEach(field => this.#fillFieldsMap(firstTypeNode, field, allFieldsMap));
 
-    properties.forEach(property => this.#addProperty(
-      firstTypeNode,
-      property,
-      acceptedProperties,
-      allProperties
-    ));
+    const fullText = Array.from(allFieldsMap.values()).join("\n\n") + "\n";
+    const pos = this.#targetClass.getEnd() - 1;
+    this.#targetClass.insertText(pos, fullText);
 
-    if (acceptedProperties.size === 0)
+    /** @see {@link https://ts-morph.com/manipulation/#strongwarningstrong} */
+    this.#targetClass = this.#destFile.getClass(
+      this.#targetClass.getName() as string
+    ) as ts.ClassDeclaration;
+
+    const acceptedFields = new Set<string>;
+
+    for (const field of allFieldsMap.keys()) {
+      this.#modifyField(firstTypeNode, field, acceptedFields);
+    }
+
+    if (acceptedFields.size === 0)
       throw new Error(`For type ${typeName}, no properties or methods were accepted!`);
-    if (acceptedProperties.size === allProperties.size)
+    if (acceptedFields.size === allFieldsMap.size)
       this.#targetClass.addImplements(typeName);
     else {
       this.#targetClass.addImplements(`Pick<${typeName}, ${
-        Array.from(acceptedProperties.values()).map(v => `"${v}"`).join(" | ")
+        Array.from(acceptedFields.values()).map(v => `"${v}"`).join(" | ")
       }>`);
     }
 
@@ -125,71 +133,16 @@ export default class TypeToClass
     return firstBaseNode;
   }
 
-  /**
-   * Add a property, then call the user callback to see if we should keep it.
-   *
-   * @param firstTypeNode      - The type alias or first interface declaration node.
-   * @param property           - The property symbol.
-   * @param acceptedProperties - A list of accepted properties.
-   * @param allProperties      - All candidate properties.
-   *
-   * @see {@link https://stackoverflow.com/questions/68531850/typescript-compiler-api-get-type-structure}
-   */
-  #addProperty(
+  #fillFieldsMap(
     firstTypeNode: InterfaceOrTypeAlias,
-    property: ts.Symbol,
-    acceptedProperties: Set<string>,
-    allProperties: Set<string>,
+    field: ts.Symbol,
+    allFieldsMap: Map<string, string>
   ) : void
   {
     // Symbol keys appear at the end of the fully qualified name.
-    const fullName = property.getFullyQualifiedName();
+    const fullName = field.getFullyQualifiedName();
     const name = fullName.substring(fullName.lastIndexOf(".") + 1);
 
-    this.#insertTextOfProperty(firstTypeNode, property, name);
-
-    /** @see {@link https://ts-morph.com/manipulation/#strongwarningstrong} */
-    this.#targetClass = this.#destFile.getClass(
-      this.#targetClass.getName() as string
-    ) as ts.ClassDeclaration;
-
-    allProperties.add(name);
-    const child = this.#targetClass.getMember(name);
-
-    if (!ts.Node.isMethodDeclaration(child) && !ts.Node.isPropertyDeclaration(child))
-      throw new Error("assertion failure: we should have a property or a method now");
-
-    const result = this.#callback(this.#targetClass, name, child, firstTypeNode);
-
-    this.#targetClass = this.#destFile.getClass(
-      this.#targetClass.getName() as string
-    ) as ts.ClassDeclaration;
-
-    if (result) {
-      acceptedProperties.add(name);
-      this.#voidUnusedParameters(name);
-    }
-    else {
-      child.remove();
-    }
-  }
-
-  /**
-   * Insert the initial text for a class field.
-   *
-   * @param firstTypeNode - The type alias or interface node.
-   * @param field         - The symbol for the underlying field.
-   * @param name          - The name of the field.
-   *
-   * @remarks This does an insertText() operation, so the callers must refresh the
-   * class afterwards.
-   */
-  #insertTextOfProperty(
-    firstTypeNode: InterfaceOrTypeAlias,
-    field: ts.Symbol,
-    name: string
-  ) : void
-  {
     const typeAtNode = field.getTypeAtLocation(firstTypeNode);
 
     let text = typeAtNode.getText(
@@ -197,9 +150,7 @@ export default class TypeToClass
       ts.TypeFormatFlags.NodeBuilderFlagsMask
     );
 
-    let addBlock = false;
     if ((field.getFlags() & ts.SymbolFlags.Method)) {
-      addBlock = true;
       // ts-morph, or more likely TypeScript itself, writes arrow function types, but specifies methods:
       // " => returnType" versus " : returnType".
       const signatures = typeAtNode.getCallSignatures();
@@ -220,24 +171,40 @@ export default class TypeToClass
 
       const returnType = signatures[0].getReturnType().getText();
       const beforeReturn = text.substring(0, text.length - returnType.length);
-      text = name + beforeReturn.replace(/ => $/, " : ") + returnType;
+      text = `    ${name}${
+        beforeReturn.replace(/ => $/, " : ")
+      }${returnType}\n    {\n    }`;
     }
     else {
-      text = name + ": " + text;
+      text = `    ${name}: ${text}`;
     }
 
-    const pos = this.#targetClass.getEnd() - 1;
-    this.#targetClass.insertText(
-      pos,
-      "    " + text + (
-        addBlock ? "\n    {\n    }" : ""
-      ) + "\n\n"
-      /*
-      this.#writer.writeLine(text).toString() + (
-        addBlock ? this.#writer.block().toString() : ""
-      )
-      */
-    );
+    allFieldsMap.set(name, text);
+  }
+
+  #modifyField(
+    firstTypeNode: InterfaceOrTypeAlias,
+    field: string,
+    acceptedFields: Set<string>,
+  ) : void
+  {
+    const child = this.#targetClass.getMember(field);
+
+    if (!ts.Node.isMethodDeclaration(child) && !ts.Node.isPropertyDeclaration(child))
+      throw new Error("assertion failure: we should have a property or a method now");
+
+    const result = this.#callback(this.#targetClass, field, child, firstTypeNode);
+    this.#targetClass = this.#destFile.getClass(
+      this.#targetClass.getName() as string
+    ) as ts.ClassDeclaration;
+
+    if (result) {
+      acceptedFields.add(field);
+      this.#voidUnusedParameters(field);
+    }
+    else {
+      child.remove();
+    }
   }
 
   /**

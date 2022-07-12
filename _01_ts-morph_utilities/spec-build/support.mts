@@ -46,10 +46,8 @@ export default async function() : Promise<void>
     buildNumberStringExcludesBarClass,
     buildNST_Keys,
     buildNumberStringConditionalClass,
+    buildNumberStringAndSymbolClass,
   ], callback => callback(fixturesDir, generatedDir));
-
-  await buildNumberStringAndSymbolClass(fixturesDir, generatedDir);
-  //await buildIsTypedNST(fixturesDir, generatedDir);
 }
 
 const notImplemented = `throw new Error("not yet implemented");`;
