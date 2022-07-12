@@ -4,10 +4,10 @@ Source:
 
 - [x] Create base "not implemented" class via TypeToClass
 - [x] Create pass-through class type
-- [ ] Extended "continue" class (returning previous results), copied from base class
+- [x] Extended "continue" class (returning previous results), copied from base class
 - [ ] Entry class ("ForwardTo_Base") copied from base class
 - [ ] Sequence class ("ForwardToSequence_Base") copied from base class
-- [ ] Extended "not implemented" class copied from base class
+- [x] Extended "not implemented" class copied from base class
 
 Spec-build:
 

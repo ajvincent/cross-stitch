@@ -11,7 +11,7 @@ export class NSPT_CONTINUE implements ComponentPassThroughClass<NumberStringType
   repeatBack(
     __previousResults__: PassThroughType<NumberStringType["repeatBack"]>,
     n: number, s: string
-  ): string | PassThroughType<NumberStringType["repeatBack"]>
+  ): PassThroughType<NumberStringType["repeatBack"]>
   {
     void(n);
     void(s);
@@ -21,7 +21,7 @@ export class NSPT_CONTINUE implements ComponentPassThroughClass<NumberStringType
   repeatForward(
     __previousResults__: PassThroughType<NumberStringType["repeatForward"]>,
     s: string, n: number
-  ): string | PassThroughType<NumberStringType["repeatForward"]>
+  ): PassThroughType<NumberStringType["repeatForward"]>
   {
     void(s);
     void(n);

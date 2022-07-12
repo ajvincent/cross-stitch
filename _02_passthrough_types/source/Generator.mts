@@ -54,9 +54,12 @@ export default class Generator
     ], leafName => this.#copyBaseFile(leafName));
 
     const baseClassFile = await this.#createBaseClass();
-    void(baseClassFile);
 
     await this.#createPassThroughType();
+
+    const extendedNIClassFile = await this.#createExtendedNIClass(baseClassFile);
+
+    await this.#createExtendedContinueClass(extendedNIClassFile);
   }
 
   async #copyBaseFile(
@@ -97,5 +100,71 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
     `.trim() + "\n");
     passThroughTypeFile.fixMissingImports();
     await passThroughTypeFile.save();
+  }
+
+  async #createExtendedNIClass(
+    baseClassFile: ts.SourceFile
+  ) : Promise<ts.SourceFile>
+  {
+    const extendedClassFile = baseClassFile.copy("PassThrough_NotImplemented.mts");
+
+    const extendedClass = extendedClassFile.getClassOrThrow(this.#baseClassName);
+    extendedClass.rename(this.#baseClassName + "_PassThroughNI");
+    extendedClass.removeImplements(0);
+    extendedClass.addImplements("PassThroughClassType");
+
+    const methods = extendedClass.getMethods();
+    methods.forEach(method => {
+      const name = method.getName();
+      const revisedType = `PassThroughType<${this.#sourceTypeAlias}["${name}"]>`;
+      method.insertParameter(0, {
+        name: "__previousResults__",
+        type: revisedType
+      });
+
+      const returnType = method.getReturnType().getText();
+      method.setReturnType(returnType + " | " + revisedType);
+    });
+
+    extendedClassFile.fixMissingImports();
+
+    extendedClassFile.formatText({
+      ensureNewLineAtEndOfFile: true,
+      placeOpenBraceOnNewLineForFunctions: true,
+      indentSize: 2,
+    });
+
+    await extendedClassFile.save();
+    return extendedClassFile;
+  }
+
+  async #createExtendedContinueClass(
+    niClassFile: ts.SourceFile
+  ) : Promise<void>
+  {
+    const continueFile = niClassFile.copy("PassThrough_Continue.mts");
+    const extendedClass = continueFile.getClassOrThrow(
+      this.#baseClassName + "_PassThroughNI"
+    );
+    extendedClass.rename(this.#baseClassName + "_PassThroughContinue");
+
+    const methods = extendedClass.getMethods();
+    methods.forEach(method => {
+      const name = method.getName();
+      const revisedType = `PassThroughType<${this.#sourceTypeAlias}["${name}"]>`;
+      method.setReturnType(revisedType);
+
+      const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
+      method.removeStatement(throwLine.getChildIndex());
+      method.addStatements("return __previousResults__;");
+    });
+
+    continueFile.formatText({
+      ensureNewLineAtEndOfFile: true,
+      placeOpenBraceOnNewLineForFunctions: true,
+      indentSize: 2,
+    });
+
+    await continueFile.save();
   }
 }
