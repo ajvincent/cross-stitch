@@ -362,21 +362,12 @@ async function buildNumberStringAndSymbolClass(
   generatedDir: ts.Directory
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath("TypePatterns.mts");
-  const destFile = generatedDir.createSourceFile("NumberStringAndSymbolClass.mts");
-
-  const TTC = new TypeToClass(
-    destFile,
-    "NumberStringClass",
-    TypeToClass.notImplementedCallback
+  await buildSingleTypePattern(
+    fixturesDir,
+    generatedDir,
+    "NumberStringAndSymbolClass.mts",
+    "NumberStringAndSymbol"
   );
-
-  TTC.addTypeAliasOrInterface(
-    srcFile,
-    "NumberStringAndSymbol",
-  );
-
-  await destFile.save();
 }
 
 async function buildSingleTypePattern(
