@@ -5,6 +5,8 @@ import url from "url";
 
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 
+import Generator from "../source/Generator.mjs";
+
 export default async function() : Promise<void>
 {
   const project = new ts.Project({
@@ -25,6 +27,12 @@ export default async function() : Promise<void>
   const fixturesDir = project.addDirectoryAtPath(path.join(parentDir, "fixtures"));
   const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated"));
 
-  void(fixturesDir);
-  void(generatedDir);
+  const generator = new Generator(
+    fixturesDir.addSourceFileAtPath("NumberStringType.mts"),
+    "NumberStringType",
+    generatedDir,
+    "NumberStringClass"
+  );
+
+  await generator.run();
 }
