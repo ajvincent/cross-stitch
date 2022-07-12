@@ -3,7 +3,7 @@ import ts from "ts-morph";
 import CodeBlockWriter from "code-block-writer";
 */
 
-type InterfaceOrTypeAlias = ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
+export type InterfaceOrTypeAlias = ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
 export type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
 
 export type TypeToClassCallback = (
@@ -12,6 +12,8 @@ export type TypeToClassCallback = (
   propertyNode: FieldDeclaration,
   baseNode: InterfaceOrTypeAlias,
 ) => boolean;
+
+const notImplemented = `throw new Error("not yet implemented");`;
 
 export default class TypeToClass
 {
@@ -47,6 +49,41 @@ export default class TypeToClass
       isDefaultExport: true,
       isExported: true,
     });
+  }
+
+  static notImplementedCallback: TypeToClassCallback = (
+    classNode,
+    propertyName,
+    propertyNode,
+    baseNode,
+  ) : boolean =>
+  {
+    void(baseNode);
+    if (ts.Node.isMethodDeclaration(propertyNode)) {
+      propertyNode.addStatements(notImplemented);
+    }
+    else {
+      const returnType = propertyNode.getTypeNodeOrThrow().getText();
+  
+      propertyNode.remove();
+  
+      classNode.addGetAccessor({
+        name: propertyName,
+        statements: notImplemented,
+        returnType,
+      });
+  
+      classNode.addSetAccessor({
+        name: propertyName,
+        parameters: [{
+          name: "value",
+          type: returnType
+        }],
+        statements: notImplemented
+      });
+    }
+  
+    return true;
   }
 
   /*

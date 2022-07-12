@@ -6,7 +6,8 @@ import url from "url";
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 
 import TypeToClass, {
-  FieldDeclaration
+  FieldDeclaration,
+  InterfaceOrTypeAlias,
 } from "../source/TypeToClass.mjs";
 import { PromiseAllParallel } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
 
@@ -50,41 +51,6 @@ export default async function() : Promise<void>
   ], callback => callback(fixturesDir, generatedDir));
 }
 
-const notImplemented = `throw new Error("not yet implemented");`;
-function notImplementedCallback
-(
-  classNode: ts.ClassDeclaration,
-  propertyName: string,
-  propertyNode: FieldDeclaration,
-) : boolean
-{
-  if (ts.Node.isMethodDeclaration(propertyNode)) {
-    propertyNode.addStatements(notImplemented);
-  }
-  else {
-    const returnType = propertyNode.getTypeNodeOrThrow().getText();
-
-    propertyNode.remove();
-
-    classNode.addGetAccessor({
-      name: propertyName,
-      statements: notImplemented,
-      returnType,
-    });
-
-    classNode.addSetAccessor({
-      name: propertyName,
-      parameters: [{
-        name: "value",
-        type: returnType
-      }],
-      statements: notImplemented
-    });
-  }
-
-  return true;
-}
-
 async function buildNumberStringTypeClass(
   fixturesDir: ts.Directory,
   generatedDir: ts.Directory
@@ -96,7 +62,7 @@ async function buildNumberStringTypeClass(
   const TTC = new TypeToClass(
     destFile,
     "NumberStringTypeClass",
-    notImplementedCallback
+    TypeToClass.notImplementedCallback
   );
 
   TTC.addTypeAliasOrInterface(
@@ -118,7 +84,7 @@ async function buildNumberStringInterfaceClass(
   const TTC = new TypeToClass(
     destFile,
     "NumberStringInterfaceClass",
-    notImplementedCallback
+    TypeToClass.notImplementedCallback
   );
 
   TTC.addTypeAliasOrInterface(
@@ -148,7 +114,7 @@ async function buildNumberStringWithTypeClass(
   const TTC = new TypeToClass(
     destFile,
     "NumberStringTypeClass",
-    notImplementedCallback
+    TypeToClass.notImplementedCallback
   );
 
   TTC.addTypeAliasOrInterface(
@@ -181,11 +147,12 @@ async function buildPartialType(
       classNode: ts.ClassDeclaration,
       propertyName: string,
       propertyNode: FieldDeclaration,
+      baseNode: InterfaceOrTypeAlias,
     ) : boolean
     {
       if (propertyName === "repeatBack")
         return false;
-      return notImplementedCallback(classNode, propertyName, propertyNode);
+      return TypeToClass.notImplementedCallback(classNode, propertyName, propertyNode, baseNode);
     }
   );
 
@@ -225,13 +192,15 @@ async function buildIsTypedNSTWithConstructor(
       classNode: ts.ClassDeclaration,
       propertyName: string,
       propertyNode: FieldDeclaration,
+      baseNode: InterfaceOrTypeAlias,
     ) : boolean =>
     {
       if (ts.Node.isMethodDeclaration(propertyNode)) {
-        return notImplementedCallback(
+        return TypeToClass.notImplementedCallback(
           classNode,
           propertyName,
-          propertyNode
+          propertyNode,
+          baseNode
         );
       }
 
@@ -288,7 +257,7 @@ async function throwNumberStringOrBar(
   const TTC = new TypeToClass(
     destFile,
     "NumberStringTypeClass",
-    notImplementedCallback
+    TypeToClass.notImplementedCallback
   );
 
   let pass = false;
@@ -399,7 +368,7 @@ async function buildNumberStringAndSymbolClass(
   const TTC = new TypeToClass(
     destFile,
     "NumberStringClass",
-    notImplementedCallback
+    TypeToClass.notImplementedCallback
   );
 
   TTC.addTypeAliasOrInterface(
@@ -423,7 +392,7 @@ async function buildSingleTypePattern(
   const TTC = new TypeToClass(
     destFile,
     "NumberStringClass",
-    notImplementedCallback
+    TypeToClass.notImplementedCallback
   );
 
   TTC.addTypeAliasOrInterface(
