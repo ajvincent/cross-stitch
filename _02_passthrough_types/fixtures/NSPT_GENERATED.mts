@@ -9,7 +9,7 @@ import {
   ForwardTo_Base,
   ForwardToSequence_Base,
   INVOKE_SYMBOL,
-} from "../source/GenerateTypedPassThrough.mjs";
+} from "../source/ForwardTo_Base.mjs";
 
 import type {
   NumberStringType

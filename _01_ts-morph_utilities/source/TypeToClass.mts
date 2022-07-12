@@ -6,7 +6,7 @@ import CodeBlockWriter from "code-block-writer";
 type InterfaceOrTypeAlias = ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
 export type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
 
-type TypeToClassCallback = (
+export type TypeToClassCallback = (
   classNode: ts.ClassDeclaration,
   propertyName: string,
   propertyNode: FieldDeclaration,
@@ -194,8 +194,7 @@ export default class TypeToClass
 
     let text = typeAtNode.getText(
       undefined,
-      ts.TypeFormatFlags.NoTruncation |
-      ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope
+      ts.TypeFormatFlags.NodeBuilderFlagsMask
     );
 
     let addBlock = false;

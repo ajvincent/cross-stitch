@@ -1,11 +1,3 @@
-import fs from "fs/promises";
-import path from "path";
-import url from "url";
-
-const templatePath = url.fileURLToPath(path.join(import.meta.url, "../PassThroughGenerated.mts.in"));
-const template = await fs.readFile(templatePath, { encoding: "utf-8"});
-void(template);
-
 import type { AnyFunction } from "./AnyFunction.mjs";
 
 import type {
@@ -15,6 +7,7 @@ import type {
   ComponentPassThroughClass,
   ComponentPassThroughMap,
 } from "./PassThroughSupport.mjs";
+
 import {
   PassThroughArgument,
 } from "./PassThroughSupport.mjs";
@@ -25,7 +18,8 @@ export const INVOKE_SYMBOL = Symbol("protected invoke");
 /**
  * The entry point from a non-augmented type into pass-through-augmented components.
  */
-export class ForwardTo_Base {
+export class ForwardTo_Base
+{
   constructor() {
     if (new.target === ForwardTo_Base)
       throw new Error("Do not construct this class directly: subclass it!");
@@ -34,10 +28,10 @@ export class ForwardTo_Base {
   /**
    * @typeParam TargetMethodType - The type of the original method.
    * @typeParam TargetClassType  - The type of the original class holding the method.
-   * @param initialTarget  - The starting target name in passThroughMap.
-   * @param passThroughMap - The map of component classes.
-   * @param methodName - The name of the method we want to call, which we get from each component via Reflect.
-   * @param initialArguments       - The initial arguments to pass to the starting target.
+   * @param initialTarget    - The starting target name in passThroughMap.
+   * @param passThroughMap   - The map of component classes.
+   * @param methodName       - The name of the method we want to call, which we get from each component via Reflect.
+   * @param initialArguments - The initial arguments to pass to the starting target.
    * @returns The original target method's type.
    */
   protected [INVOKE_SYMBOL]<
@@ -178,11 +172,4 @@ export class ForwardToSequence_Base<ClassType extends object>
 
     return result;
   }
-}
-
-export async function GenerateTypedPassThrough(
-
-) : Promise<void>
-{
-  void(false);
 }

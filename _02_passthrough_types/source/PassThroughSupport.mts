@@ -4,7 +4,8 @@ import type { AnyFunction } from "./AnyFunction.mjs";
 
 const PassThroughSymbol = Symbol("Indeterminate return");
 
-export type PassThroughType<MethodType extends AnyFunction> = {
+export type PassThroughType<MethodType extends AnyFunction> =
+{
   // This marks the type as unique.
   [PassThroughSymbol]: boolean;
 
@@ -50,7 +51,8 @@ export type ComponentPassThroughMap<
 
 // #region class implementing PassThroughType
 
-export class PassThroughArgument<MethodType extends AnyFunction> implements PassThroughType<MethodType>
+export class PassThroughArgument<MethodType extends AnyFunction>
+       implements PassThroughType<MethodType>
 {
   [PassThroughSymbol] = true;
   modifiedArguments: Parameters<MethodType>;
