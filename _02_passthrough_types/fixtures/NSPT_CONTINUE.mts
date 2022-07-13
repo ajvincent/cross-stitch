@@ -7,17 +7,9 @@ import type {
   NumberStringType
 } from "./NumberStringType.mjs";
 
-export class NSPT_CONTINUE implements ComponentPassThroughClass<NumberStringType> {
-  repeatBack(
-    __previousResults__: PassThroughType<NumberStringType["repeatBack"]>,
-    n: number, s: string
-  ): PassThroughType<NumberStringType["repeatBack"]>
-  {
-    void(n);
-    void(s);
-    return __previousResults__;
-  }
-
+export default class NSPT_CONTINUE
+               implements ComponentPassThroughClass<NumberStringType>
+{
   repeatForward(
     __previousResults__: PassThroughType<NumberStringType["repeatForward"]>,
     s: string, n: number
@@ -25,6 +17,16 @@ export class NSPT_CONTINUE implements ComponentPassThroughClass<NumberStringType
   {
     void(s);
     void(n);
+    return __previousResults__;
+  }
+
+  repeatBack(
+    __previousResults__: PassThroughType<NumberStringType["repeatBack"]>,
+    n: number, s: string
+  ): PassThroughType<NumberStringType["repeatBack"]>
+  {
+    void(n);
+    void(s);
     return __previousResults__;
   }
 }

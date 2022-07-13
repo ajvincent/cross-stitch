@@ -48,8 +48,9 @@ export default class Generator
   async #run() : Promise<void>
   {
     await PromiseAllParallel([
-      "AnyFunction.mts",
-      "ForwardTo_Base.mts",
+      "Common.mts",
+      "Entry_Base.mts",
+      "Sequence_Base.mts",
       "PassThroughSupport.mts",
     ], leafName => this.#copyBaseFile(leafName));
 

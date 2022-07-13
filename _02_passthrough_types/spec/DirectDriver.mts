@@ -12,10 +12,8 @@ import {
   NST_THROW,
 } from "../fixtures/NST_INSTANCES.mjs";
 
-import {
-  NumberStringType_Sequence,
-  NumberString_ForwardTo
-} from "../fixtures/NSPT_GENERATED.mjs";
+import NumberString_EntryBase from "../fixtures/NSPT_ENTRY.mjs";
+import NumberStringType_Sequence from "../fixtures/NSPT_SEQUENCE.mjs";
 
 it("DirectDriver mockup returns a sane value", () => {
   const NST_COMPONENT_MAP: ComponentPassThroughMap<NumberStringType> = new Map;
@@ -29,6 +27,6 @@ it("DirectDriver mockup returns a sane value", () => {
     NST_COMPONENT_MAP,
   ));
 
-  const TestClass = new NumberString_ForwardTo("driver", NST_COMPONENT_MAP);
+  const TestClass = new NumberString_EntryBase("driver", NST_COMPONENT_MAP);
   expect(TestClass.repeatForward("foo", 3)).toBe("foofoofoo");
 });

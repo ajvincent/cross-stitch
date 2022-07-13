@@ -24,7 +24,7 @@ export default async function() : Promise<void>
     }
   });
 
-  const fixturesDir = project.addDirectoryAtPath(path.join(parentDir, "fixtures"));
+  const fixturesDir  = project.addDirectoryAtPath(path.join(parentDir, "fixtures"));
   const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated"));
 
   const generator = new Generator(

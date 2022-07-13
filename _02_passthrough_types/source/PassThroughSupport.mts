@@ -1,6 +1,6 @@
 // #region PassThroughType type
 
-import type { AnyFunction } from "./AnyFunction.mjs";
+import type { AnyFunction } from "./Common.mjs";
 
 const PassThroughSymbol = Symbol("Indeterminate return");
 
