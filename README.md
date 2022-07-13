@@ -1,81 +1,8 @@
 # Cross-stitch:  Aspect weaving unit-testable components, both dynamically and with static code rewriting
 
-In my [es-membrane](https://github.com/ajvincent/es-membrane) project, I ran into a scalability problem.  I had a very complicated [`ProxyHandler`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy#handler_functions) implementation, one which _worked_ mostly, but was impossible to unit-test.
+Programmers like unit-testable components.  Ultimately, we have to craft integrated classes which are no longer unit-testable.  This project is about providing a framework via JavaScript decorators for weaving together components as a build step into integrated classes.  This way, you can keep the unit-testing at one level and integration testing on another.
 
-A `ProxyHandler` for a membrane is a complicated beast, with several aspects to support:
-
-- Converting arguments from the source object graph to the target object graph
-- Invoking the target proxy handler (usually `Reflect`)
-- Converting return values from the target object graph to the source object graph
-- Populating the properties of the shadow target
-- Optional assertions
-  - Did we associate each argument with the right object graph?
-  - Did we meet the requirements from the `Proxy` specification?
-
-This presents an unit-testing conundrum.  How do we safely break up the the combined `ProxyHandler` into unit-testable component classes,
-each of which implement traps differently, and later reintegrate them?
-
-## A realistic example
-
-```typescript
-class GraphProxyHandler<T extends object> implements ShadowProxyHandler<T> {
-  getOwnPropertyDescriptor(
-    shadowTarget: T,
-    p: propertyKey,
-
-    nextTarget: T,
-    nextHandler: Required<ProxyHandler<T>>
-  ): PropertyDescriptor | undefined
-  {
-    // revoke the proxy if one of the target graphs has been revoked
-    this.#checkIfGraphsRevoked(shadowTarget, nextTarget, nextHandler);
-
-    // get the property descriptor from the target graph
-    let desc = nextHandler.getOwnPropertyDescriptor(nextTarget, p);
-
-    // apply distortions
-    desc = this.#distortions.some(d => d.modifyPropertyDescriptor(p, desc));
-
-    // wrap the descriptor for the return value
-    if (desc) {
-      desc = this.#currentGraph.convertDescriptor(desc);
-    }
-
-    // update the shadow target for bookkeeping
-    if (desc) {
-      this.#setOwnPropertyDescriptor(shadowTarget, p, desc);
-    }
-
-    return desc;
-  }
-
-  ownKeys(
-    shadowTarget: T,
-
-    nextTarget: T,
-    nextHandler: Required<ProxyHandler<T>>
-  ): ArrayLike<propertyKey>
-  {
-    // revoke the proxy if one of the target graphs has been revoked
-    this.#checkIfGraphsRevoked(shadowTarget, nextTarget, nextHandler);
-
-    // get the ownKeys listing from the target graph
-    let keys = nextHandler.ownKeys(nextTarget);
-
-    // apply distortions
-    keys = this.#distortions.some(d => d.modifyOwnKeys(nextTarget, keys));
-
-    // update the shadow target for bookkeeping
-    this.#updateOwnKeys(shadowTarget, keys);
-
-    return keys;
-  }
-}
-```
-
-That's at least five different aspects for the final `ShadowProxyHandler` to support on each trap.  Imagine this written for __thirteen (13)__ different traps.  This gets messy, quickly.
-
-## A much simpler example
+## A simple example: three aspects intermixed
 
 ```typescript
 type NumberStringType = {
@@ -127,7 +54,7 @@ export default class NSTypeRepeater implements NumberStringType
 }
 ```
 
-This is much easier to understand.  
+Here we have three aspects, across two different methods of one integrated class.  Testing this class's behavior is not easy.
 
 ## Component classes, with some helper code
 
@@ -275,13 +202,11 @@ Now, I haven't _fully_ thought through the example above as I write this.  So ex
 ## How to get there: A roadmap
 
 This project will take several phases to complete:
-1. Leveraging [TypeScript ESTree](https://github.com/typescript-eslint/typescript-eslint/tree/main/packages/typescript-estree) to [parse TypeScript code and traverse](./_01_TypeScript_ESTree) the resulting [abstract syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree).
-2. (In progress) Scanning the source module(s) and [converting specified TypeScript types to generated classes](./_02_TypeScript_TypeToClass).
-3. (In progress) Defining [pass-through types, types to rewrite existing user types, and generate component class stubs](./_03_passthrough_types).
-4. (Pending) [A JSON schema for configuring build projects](https://github.com/ajvincent/cross-stitch/issues/12).
-5. (Pending) [Defining aspect-oriented decorators, and dynamic runtime modules to bootstrap aspect weaving](https://github.com/ajvincent/cross-stitch/issues/7).
-6. (Pending) [Static analysis](https://en.wikipedia.org/wiki/Static_program_analysis) and [weaving component classes into integrated modules](https://github.com/ajvincent/cross-stitch/issues/8).
-7. (Pending) [Rollup](https://rollupjs.org/guide/en/) of [this project's code for exporting](https://github.com/ajvincent/cross-stitch/issues/10) via [npm](https://npmjs.com), including types.
-8. (Pending) [Dogfooding](https://en.wikipedia.org/wiki/Eating_your_own_dog_food) via [my es-membrane project](https://github.com/ajvincent/es-membrane)
-9. (Pending) [A command-line user interface](https://github.com/ajvincent/cross-stitch/issues/9).
-
+1. Leveraging [ts-morph](https://ts-morph.com) to [generate stub classes from existing types](./_01_ts-morph_utilities/).
+2. (In progress) Defining [pass-through types, types to rewrite existing user types, and generate component class stubs](./_02_passthrough_types).
+3. (Pending) [A JSON schema for configuring build projects](https://github.com/ajvincent/cross-stitch/issues/12).
+4. (Pending) [Defining aspect-oriented decorators, and dynamic runtime modules to bootstrap aspect weaving](https://github.com/ajvincent/cross-stitch/issues/7).
+5. (Pending) [Static analysis](https://en.wikipedia.org/wiki/Static_program_analysis) and [weaving component classes into integrated modules](https://github.com/ajvincent/cross-stitch/issues/8).
+6. (Pending) [Rollup](https://rollupjs.org/guide/en/) of [this project's code for exporting](https://github.com/ajvincent/cross-stitch/issues/10) via [npm](https://npmjs.com), including types.
+7. (Pending) [Dogfooding](https://en.wikipedia.org/wiki/Eating_your_own_dog_food) via [my es-membrane project](https://github.com/ajvincent/es-membrane)
+8. (Pending) [A command-line user interface](https://github.com/ajvincent/cross-stitch/issues/9).
