@@ -1,6 +1,9 @@
 // #region PassThroughType type
 
-import type { AnyFunction } from "./Common.mjs";
+import type {
+  AnyFunction,
+  PropertyKey
+} from "./Common.mjs";
 
 const PassThroughSymbol = Symbol("Indeterminate return");
 
@@ -47,7 +50,7 @@ export type ComponentPassThroughClass<ClassType extends object> = {
 
 export type ComponentPassThroughMap<
   ClassType extends object
-> = Map<string | symbol, ComponentPassThroughClass<ClassType>>;
+> = Map<PropertyKey, ComponentPassThroughClass<ClassType>>;
 
 // #region class implementing PassThroughType
 
@@ -57,14 +60,14 @@ export class PassThroughArgument<MethodType extends AnyFunction>
   [PassThroughSymbol] = true;
   modifiedArguments: Parameters<MethodType>;
 
-  #initialTarget: string | symbol;
-  #callbackMap: Map<string | symbol, MaybePassThrough<MethodType>>;
+  #initialTarget: PropertyKey;
+  #callbackMap: Map<PropertyKey, MaybePassThrough<MethodType>>;
 
-  #visitedTargets: Set<string | symbol> = new Set;
+  #visitedTargets: Set<PropertyKey> = new Set;
 
   constructor(
-    initialTarget: string | symbol,
-    callbacks: [string | symbol, MaybePassThrough<MethodType>][],
+    initialTarget: PropertyKey,
+    callbacks: [PropertyKey, MaybePassThrough<MethodType>][],
     initialArguments: Parameters<MethodType>
   )
   {
@@ -77,7 +80,7 @@ export class PassThroughArgument<MethodType extends AnyFunction>
     this.modifiedArguments = initialArguments;
   }
 
-  callTarget(key: string | symbol) : ReturnOrPassThroughType<MethodType>
+  callTarget(key: PropertyKey) : ReturnOrPassThroughType<MethodType>
   {
     if (this.#visitedTargets.has(key))
       throw new Error(`Visited target "${String(key)}"!`)
