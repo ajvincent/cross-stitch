@@ -68,7 +68,7 @@ export default class Generator
   ) : Promise<void>
   {
     await fs.copyFile(
-      path.join(parentDir, "source", leafName),
+      path.join(parentDir, "source/exports", leafName),
       path.join(this.#targetDir.getPath(), leafName)
     );
 

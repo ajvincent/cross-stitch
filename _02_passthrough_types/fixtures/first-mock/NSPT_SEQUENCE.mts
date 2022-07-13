@@ -1,14 +1,14 @@
 import {
   INVOKE_SYMBOL
-} from "../../source/Common.mjs";
+} from "../../source/exports/Common.mjs";
 
 import type {
   PassThroughType,
   ReturnOrPassThroughType,
   ComponentPassThroughClass,
-} from "../../source/PassThroughSupport.mjs";
+} from "../../source/exports/PassThroughSupport.mjs";
 
-import Sequence_Base from "../../source/Sequence_Base.mjs";
+import Sequence_Base from "../../source/exports/Sequence_Base.mjs";
 
 import type {
   NumberStringType

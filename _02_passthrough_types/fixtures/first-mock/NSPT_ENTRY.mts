@@ -1,13 +1,13 @@
 import {
   INVOKE_SYMBOL,
   PropertyKey
-} from "../../source/Common.mjs";
+} from "../../source/exports/Common.mjs";
 
 import type {
   ComponentPassThroughMap,
-} from "../../source/PassThroughSupport.mjs";
+} from "../../source/exports/PassThroughSupport.mjs";
 
-import Entry_Base from "../../source/Entry_Base.mjs";
+import Entry_Base from "../../source/exports/Entry_Base.mjs";
 
 import type {
   NumberStringType
