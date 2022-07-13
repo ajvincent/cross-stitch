@@ -50,7 +50,7 @@ export default class InstanceToComponentMap<
     return submap.getComponent(key);
   }
 
-  addDefaultComponent(key: PropertyKey, component: ComponentPassThroughClass<ClassType>)
+  addDefaultComponent(key: PropertyKey, component: ComponentPassThroughClass<ClassType>) : void
   {
     this.#default.addComponent(key, component);
   }
