@@ -50,9 +50,10 @@ export default class Generator
     await PromiseAllParallel([
       "Common.mts",
       "Entry_Base.mts",
-      "Sequence_Base.mts",
+      "KeyToComponentMap_Base.mts",
       "PassThroughSupport.mts",
-    ], leafName => this.#copyBaseFile(leafName));
+      "Sequence_Base.mts",
+    ], leafName => this.#copyExport(leafName));
 
     const baseClassFile = await this.#createBaseClass();
 
@@ -63,7 +64,7 @@ export default class Generator
     await this.#createExtendedContinueClass(extendedNIClassFile);
   }
 
-  async #copyBaseFile(
+  async #copyExport(
     leafName: string
   ) : Promise<void>
   {
