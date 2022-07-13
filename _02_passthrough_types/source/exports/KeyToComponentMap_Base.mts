@@ -6,6 +6,14 @@ class KeyToComponentMap<
 >
 {
   #map = new Map<PropertyKey, ComponentPassThroughClass<ClassType>>;
+
+  constructor()
+  {
+    if (new.target !== KeyToComponentMap)
+      throw new Error("This class may not be subclassed!");
+    Object.freeze(this);
+  }
+
   getComponent(key: PropertyKey) : ComponentPassThroughClass<ClassType>
   {
     const rv = this.#map.get(key);
@@ -17,7 +25,7 @@ class KeyToComponentMap<
   addComponent(key: PropertyKey, component: ComponentPassThroughClass<ClassType>) : void
   {
     if (this.#map.has(key))
-      throw new Error("Key is already defined");
+      throw new Error("Key is already defined!");
     this.#map.set(key, component);
   }
 
@@ -25,17 +33,9 @@ class KeyToComponentMap<
   {
     return this.#map.keys();
   }
-
-  clone(keys: PropertyKey[]) : KeyToComponentMap<ClassType>
-  {
-    const rv = new KeyToComponentMap<ClassType>;
-    keys.forEach(key => {
-      rv.addComponent(key, this.getComponent(key));
-    });
-
-    return rv;
-  }
 }
+Object.freeze(KeyToComponentMap);
+Object.freeze(KeyToComponentMap.prototype);
 
 export default class InstanceToComponentMap<
   ClassType extends object
@@ -43,6 +43,13 @@ export default class InstanceToComponentMap<
 {
   #overrideMap = new WeakMap<ClassType, KeyToComponentMap<ClassType>>;
   #default = new KeyToComponentMap<ClassType>;
+
+  constructor()
+  {
+    if (new.target !== InstanceToComponentMap)
+      throw new Error("This class may not be subclassed!");
+    Object.freeze(this);
+  }
 
   getComponent(instance: ClassType, key: PropertyKey): ComponentPassThroughClass<ClassType>
   {
@@ -65,8 +72,15 @@ export default class InstanceToComponentMap<
     if (this.#overrideMap.has(instance))
       throw new Error("Override already exists for the instance!");
 
-    const map = this.#default.clone(keys);
+    const map = new KeyToComponentMap<ClassType>;
+
+    keys.forEach(key => map.addComponent(
+      key, this.#default.getComponent(key)
+    ));
+
     this.#overrideMap.set(instance, map);
     return map;
   }
 }
+Object.freeze(InstanceToComponentMap);
+Object.freeze(InstanceToComponentMap.prototype);
