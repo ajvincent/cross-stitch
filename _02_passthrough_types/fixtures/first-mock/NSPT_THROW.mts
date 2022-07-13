@@ -1,11 +1,11 @@
 import type {
   PassThroughType,
   ComponentPassThroughClass,
-} from "../source/PassThroughSupport.mjs";
+} from "../../source/PassThroughSupport.mjs";
 
 import type {
   NumberStringType
-} from "./NumberStringType.mjs";
+} from "../NumberStringType.mjs";
 
 export default class NSPT_THROW
                implements ComponentPassThroughClass<NumberStringType>

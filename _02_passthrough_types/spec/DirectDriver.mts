@@ -10,12 +10,12 @@ import {
   NST_CONTINUE,
   NST_RESULT,
   NST_THROW,
-} from "../fixtures/NST_INSTANCES.mjs";
+} from "../fixtures/first-mock/NST_INSTANCES.mjs";
 
-import NumberString_EntryBase from "../fixtures/NSPT_ENTRY.mjs";
-import NumberStringType_Sequence from "../fixtures/NSPT_SEQUENCE.mjs";
+import NumberString_EntryBase from "../fixtures/first-mock/NSPT_ENTRY.mjs";
+import NumberStringType_Sequence from "../fixtures/first-mock/NSPT_SEQUENCE.mjs";
 
-it("DirectDriver mockup returns a sane value", () => {
+xit("DirectDriver mockup returns a sane value", () => {
   const NST_COMPONENT_MAP: ComponentPassThroughMap<NumberStringType> = new Map;
   NST_COMPONENT_MAP.set("continue", NST_CONTINUE);
   NST_COMPONENT_MAP.set("result", NST_RESULT);

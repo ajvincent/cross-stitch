@@ -1,17 +1,17 @@
 import {
   INVOKE_SYMBOL,
   PropertyKey
-} from "../source/Common.mjs";
+} from "../../source/Common.mjs";
 
 import type {
   ComponentPassThroughMap,
-} from "../source/PassThroughSupport.mjs";
+} from "../../source/PassThroughSupport.mjs";
 
-import Entry_Base from "../source/Entry_Base.mjs";
+import Entry_Base from "../../source/Entry_Base.mjs";
 
 import type {
   NumberStringType
-} from "./NumberStringType.mjs";
+} from "../NumberStringType.mjs";
 
 export default class NumberString_EntryBase
                extends Entry_Base
