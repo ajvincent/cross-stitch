@@ -6,6 +6,7 @@ class KeyToComponentMap<
 >
 {
   #map = new Map<PropertyKey, ComponentPassThroughClass<ClassType>>;
+  #startComponent?: PropertyKey;
 
   constructor()
   {
@@ -14,8 +15,15 @@ class KeyToComponentMap<
     Object.freeze(this);
   }
 
+  static #validateKey(key: PropertyKey) : void
+  {
+    if (key === "")
+      throw new Error("key cannot be an empty string!");
+  }
+
   getComponent(key: PropertyKey) : ComponentPassThroughClass<ClassType>
   {
+    KeyToComponentMap.#validateKey(key);
     const rv = this.#map.get(key);
     if (!rv)
       throw new Error("No component match!");
@@ -24,6 +32,7 @@ class KeyToComponentMap<
 
   addComponent(key: PropertyKey, component: ComponentPassThroughClass<ClassType>) : void
   {
+    KeyToComponentMap.#validateKey(key);
     if (this.#map.has(key))
       throw new Error("Key is already defined!");
     this.#map.set(key, component);
@@ -32,6 +41,26 @@ class KeyToComponentMap<
   get keys() : IterableIterator<PropertyKey>
   {
     return this.#map.keys();
+  }
+
+  get startComponent() : PropertyKey | undefined
+  {
+    return this.#startComponent;
+  }
+
+  set startComponent(key: PropertyKey | undefined)
+  {
+    if (key === undefined)
+      throw new Error("Start component must be a non-empty string or a symbol!");
+    KeyToComponentMap.#validateKey(key);
+
+    if (this.#startComponent)
+      throw new Error("This map already has a start component!");
+
+    if (!this.#map.has(key))
+      throw new Error("You haven't registered the start component yet!");
+
+    this.#startComponent = key;
   }
 }
 Object.freeze(KeyToComponentMap);
@@ -65,6 +94,16 @@ export default class InstanceToComponentMap<
   get defaultKeys() : IterableIterator<PropertyKey>
   {
     return this.#default.keys;
+  }
+
+  get defaultStart() : PropertyKey | undefined
+  {
+    return this.#default.startComponent;
+  }
+
+  set defaultStart(key: PropertyKey | undefined)
+  {
+    this.#default.startComponent = key;
   }
 
   override(instance: ClassType, keys: PropertyKey[]) : KeyToComponentMap<ClassType>

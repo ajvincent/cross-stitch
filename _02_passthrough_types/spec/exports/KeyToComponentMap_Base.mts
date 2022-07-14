@@ -86,18 +86,56 @@ describe("InstanceToComponentMap", () => {
     expect(map.getComponent(stubType1, "result")).toBe(NST_RESULT);
   });
 
-  describe("throws for", () => {
-    it("trying to define a component twice", () => {
+  it("allows setting a start component after the component is defined", () => {
+    expect(map.defaultStart).toBe(undefined);
+
+    map.addDefaultComponent("continue", NST_CONTINUE);
+    expect(map.defaultStart).toBe(undefined);
+
+    map.defaultStart = "continue";
+    expect(map.defaultStart).toBe("continue");
+  });
+
+  describe("throws for trying to", () => {
+    it("define a component twice", () => {
       map.addDefaultComponent("continue", NST_CONTINUE);
       expect(
         () => map.addDefaultComponent("continue", NST_CONTINUE)
       ).toThrowError("Key is already defined!");
     });
 
-    it("trying to retrieve an undefined component", () => {
+    it("retrieve an undefined component", () => {
       expect(
         () => map.getComponent(stubType0, "continue")
       ).toThrowError("No component match!");
+    });
+
+    describe("set the start component", () => {
+      it("to undefined", () => {
+        expect(
+          () => map.defaultStart = undefined
+        ).toThrowError("Start component must be a non-empty string or a symbol!");
+      });
+
+      it("to an empty string", () => {
+        expect(
+          () => map.defaultStart = ""
+        ).toThrowError("key cannot be an empty string!");
+      });
+
+      it("to a key we haven't defined yet", () => {
+        expect(
+          () => map.defaultStart = "continue"
+        ).toThrowError("You haven't registered the start component yet!");
+      });
+
+      it("after we've successfully set it", () => {
+        map.addDefaultComponent("continue", NST_CONTINUE);
+        map.defaultStart = "continue";
+        expect(
+          () => map.defaultStart = "continue"
+        ).toThrowError("This map already has a start component!");
+      });
     });
   });
 });
