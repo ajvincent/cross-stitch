@@ -83,7 +83,21 @@ class DirStage {
             await fs.rm(specGeneratedDir, { recursive: true });
     }
     async #runTSC() {
-        const excludedDirs = new Set(["build", "spec-build", "spec-generated"]);
+        let excludeSpecBuild = true;
+        {
+            const pathToMTS = path.resolve(this.#dir, "spec-build", "support.mts");
+            try {
+                await fs.access(pathToMTS);
+                excludeSpecBuild = false;
+            }
+            catch (ex) {
+                // do nothing
+                void (ex);
+            }
+        }
+        const excludedDirs = new Set(["build", "spec-generated"]);
+        if (excludeSpecBuild)
+            excludedDirs.add("spec-build");
         let { files } = await readDirsDeep(this.#dir, localDir => !excludedDirs.has(path.basename(localDir)));
         files = files.filter(f => {
             return /(?<!\.d)\.mts$/.test(f);
@@ -137,14 +151,6 @@ class DirStage {
             // do nothing
             void (ex);
             return;
-        }
-        console.log("Compiling spec-build:");
-        {
-            let { files: tsFiles } = await readDirsDeep(buildDir);
-            tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f));
-            if (tsFiles.length > 0) {
-                await this.#invokeTSCWithFiles(tsFiles, path.join(this.#dir, "spec-build", "tsconfig.json"));
-            }
         }
         console.log("Creating spec-generated:");
         const generatedDir = path.resolve(this.#dir, "spec-generated");
