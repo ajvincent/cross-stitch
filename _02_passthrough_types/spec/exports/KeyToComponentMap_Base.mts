@@ -9,36 +9,37 @@ import {
 import type {
   NumberStringType
 } from "../../fixtures/NumberStringType.mjs";
+import { PassThroughType } from "../../source/exports/PassThroughSupport.mjs";
+
+const stubType0: NumberStringType =
+{
+  repeatForward(s, n) {
+    void(s);
+    void(n);
+    return s.repeat(n);
+  },
+  repeatBack(n, s) {
+    void(s);
+    void(n);
+    throw new Error("not implemented");
+  }
+};
+
+const stubType1: NumberStringType =
+{
+  repeatForward(s, n) {
+    void(s);
+    void(n);
+    throw new Error("not implemented");
+  },
+  repeatBack(n, s) {
+    void(s);
+    void(n);
+    throw new Error("not implemented");
+  }
+};
 
 describe("InstanceToComponentMap", () => {
-  const stubType0: NumberStringType =
-  {
-    repeatForward(s, n) {
-      void(s);
-      void(n);
-      throw new Error("not implemented");
-    },
-    repeatBack(n, s) {
-      void(s);
-      void(n);
-      throw new Error("not implemented");
-    }
-  };
-
-  const stubType1: NumberStringType =
-  {
-    repeatForward(s, n) {
-      void(s);
-      void(n);
-      throw new Error("not implemented");
-    },
-    repeatBack(n, s) {
-      void(s);
-      void(n);
-      throw new Error("not implemented");
-    }
-  };
-
   let map: InstanceToComponentMap<NumberStringType>;
   beforeEach(() => map = new InstanceToComponentMap);
 
@@ -67,7 +68,7 @@ describe("InstanceToComponentMap", () => {
     expect(map.getComponent(stubType0, "result")).toBe(NST_RESULT);
   });
 
-  it(".override hides components except for those we defined", () => {
+  it(".override() hides components except for those we defined", () => {
     map.addDefaultComponent("continue", NST_CONTINUE);
     map.addDefaultComponent("result", NST_THROW);
 
@@ -96,6 +97,63 @@ describe("InstanceToComponentMap", () => {
     expect(map.defaultStart).toBe("continue");
   });
 
+  it("allows setting a sequence", () => {
+    map.addDefaultComponent("continue", NST_CONTINUE);
+    map.addDefaultComponent("result", NST_THROW);
+
+    map.addDefaultSequence("continueAndResult", ["continue", "result"]);
+    expect(map.getSequence(stubType0, "continueAndResult")).toEqual(["continue", "result"]);
+
+    expect(map.defaultKeys).toEqual(
+      ["continue", "result", "continueAndResult"]
+    );
+  });
+
+  function passThrough() : PassThroughType<NumberStringType["repeatForward"]>
+  {
+    return map.buildPassThrough<NumberStringType["repeatForward"]>(
+      stubType0,
+      "repeatForward",
+      ["foo", 3]
+    );
+  }
+
+  describe(".buildPassThrough() creates a runnable pass-through argument which returns", () => {
+    it("a definite result on a component name", () => {
+      map.addDefaultComponent("result", NST_RESULT);
+      const successPass = passThrough();
+
+      expect(successPass.callTarget("result")).toBe("foofoofoo");
+    });
+
+    it("itself on a component name", () => {
+      map.addDefaultComponent("continue", NST_CONTINUE);
+      const successPass = passThrough();
+
+      expect(successPass.callTarget("continue")).toBe(successPass);
+    });
+
+    it("a definite result on a sequence name", () => {
+      map.addDefaultComponent("continue", NST_CONTINUE);
+      map.addDefaultComponent("result", NST_RESULT);
+
+      map.addDefaultSequence("sequence", ["continue", "result"]);
+      const successPass = passThrough();
+
+      expect(successPass.callTarget("sequence")).toBe("foofoofoo");
+    });
+
+    it("itself on a component name", () => {
+      map.addDefaultComponent("continue", NST_CONTINUE);
+      map.addDefaultComponent("result", NST_CONTINUE);
+
+      map.addDefaultSequence("sequence", ["continue", "result"]);
+      const successPass = passThrough();
+
+      expect(successPass.callTarget("sequence")).toBe(successPass);
+    });
+  });
+
   describe("throws for trying to", () => {
     it("define a component twice", () => {
       map.addDefaultComponent("continue", NST_CONTINUE);
@@ -108,6 +166,17 @@ describe("InstanceToComponentMap", () => {
       expect(
         () => map.getComponent(stubType0, "continue")
       ).toThrowError("No component match!");
+    });
+
+    it("define a component with a previously-defined sequence name", () => {
+      map.addDefaultComponent("continue", NST_CONTINUE);
+      map.addDefaultComponent("throw", NST_THROW);
+      map.addDefaultComponent("result", NST_RESULT);
+      map.addDefaultSequence("sequence", ["continue", "throw", "result"]);
+
+      expect(
+        () => map.addDefaultComponent("sequence", NST_CONTINUE)
+      ).toThrowError("Key is already defined!");
     });
 
     describe("set the start component", () => {
@@ -136,6 +205,83 @@ describe("InstanceToComponentMap", () => {
           () => map.defaultStart = "continue"
         ).toThrowError("This map already has a start component!");
       });
+    });
+
+    describe("set a sequence with", () => {
+      it("the same top name as an existing component", () => {
+        map.addDefaultComponent("continue", NST_CONTINUE);
+        map.addDefaultComponent("throw", NST_THROW);
+        map.addDefaultComponent("result", NST_RESULT);
+        expect(
+          () => map.addDefaultSequence("continue", ["throw", "result"])
+        ).toThrowError("The top key is already in the map!");
+      });
+
+      it("the same top name as a previous sequence", () => {
+        map.addDefaultComponent("continue", NST_CONTINUE);
+        map.addDefaultComponent("throw", NST_THROW);
+        map.addDefaultComponent("result", NST_RESULT);
+        map.addDefaultSequence("sequence", ["continue", "throw", "result"]);
+        expect(
+          () => map.addDefaultSequence("sequence", ["continue", "throw", "result"])
+        ).toThrowError("The top key is already in the map!");
+      });
+
+      it("less than two sequence keys", () => {
+        map.addDefaultComponent("continue", NST_CONTINUE);
+        map.addDefaultComponent("result", NST_THROW);
+
+        expect(
+          () => map.addDefaultSequence("sequence", [])
+        ).toThrowError("There must be at least two subkeys!");
+
+        expect(
+          () => map.addDefaultSequence("sequence", ["continue"])
+        ).toThrowError("There must be at least two subkeys!");
+      });
+
+      it("the top key among the sequence keys", () => {
+        map.addDefaultComponent("continue", NST_CONTINUE);
+        map.addDefaultComponent("result", NST_THROW);
+
+        expect(
+          () => map.addDefaultSequence("sequence", [
+            "continue", "throw", "sequence"
+          ])
+        ).toThrowError("Top key cannot be among the subkeys!");
+      });
+
+      it("a sequence key repeated twice", () => {
+        map.addDefaultComponent("continue", NST_CONTINUE);
+        map.addDefaultComponent("result", NST_THROW);
+
+        expect(
+          () => map.addDefaultSequence("sequence", [
+            "continue", "throw", "continue"
+          ])
+        ).toThrowError("Duplicate key among the subkeys!");
+      });
+
+      it("an unknown sequence key", () => {
+        map.addDefaultComponent("continue", NST_CONTINUE);
+        map.addDefaultComponent("result", NST_THROW);
+
+        expect(
+          () => map.addDefaultSequence("sequence", [
+            "continue", "result", "unknown"
+          ])
+        ).toThrowError(`Unknown subkey "unknown"!`);
+      });
+    });
+
+    it("run a pass-through's callTarget() with a specific component key twice", () => {
+      map.addDefaultComponent("result", NST_RESULT);
+      const successPass = passThrough();
+
+      successPass.callTarget("result");
+      expect(
+        () => successPass.callTarget("result")
+      ).toThrowError(`Visited target "result"!`);
     });
   });
 });

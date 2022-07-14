@@ -22,8 +22,8 @@ import {
  */
 export default class InstanceToComponentMap<ClassType extends object>
 {
-  #overrideMap = new WeakMap<ClassType, KeyToComponentMap<ClassType>>;
-  #default = new KeyToComponentMap<ClassType>;
+  readonly #overrideMap = new WeakMap<ClassType, KeyToComponentMap<ClassType>>;
+  readonly #default = new KeyToComponentMap<ClassType>;
 
   constructor()
   {
@@ -65,19 +65,6 @@ export default class InstanceToComponentMap<ClassType extends object>
   }
 
   /**
-   * Add a default sequence.
-   * @param topKey  - The key defining the sequence.
-   * @param subKeys - The keys of the sequence.
-   */
-  addDefaultSequence(
-    topKey: PropertyKey,
-    subKeys: PropertyKey[]
-  ) : void
-  {
-    this.#default.addSequence(topKey, subKeys);
-  }
-
-  /**
    * Get a sequence for a known top key.
    * @param instance - The instance to get a component for.
    * @param topKey   - The top key to look up.
@@ -91,6 +78,19 @@ export default class InstanceToComponentMap<ClassType extends object>
   {
     const submap = this.#overrideMap.get(instance) ?? this.#default;
     return submap.getSequence(topKey);
+  }
+
+  /**
+   * Add a default sequence.
+   * @param topKey  - The key defining the sequence.
+   * @param subKeys - The keys of the sequence.
+   */
+  addDefaultSequence(
+    topKey: PropertyKey,
+    subKeys: PropertyKey[]
+  ) : void
+  {
+    this.#default.addSequence(topKey, subKeys);
   }
 
   /**
@@ -187,8 +187,8 @@ class KeyToComponentMap<ClassType extends object>
   }
 
   #startComponent?: PropertyKey;
-  #componentMap = new Map<PropertyKey, ComponentPassThroughClass<ClassType>>;
-  #sequenceMap = new Map<PropertyKey, PropertyKey[]>;
+  readonly #componentMap = new Map<PropertyKey, ComponentPassThroughClass<ClassType>>;
+  readonly #sequenceMap = new Map<PropertyKey, PropertyKey[]>;
 
   constructor()
   {
@@ -243,8 +243,8 @@ class KeyToComponentMap<ClassType extends object>
     subKeys: PropertyKey[]
   ) : void
   {
-    if (subKeys.length === 0)
-      throw new Error("There must be some subkeys!");
+    if (subKeys.length < 2)
+      throw new Error("There must be at least two subkeys!");
 
     {
       const setOfKeys = new Set(subKeys);
@@ -256,13 +256,13 @@ class KeyToComponentMap<ClassType extends object>
 
     subKeys.forEach(subKey => {
       if (!this.#componentMap.has(subKey) && !this.#sequenceMap.has(subKey))
-        throw new Error(`Unknown subkey ${String(subKey)}`);
+        throw new Error(`Unknown subkey "${String(subKey)}"!`);
     });
 
     if (this.#componentMap.has(topKey) || this.#sequenceMap.has(topKey))
       throw new Error(`The top key is already in the map!`);
 
-    this.#sequenceMap.set(topKey, subKeys);
+    this.#sequenceMap.set(topKey, subKeys.slice());
   }
 
   /**
@@ -348,7 +348,7 @@ class PassThroughArgument<
   /**
    * A simple flag to indicate this is a pass-through argument.
    */
-  [PassThroughSymbol] = true;
+  readonly [PassThroughSymbol] = true;
 
   /**
    * The arguments we pass around.  This is explicitly not readonly because I
@@ -356,9 +356,9 @@ class PassThroughArgument<
    */
   modifiedArguments: Parameters<MethodType>;
 
-  #componentMap: KeyToComponentMap<ClassType>;
-  #methodName: PropertyKey;
-  #visitedTargets: Set<PropertyKey> = new Set;
+  readonly #componentMap: KeyToComponentMap<ClassType>;
+  readonly #methodName: PropertyKey;
+  readonly #visitedTargets: Set<PropertyKey> = new Set;
 
   /**
    * Set up initial conditions.
@@ -389,7 +389,7 @@ class PassThroughArgument<
   callTarget(componentKey: PropertyKey) : ReturnOrPassThroughType<MethodType>
   {
     if (this.#visitedTargets.has(componentKey))
-      throw new Error(`Visited target "${String(componentKey)}"!`)
+      throw new Error(`Visited target "${String(componentKey)}"!`);
     this.#visitedTargets.add(componentKey);
 
     const sequence = this.#componentMap.getSequence(componentKey);
@@ -406,8 +406,6 @@ class PassThroughArgument<
     }
 
     const component = this.#componentMap.getComponent(componentKey);
-    if (!component)
-      throw new Error(`Missing target "${String(componentKey)}"!`);
 
     const method = Reflect.get(component, this.#methodName) as MaybePassThrough<MethodType>;
     return method.apply(component, [this, ...this.modifiedArguments]);
