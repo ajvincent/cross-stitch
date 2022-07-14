@@ -48,6 +48,8 @@ export default async function() : Promise<void>
     buildNST_Keys,
     buildNumberStringConditionalClass,
     buildNumberStringAndSymbolClass,
+
+    buildSpyClass,
   ], callback => callback(fixturesDir, generatedDir));
 }
 
@@ -389,6 +391,39 @@ async function buildSingleTypePattern(
   TTC.addTypeAliasOrInterface(
     srcFile,
     typeName,
+  );
+
+  await destFile.save();
+}
+
+async function buildSpyClass(
+  fixturesDir: ts.Directory,
+  generatedDir: ts.Directory,
+) : Promise<void>
+{
+  const srcFile = fixturesDir.addSourceFileAtPath("NumberStringType.mts");
+  const destFile = generatedDir.createSourceFile("JasmineSpyClass.mts");
+
+  /* This particular example demonstrates two features:
+  (1) Manipulating the class after we create TTC.
+  (2) Building custom statements in each callback.
+  */
+  const TTC = new TypeToClass(
+    destFile,
+    "JasmineSpyClass",
+    TypeToClass.buildStatementsCallback(`this.spy(s, n);\nreturn s.repeat(n);\n`)
+  );
+
+  const targetClass = destFile.getClassOrThrow("JasmineSpyClass");
+  targetClass.addProperty({
+    name: "spy",
+    isReadonly: true,
+    initializer: "jasmine.createSpy()"
+  });
+
+  TTC.addTypeAliasOrInterface(
+    srcFile,
+    "NumberStringType"
   );
 
   await destFile.save();

@@ -214,7 +214,6 @@ describe("TypeToClass supports", () => {
     ).toThrowError("not yet implemented");
   });
 
-
   it("union in arguments of a method", async () => {
     const NSTC = await getModuleDefault<[], UnionArgument>("UnionArgumentClass.mjs");
     expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
@@ -306,5 +305,17 @@ describe("TypeToClass supports", () => {
     expect(
       () => instance[SymbolTypeKey]
     ).toThrowError("not yet implemented");
+  });
+
+  it("custom statements in methods, and extra class fields", async () => {
+    const NSTC = await getModuleDefault<
+      [], NumberStringType & { spy: jasmine.Spy }
+    >("JasmineSpyClass.mjs");
+
+    const instance = new NSTC;
+    expect(instance.repeatForward("foo", 3)).toBe("foofoofoo");
+
+    expect(instance.spy).toHaveBeenCalledOnceWith("foo", 3);
+    expect(instance.spy.calls.thisFor(0)).toBe(instance);
   });
 });
