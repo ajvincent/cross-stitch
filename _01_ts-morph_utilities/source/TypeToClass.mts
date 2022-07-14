@@ -13,7 +13,45 @@ export type TypeToClassCallback = (
   baseNode: InterfaceOrTypeAlias,
 ) => boolean;
 
-const notImplemented = `throw new Error("not yet implemented");`;
+function buildStatementsCallback(
+  statements: string
+) : TypeToClassCallback
+{
+  return (
+    classNode,
+    propertyName,
+    propertyNode,
+    baseNode,
+  ) : boolean =>
+  {
+    void(baseNode);
+    if (ts.Node.isMethodDeclaration(propertyNode)) {
+      propertyNode.addStatements(statements);
+    }
+    else {
+      const returnType = propertyNode.getTypeNodeOrThrow().getText();
+  
+      propertyNode.remove();
+
+      classNode.addGetAccessor({
+        name: propertyName,
+        statements,
+        returnType,
+      });
+
+      classNode.addSetAccessor({
+        name: propertyName,
+        parameters: [{
+          name: "value",
+          type: returnType
+        }],
+        statements
+      });
+    }
+  
+    return true;
+  }
+}
 
 export default class TypeToClass
 {
@@ -51,40 +89,11 @@ export default class TypeToClass
     });
   }
 
-  static notImplementedCallback: TypeToClassCallback = (
-    classNode,
-    propertyName,
-    propertyNode,
-    baseNode,
-  ) : boolean =>
-  {
-    void(baseNode);
-    if (ts.Node.isMethodDeclaration(propertyNode)) {
-      propertyNode.addStatements(notImplemented);
-    }
-    else {
-      const returnType = propertyNode.getTypeNodeOrThrow().getText();
-  
-      propertyNode.remove();
-  
-      classNode.addGetAccessor({
-        name: propertyName,
-        statements: notImplemented,
-        returnType,
-      });
-  
-      classNode.addSetAccessor({
-        name: propertyName,
-        parameters: [{
-          name: "value",
-          type: returnType
-        }],
-        statements: notImplemented
-      });
-    }
-  
-    return true;
-  }
+  static notImplementedCallback: TypeToClassCallback = buildStatementsCallback(
+    `throw new Error("not yet implemented");`
+  );
+
+  static buildStatementsCallback = buildStatementsCallback;
 
   /*
   #writer = new CodeBlockWriter({
