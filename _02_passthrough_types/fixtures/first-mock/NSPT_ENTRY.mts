@@ -1,11 +1,6 @@
 import {
   INVOKE_SYMBOL,
-  PropertyKey
 } from "../../source/exports/Common.mjs";
-
-import type {
-  ComponentPassThroughMap,
-} from "../../source/exports/PassThroughSupport.mjs";
 
 import Entry_Base from "../../source/exports/Entry_Base.mjs";
 
@@ -14,31 +9,15 @@ import type {
 } from "../NumberStringType.mjs";
 
 export default class NumberString_EntryBase
-               extends Entry_Base
+               extends Entry_Base<NumberStringType>
                implements NumberStringType
 {
-  #initialTarget: PropertyKey;
-  #passThroughMap: ComponentPassThroughMap<NumberStringType>;
-
-  constructor(
-    initialTarget: PropertyKey,
-    passThroughMap: ComponentPassThroughMap<NumberStringType>
-  )
-  {
-    super();
-    this.#initialTarget = initialTarget;
-    this.#passThroughMap = passThroughMap;
-  }
-
   repeatForward(s: string, n: number): string
   {
     return this[INVOKE_SYMBOL]<
-      NumberStringType["repeatForward"],
-      NumberStringType
+      NumberStringType["repeatForward"]
     >
     (
-      this.#initialTarget,
-      this.#passThroughMap,
       "repeatForward",
       [s, n]
     );
@@ -47,12 +26,9 @@ export default class NumberString_EntryBase
   repeatBack(n: number, s: string): string
   {
     return this[INVOKE_SYMBOL]<
-      NumberStringType["repeatBack"],
-      NumberStringType
+      NumberStringType["repeatBack"]
     >
     (
-      this.#initialTarget,
-      this.#passThroughMap,
       "repeatBack",
       [n, s]
     );

@@ -52,7 +52,6 @@ export default class Generator
       "Entry_Base.mts",
       "KeyToComponentMap_Base.mts",
       "PassThroughSupport.mts",
-      "Sequence_Base.mts",
     ], leafName => this.#copyExport(leafName));
 
     const baseClassFile = await this.#createBaseClass();

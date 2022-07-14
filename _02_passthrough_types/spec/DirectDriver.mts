@@ -1,8 +1,4 @@
 import type {
-  ComponentPassThroughMap,
-} from "../source/exports/PassThroughSupport.mjs";
-
-import type {
   NumberStringType
 } from "../fixtures/NumberStringType.mjs";
 
@@ -13,20 +9,22 @@ import {
 } from "../fixtures/first-mock/NST_INSTANCES.mjs";
 
 import NumberString_EntryBase from "../fixtures/first-mock/NSPT_ENTRY.mjs";
-import NumberStringType_Sequence from "../fixtures/first-mock/NSPT_SEQUENCE.mjs";
 
-xit("DirectDriver mockup returns a sane value", () => {
-  const NST_COMPONENT_MAP: ComponentPassThroughMap<NumberStringType> = new Map;
-  NST_COMPONENT_MAP.set("continue", NST_CONTINUE);
-  NST_COMPONENT_MAP.set("result", NST_RESULT);
-  NST_COMPONENT_MAP.set("throw", NST_THROW);
-  
-  void(new NumberStringType_Sequence(
+import InstanceToComponentMap from "../source/exports/KeyToComponentMap_Base.mjs";
+
+it("DirectDriver mockup returns a sane value", () => {
+  const NST_COMPONENT_MAP = new InstanceToComponentMap<NumberStringType>;
+  NST_COMPONENT_MAP.addDefaultComponent("continue", NST_CONTINUE);
+  NST_COMPONENT_MAP.addDefaultComponent("result", NST_RESULT);
+  NST_COMPONENT_MAP.addDefaultComponent("throw", NST_THROW);
+
+  NST_COMPONENT_MAP.addDefaultSequence(
     "driver",
-    ["continue", "result", "throw"],
-    NST_COMPONENT_MAP,
-  ));
+    ["continue", "result", "throw"]
+  );
 
-  const TestClass = new NumberString_EntryBase("driver", NST_COMPONENT_MAP);
+  NST_COMPONENT_MAP.defaultStart = "driver";
+  const TestClass = new NumberString_EntryBase(NST_COMPONENT_MAP);
+
   expect(TestClass.repeatForward("foo", 3)).toBe("foofoofoo");
 });

@@ -5,7 +5,7 @@ import type {
   PropertyKey
 } from "./Common.mjs";
 
-const PassThroughSymbol = Symbol("Indeterminate return");
+export const PassThroughSymbol = Symbol("Indeterminate return");
 
 export type PassThroughType<MethodType extends AnyFunction> =
 {
@@ -17,10 +17,7 @@ export type PassThroughType<MethodType extends AnyFunction> =
 
   // This allows us to call another method with the modifiedArguments.
   // ReturnOrPassThroughType I'll explain in a moment.
-  callTarget(key: string) : ReturnOrPassThroughType<MethodType>;
-
-  // Call the default target.  (Think of this as the entry point.)
-  run(): ReturnType<MethodType>;
+  callTarget(key: PropertyKey) : ReturnOrPassThroughType<MethodType>;
 }
 
 // So we can return the actual return value to exit out of the component tree,
@@ -47,58 +44,3 @@ export type ComponentPassThroughClass<ClassType extends object> = {
     MaybePassThrough<ClassType[Property]> :
     ClassType[Property];
 }
-
-export type ComponentPassThroughMap<
-  ClassType extends object
-> = Map<PropertyKey, ComponentPassThroughClass<ClassType>>;
-
-// #region class implementing PassThroughType
-
-export class PassThroughArgument<MethodType extends AnyFunction>
-       implements PassThroughType<MethodType>
-{
-  [PassThroughSymbol] = true;
-  modifiedArguments: Parameters<MethodType>;
-
-  #initialTarget: PropertyKey;
-  #callbackMap: Map<PropertyKey, MaybePassThrough<MethodType>>;
-
-  #visitedTargets: Set<PropertyKey> = new Set;
-
-  constructor(
-    initialTarget: PropertyKey,
-    callbacks: [PropertyKey, MaybePassThrough<MethodType>][],
-    initialArguments: Parameters<MethodType>
-  )
-  {
-    this.#initialTarget = initialTarget;
-    this.#callbackMap = new Map(callbacks);
-
-    if (!this.#callbackMap.has(this.#initialTarget))
-      throw new Error("Missing initial target!");
-
-    this.modifiedArguments = initialArguments;
-  }
-
-  callTarget(key: PropertyKey) : ReturnOrPassThroughType<MethodType>
-  {
-    if (this.#visitedTargets.has(key))
-      throw new Error(`Visited target "${String(key)}"!`)
-    this.#visitedTargets.add(key);
-
-    const target = this.#callbackMap.get(key);
-    if (!target)
-      throw new Error(`Missing target "${String(key)}"!`);
-    return target(this, ...this.modifiedArguments);
-  }
-
-  run(): ReturnType<MethodType>
-  {
-    const result = this.callTarget(this.#initialTarget);
-    if (result instanceof PassThroughArgument)
-      throw new Error("No resolved result!");
-    return result as ReturnType<MethodType>;
-  }
-}
-
-// #endregion class implementing PassThroughType
