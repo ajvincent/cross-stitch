@@ -7,6 +7,7 @@ import {
 } from "./Common.mjs";
 
 import InstanceToComponentMap from "./KeyToComponentMap_Base.mjs";
+import { PassThroughSymbol } from "./PassThroughSupport.mjs";
 
 /**
  * The entry point from a non-augmented type into pass-through-augmented components.
@@ -29,8 +30,7 @@ export default class Entry_Base<
   }
 
   /**
-   * @typeParam TargetMethodType - The type of the original method.
-   * @typeParam TargetClassType  - The type of the original class holding the method.
+   * @typeParam MethodType - The type of the original method.
    * @param methodName       - The name of the method we want to call, which we get from each component via Reflect.
    * @param initialArguments - The initial arguments to pass to the starting target.
    * @returns The original target method's type.
@@ -43,18 +43,19 @@ export default class Entry_Base<
     initialArguments: Parameters<MethodType>
   ): ReturnType<MethodType>
   {
+    const startTarget = this.#extendedMap.defaultStart;
+    if (!startTarget)
+      throw new Error("assertion failure: we should have a start target");
+
+    // This is safe because we're in a protected method.
     const passThrough = this.#extendedMap.buildPassThrough<MethodType>(
       this as unknown as ClassType,
       methodName,
       initialArguments
     );
-    const startTarget = this.#extendedMap.defaultStart;
-    if (!startTarget)
-      throw new Error("assertion failure: we should have a start target");
 
     const result = passThrough.callTarget(startTarget);
-
-    if (result === passThrough)
+    if ((Object(result) === result) && Reflect.has(result, PassThroughSymbol))
       throw new Error("No resolved result!");
 
     return result as ReturnType<MethodType>;

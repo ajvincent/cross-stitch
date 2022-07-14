@@ -11,16 +11,183 @@ import {
   ReturnOrPassThroughType,
 } from "./PassThroughSupport.mjs";
 
-class KeyToComponentMap<
-  ClassType extends object
->
+/**
+ * This provides a mapping from an instance of a base class to pass-through
+ * component classes (and sequences thereof), and API for setting default
+ * components and sequences.
+ *
+ * This also exposes an `override()` method to replace the default
+ * components map with a custom map for testing purposes (i.e. inserting a stub
+ * for Jasmine spies) on a very specific Entry_Base instance.
+ */
+export default class InstanceToComponentMap<ClassType extends object>
 {
-  #map = new Map<
-    PropertyKey,
-    ComponentPassThroughClass<ClassType>
-  >;
-  #startComponent?: PropertyKey;
+  #overrideMap = new WeakMap<ClassType, KeyToComponentMap<ClassType>>;
+  #default = new KeyToComponentMap<ClassType>;
 
+  constructor()
+  {
+    if (new.target !== InstanceToComponentMap)
+      throw new Error("This class may not be subclassed!");
+    Object.freeze(this);
+  }
+
+  /**
+   * Get a component.
+   *
+   * @param instance      - The instance to get a component for.
+   * @param componentKey  - The key for the component.
+   * @returns The component.
+   * @throws if there is no component for the key.
+   * @internal
+   */
+  getComponent(
+    instance: ClassType,
+    componentKey: PropertyKey
+  ): ComponentPassThroughClass<ClassType>
+  {
+    const submap = this.#overrideMap.get(instance) ?? this.#default;
+    return submap.getComponent(componentKey);
+  }
+
+  /**
+   * Add a default component by key name.
+   *
+   * @param key       - The key for the component.
+   * @param component - The component.
+   */
+  addDefaultComponent(
+    key: PropertyKey,
+    component: ComponentPassThroughClass<ClassType>
+  ) : void
+  {
+    this.#default.addComponent(key, component);
+  }
+
+  /**
+   * Add a default sequence.
+   * @param topKey  - The key defining the sequence.
+   * @param subKeys - The keys of the sequence.
+   */
+  addDefaultSequence(
+    topKey: PropertyKey,
+    subKeys: PropertyKey[]
+  ) : void
+  {
+    this.#default.addSequence(topKey, subKeys);
+  }
+
+  /**
+   * Get a sequence for a known top key.
+   * @param instance - The instance to get a component for.
+   * @param topKey   - The top key to look up.
+   * @returns The sequence, or an empty array if there is no sequence.
+   * @internal
+   */
+  getSequence(
+    instance: ClassType,
+    topKey: PropertyKey
+  ) : PropertyKey[]
+  {
+    const submap = this.#overrideMap.get(instance) ?? this.#default;
+    return submap.getSequence(topKey);
+  }
+
+  /**
+   * A list of known component and sequence keys for the default map.
+   */
+  get defaultKeys() : PropertyKey[]
+  {
+    return this.#default.keys;
+  }
+
+  /**
+   * The start component key.  Required before creating a base instance.
+   */
+  get defaultStart() : PropertyKey | undefined
+  {
+    return this.#default.startComponent;
+  }
+  set defaultStart(key: PropertyKey | undefined)
+  {
+    this.#default.startComponent = key;
+  }
+
+  /**
+   * Return a new KeyToComponentMap inheriting components from the default map.
+   * @param instance      - The instance to form the override for.
+   * @param componentKeys - The keys of the components to inherit.
+   * @returns
+   */
+  override(
+    instance: ClassType,
+    componentKeys: PropertyKey[]
+  ) : KeyToComponentMap<ClassType>
+  {
+    if (this.#overrideMap.has(instance))
+      throw new Error("Override already exists for the instance!");
+
+    const map = new KeyToComponentMap<ClassType>;
+
+    componentKeys.forEach(key => {
+      const sequence = this.#default.getSequence(key);
+      if (sequence.length)
+        map.addSequence(key, sequence);
+      else
+        map.addComponent(key, this.#default.getComponent(key));
+    });
+
+    this.#overrideMap.set(instance, map);
+    return map;
+  }
+
+  /**
+   * Build a pass-through argument for a method.
+   *
+   * @typeParam MethodType - The type of the non-augmented method.
+   * @param instance         - The instance to get a component for.
+   * @param methodName       - The name of the method to invoke.
+   * @param initialArguments - The initial arguments of the method.
+   * @returns The pass-through argument.
+   *
+   * @internal
+   * @see Entry_Base.prototype[INVOKE_SYMBOL]
+   */
+  buildPassThrough<
+    MethodType extends AnyFunction
+  >
+  (
+    instance: ClassType,
+    methodName: PropertyKey,
+    initialArguments: Parameters<MethodType>
+  ) : PassThroughType<MethodType>
+  {
+    const submap = this.#overrideMap.get(instance) ?? this.#default;
+    return submap.buildPassThrough(methodName, initialArguments);
+  }
+}
+Object.freeze(InstanceToComponentMap);
+Object.freeze(InstanceToComponentMap.prototype);
+
+/**
+ * This is the real workhorse:  mapping from a key either to a component instance
+ * matching the API of the pass-through-augmented class, or to a sequence of existing
+ * keys.
+ */
+class KeyToComponentMap<ClassType extends object>
+{
+  /**
+   * Disallow empty string keys.
+   * @param key - The key to check.
+   */
+  static #validateKey(key: PropertyKey) : void
+  {
+    if (key === "")
+      throw new Error("key cannot be an empty string!");
+  }
+
+  #startComponent?: PropertyKey;
+  #componentMap = new Map<PropertyKey, ComponentPassThroughClass<ClassType>>;
   #sequenceMap = new Map<PropertyKey, PropertyKey[]>;
 
   constructor()
@@ -30,65 +197,47 @@ class KeyToComponentMap<
     Object.freeze(this);
   }
 
-  static #validateKey(key: PropertyKey) : void
-  {
-    if (key === "")
-      throw new Error("key cannot be an empty string!");
-  }
-
-  getComponent(key: PropertyKey) : ComponentPassThroughClass<ClassType>
+  /**
+   * Get a component.
+   *
+   * @param key - The key for the component.
+   * @returns The component.
+   * @throws if there is no component for the key.
+   * @internal
+   */
+  getComponent(
+    key: PropertyKey
+  ) : ComponentPassThroughClass<ClassType>
   {
     KeyToComponentMap.#validateKey(key);
-    const rv = this.#map.get(key);
+    const rv = this.#componentMap.get(key);
     if (!rv)
       throw new Error("No component match!");
     return rv;
   }
 
-  addComponent(key: PropertyKey, component: ComponentPassThroughClass<ClassType>) : void
+  /**
+   * Add a component by key name.
+   *
+   * @param key       - The key for the component.
+   * @param component - The component.
+   */
+  addComponent(
+    key: PropertyKey,
+    component: ComponentPassThroughClass<ClassType>
+  ) : void
   {
     KeyToComponentMap.#validateKey(key);
-    if (this.#map.has(key) || this.#sequenceMap.has(key))
+    if (this.#componentMap.has(key) || this.#sequenceMap.has(key))
       throw new Error("Key is already defined!");
-    this.#map.set(key, component);
+    this.#componentMap.set(key, component);
   }
 
-  get keys() : IterableIterator<PropertyKey>
-  {
-    return this.#map.keys();
-  }
-
-  get startComponent() : PropertyKey | undefined
-  {
-    return this.#startComponent;
-  }
-
-  set startComponent(key: PropertyKey | undefined)
-  {
-    if (key === undefined)
-      throw new Error("Start component must be a non-empty string or a symbol!");
-    KeyToComponentMap.#validateKey(key);
-
-    if (this.#startComponent)
-      throw new Error("This map already has a start component!");
-
-    if (!this.#map.has(key) && !this.#sequenceMap.has(key))
-      throw new Error("You haven't registered the start component yet!");
-
-    this.#startComponent = key;
-  }
-
-  buildPassThrough<
-    MethodType extends AnyFunction
-  >
-  (
-    methodName: PropertyKey,
-    initialArguments: Parameters<MethodType>
-  ) : PassThroughType<MethodType>
-  {
-    return new PassThroughArgument<ClassType, MethodType>(this, methodName, initialArguments);
-  }
-
+  /**
+   * Add a sequence.
+   * @param topKey  - The key defining the sequence.
+   * @param subKeys - The keys of the sequence.
+   */
   addSequence(
     topKey: PropertyKey,
     subKeys: PropertyKey[]
@@ -106,129 +255,137 @@ class KeyToComponentMap<
     }
 
     subKeys.forEach(subKey => {
-      if (!this.#map.has(subKey) && !this.#sequenceMap.has(subKey))
+      if (!this.#componentMap.has(subKey) && !this.#sequenceMap.has(subKey))
         throw new Error(`Unknown subkey ${String(subKey)}`);
     });
 
-    if (this.#map.has(topKey) || this.#sequenceMap.has(topKey))
+    if (this.#componentMap.has(topKey) || this.#sequenceMap.has(topKey))
       throw new Error(`The top key is already in the map!`);
 
     this.#sequenceMap.set(topKey, subKeys);
   }
 
+  /**
+   * Get a sequence for a known top key.
+   * @param topKey   - The top key to look up.
+   * @returns The sequence, or an empty array if there is no sequence.
+   * @internal
+   */
   getSequence(
     topKey: PropertyKey
   ): PropertyKey[]
   {
     return this.#sequenceMap.get(topKey)?.slice() ?? [];
   }
-}
-Object.freeze(KeyToComponentMap);
-Object.freeze(KeyToComponentMap.prototype);
 
-export default class InstanceToComponentMap<
-  ClassType extends object
->
-{
-  #overrideMap = new WeakMap<ClassType, KeyToComponentMap<ClassType>>;
-  #default = new KeyToComponentMap<ClassType>;
-
-  constructor()
+  /**
+   * A list of known component and sequence keys.
+   */
+  get keys() : PropertyKey[]
   {
-    if (new.target !== InstanceToComponentMap)
-      throw new Error("This class may not be subclassed!");
-    Object.freeze(this);
+    const mapKeys = Array.from(this.#componentMap.keys()),
+          sequenceKeys = Array.from(this.#sequenceMap.keys());
+    return [...mapKeys, ...sequenceKeys];
   }
 
-  getComponent(instance: ClassType, key: PropertyKey): ComponentPassThroughClass<ClassType>
+  /**
+   * The start component key.  Required before creating a base instance.
+   */
+  get startComponent() : PropertyKey | undefined
   {
-    const submap = this.#overrideMap.get(instance) ?? this.#default;
-    return submap.getComponent(key);
+    return this.#startComponent;
+  }
+  set startComponent(key: PropertyKey | undefined)
+  {
+    if (key === undefined)
+      throw new Error("Start component must be a non-empty string or a symbol!");
+    KeyToComponentMap.#validateKey(key);
+
+    if (this.#startComponent)
+      throw new Error("This map already has a start component!");
+
+    if (!this.#componentMap.has(key) && !this.#sequenceMap.has(key))
+      throw new Error("You haven't registered the start component yet!");
+
+    this.#startComponent = key;
   }
 
-  addDefaultComponent(key: PropertyKey, component: ComponentPassThroughClass<ClassType>) : void
-  {
-    this.#default.addComponent(key, component);
-  }
-
-  addDefaultSequence(
-    topKey: PropertyKey,
-    subKeys: PropertyKey[]
-  ) : void
-  {
-    return this.#default.addSequence(topKey, subKeys);
-  }
-
-  get defaultKeys() : IterableIterator<PropertyKey>
-  {
-    return this.#default.keys;
-  }
-
-  get defaultStart() : PropertyKey | undefined
-  {
-    return this.#default.startComponent;
-  }
-
-  set defaultStart(key: PropertyKey | undefined)
-  {
-    this.#default.startComponent = key;
-  }
-
+  /**
+   * Build a pass-through argument for a method.
+   *
+   * @typeParam MethodType - The type of the non-augmented method.
+   * @param methodName       - The name of the method to invoke.
+   * @param initialArguments - The initial arguments of the method.
+   * @returns The pass-through argument.
+   *
+   * @internal
+   * @see Entry_Base.prototype[INVOKE_SYMBOL]
+   */
   buildPassThrough<
     MethodType extends AnyFunction
   >
   (
-    instance: ClassType,
     methodName: PropertyKey,
     initialArguments: Parameters<MethodType>
   ) : PassThroughType<MethodType>
   {
-    const submap = this.#overrideMap.get(instance) ?? this.#default;
-    return submap.buildPassThrough(methodName, initialArguments);
-  }
-
-  override(instance: ClassType, keys: PropertyKey[]) : KeyToComponentMap<ClassType>
-  {
-    if (this.#overrideMap.has(instance))
-      throw new Error("Override already exists for the instance!");
-
-    const map = new KeyToComponentMap<ClassType>;
-
-    keys.forEach(key => map.addComponent(
-      key, this.#default.getComponent(key)
-    ));
-
-    this.#overrideMap.set(instance, map);
-    return map;
+    return new PassThroughArgument<ClassType, MethodType>(this, methodName, initialArguments);
   }
 }
-Object.freeze(InstanceToComponentMap);
-Object.freeze(InstanceToComponentMap.prototype);
+Object.freeze(KeyToComponentMap);
+Object.freeze(KeyToComponentMap.prototype);
 
+/**
+ * This class defines the flow-control system.  It provides:
+ * - modifiedArguments, which follows the shape of the original method
+ * - callTarget() for calling other component classes with the modifiedArguments.
+ */
 class PassThroughArgument<
   ClassType extends object,
   MethodType extends AnyFunction
 >
 {
+  /**
+   * A simple flag to indicate this is a pass-through argument.
+   */
   [PassThroughSymbol] = true;
+
+  /**
+   * The arguments we pass around.  This is explicitly not readonly because I
+   * anticipate users changing the arguments.
+   */
   modifiedArguments: Parameters<MethodType>;
 
   #componentMap: KeyToComponentMap<ClassType>;
   #methodName: PropertyKey;
   #visitedTargets: Set<PropertyKey> = new Set;
 
+  /**
+   * Set up initial conditions.
+   * @param componentMap     - The component map.
+   * @param methodName       - The method we should invoke.
+   * @param initialArguments - The initial arguments of the method.
+   * @internal
+   * @see KeyToComponentMap.prototype.buildPassThrough
+   */
   constructor(
-    map: KeyToComponentMap<ClassType>,
+    componentMap: KeyToComponentMap<ClassType>,
     methodName: PropertyKey,
     initialArguments: Parameters<MethodType>
   )
   {
-    this.#componentMap = map;
+    this.#componentMap = componentMap;
     this.#methodName = methodName;
     this.modifiedArguments = initialArguments;
     Object.seal(this);
   }
 
+  /**
+   * Call the method of a particular component (or sequence of components).
+   * @param componentKey - The key of the component in this.#componentMap.
+   * @returns whatever the component returns.
+   * @public
+   */
   callTarget(componentKey: PropertyKey) : ReturnOrPassThroughType<MethodType>
   {
     if (this.#visitedTargets.has(componentKey))
@@ -240,6 +397,8 @@ class PassThroughArgument<
       let result: ReturnOrPassThroughType<MethodType>;
       do {
         result = this.callTarget(sequence.shift() as PropertyKey);
+
+        // The rule is always "Return the pass-through argument to continue, or something else to exit."
         if (result !== this)
           return result;
       } while (sequence.length);

@@ -5,4 +5,3 @@ export type PropertyKey = string | symbol;
 
 // A key for derived classes to use.  A symbol to prevent conflicts with existing types.
 export const INVOKE_SYMBOL = Symbol("protected invoke");
-

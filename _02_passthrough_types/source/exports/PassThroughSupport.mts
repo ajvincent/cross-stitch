@@ -2,11 +2,14 @@
 
 import type {
   AnyFunction,
-  PropertyKey
+  PropertyKey,
 } from "./Common.mjs";
 
 export const PassThroughSymbol = Symbol("Indeterminate return");
 
+/**
+ * @see KeyToComponentMap_Base.mts for implementation of PassThroughType, in PassThroughArgument.
+ */
 export type PassThroughType<MethodType extends AnyFunction> =
 {
   // This marks the type as unique.
