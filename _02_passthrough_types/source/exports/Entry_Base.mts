@@ -9,6 +9,16 @@ import {
 import InstanceToComponentMap from "./KeyToComponentMap_Base.mjs";
 import { PassThroughSymbol } from "./PassThroughSupport.mjs";
 
+export type Entry_BaseType<ClassType extends object> = ClassType & {
+  [INVOKE_SYMBOL]<
+    MethodType extends AnyFunction,
+  >
+  (
+    methodName: PropertyKey,
+    initialArguments: Parameters<MethodType>
+  ): ReturnType<MethodType>
+}
+
 /**
  * The entry point from a non-augmented type into pass-through-augmented components.
  */

@@ -57,10 +57,10 @@ export default class Generator
     const baseClassFile = await this.#createBaseClass();
 
     await this.#createPassThroughType();
-
     const extendedNIClassFile = await this.#createExtendedNIClass(baseClassFile);
-
     await this.#createExtendedContinueClass(extendedNIClassFile);
+
+    await this.#createEntryClass(baseClassFile);
   }
 
   async #copyExport(
@@ -167,5 +167,35 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
     });
 
     await continueFile.save();
+  }
+
+  async #createEntryClass(
+    baseClassFile: ts.SourceFile
+  ) : Promise<void>
+  {
+    const entryClassFile = baseClassFile.copy("EntryClass.mts");
+    const entryClass = entryClassFile.getClassOrThrow(this.#baseClassName);
+    entryClass.setExtends(`Entry_Base<${this.#sourceTypeAlias}>`);
+
+    const methods = entryClass.getMethods();
+    methods.forEach(method => {
+      const name = method.getName();
+      const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
+      method.removeStatement(throwLine.getChildIndex());
+      method.addStatements(
+        `return this[INVOKE_SYMBOL]<${
+          this.#sourceTypeAlias
+        }["${
+          name
+        }"]>("${
+          name
+        }", [${
+          method.getParameters().map(p => p.getName()).join(", ")
+        }]);`
+      );
+    });
+
+    entryClassFile.fixMissingImports();
+    await entryClassFile.save();
   }
 }

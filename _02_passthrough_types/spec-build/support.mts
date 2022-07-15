@@ -35,4 +35,49 @@ export default async function() : Promise<void>
   );
 
   await generator.run();
+
+  await createJasmineSpyClass(generatedDir);
+}
+
+async function createJasmineSpyClass(
+  generatedDir: ts.Directory
+) : Promise<void>
+{
+  const NI_File = generatedDir.getSourceFileOrThrow("PassThrough_NotImplemented.mts");
+  const SpyClassFile = NI_File.copy("PassThrough_JasmineSpy.mts");
+
+  const SpyClass = SpyClassFile.getClassOrThrow("NumberStringClass_PassThroughNI");
+  SpyClass.rename("NumberStringClass_JasmineSpy");
+
+  SpyClassFile.addTypeAlias({
+    name: "PassThroughClassWithSpy",
+    type: "PassThroughClassType & { spy: jasmine.Spy }",
+    isExported: true
+  });
+
+  SpyClass.removeImplements(0);
+  SpyClass.addImplements("PassThroughClassWithSpy");
+  SpyClass.addProperty({
+    name: "spy",
+    isReadonly: true,
+    initializer: "jasmine.createSpy()"
+  });
+
+  const methods = SpyClass.getMethods();
+  methods.forEach(method => {
+    const name = method.getName();
+
+    const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
+    method.removeStatement(throwLine.getChildIndex());
+    method.addStatements(`return this.spy("${name}", __previousResults__, s, n) as ReturnOrPassThroughType<NumberStringType["${name}"]>;`);
+  });
+
+  SpyClassFile.formatText({
+    ensureNewLineAtEndOfFile: true,
+    placeOpenBraceOnNewLineForFunctions: true,
+    indentSize: 2,
+  });
+
+  SpyClassFile.fixMissingImports();
+  await SpyClassFile.save();
 }

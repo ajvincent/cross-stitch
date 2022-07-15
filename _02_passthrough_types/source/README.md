@@ -23,16 +23,16 @@ Source:
 - [x] Create base "not implemented" class via TypeToClass
 - [x] Create pass-through class type
 - [x] Extended "continue" class (returning previous results), copied from base class
-- [ ] Entry class ("ForwardTo_Base") copied from base class
+- [x] Entry class ("ForwardTo_Base") copied from base class
 - [x] Sequence support
 - [x] Extended "not implemented" class copied from base class
 
 Spec-build:
 
 - [ ] Return class
-- [ ] Spy class
+- [x] Spy class
 - [ ] Add specs
   - [x] Base not implemented class
-  - [ ] Continue class
-  - [ ] Entry class
+  - [x] Entry class
   - [ ] Extended not implemented class
+  - [ ] Extended continue class
