@@ -20,6 +20,7 @@ describe("Pass-through types generator", () => {
   let InstanceToComponentMapClass: new () => InstanceToComponentMap<NumberStringType>;
   let EntryClass: new (extendedMap: InstanceToComponentMap<NumberStringType>) => NumberStringType;
   let ContinueClass: new () => PassThroughClassType;
+  let ThrowClass: new () => PassThroughClassType;
 
   beforeAll(async () => {
     BaseClass = await getModuleDefault<NumberStringType>("BaseClass.mjs");
@@ -27,6 +28,7 @@ describe("Pass-through types generator", () => {
     InstanceToComponentMapClass = await getModuleDefault<InstanceToComponentMap<NumberStringType>>("KeyToComponentMap_Base.mjs");
     EntryClass = await getModuleDefault<Entry_BaseType<NumberStringType>>("EntryClass.mjs");
     ContinueClass = await getModuleDefault<PassThroughClassType>("PassThrough_Continue.mjs");
+    ThrowClass = await getModuleDefault<PassThroughClassType>("PassThrough_NotImplemented.mjs")
   });
 
   it("creates the base 'not-yet implemented' class", () => {
@@ -136,5 +138,27 @@ describe("Pass-through types generator", () => {
     expect(args.length).toBe(4);
 
     expect(spyInstanceReturn.spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates an extended not-implemented component class", () => {
+    const spyInstanceReturn = new SpyClass;
+    spyInstanceReturn.spy.and.callFake(() => {
+      return "I am a desert creature."
+    });
+
+    const map = new InstanceToComponentMapClass;
+    map.addDefaultComponent("spy", spyInstanceReturn);
+    map.addDefaultComponent("throw", new ThrowClass);
+
+    map.addDefaultSequence("sequence", ["throw", "spy"]);
+    map.defaultStart = "sequence";
+
+    const instance = new EntryClass(map);
+
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(spyInstanceReturn.spy).toHaveBeenCalledTimes(0);
   });
 });

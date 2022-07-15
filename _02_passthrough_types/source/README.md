@@ -29,10 +29,9 @@ Source:
 
 Spec-build:
 
-- [ ] Return class
 - [x] Spy class
-- [ ] Add specs
+- [x] Add specs
   - [x] Base not implemented class
   - [x] Entry class
-  - [ ] Component not implemented class
+  - [x] Component not implemented class
   - [x] Component continue class
