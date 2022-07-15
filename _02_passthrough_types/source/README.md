@@ -34,5 +34,5 @@ Spec-build:
 - [ ] Add specs
   - [x] Base not implemented class
   - [x] Entry class
-  - [ ] Extended not implemented class
-  - [ ] Extended continue class
+  - [ ] Component not implemented class
+  - [x] Component continue class

@@ -19,12 +19,14 @@ describe("Pass-through types generator", () => {
   let SpyClass: new () => PassThroughClassWithSpy;
   let InstanceToComponentMapClass: new () => InstanceToComponentMap<NumberStringType>;
   let EntryClass: new (extendedMap: InstanceToComponentMap<NumberStringType>) => NumberStringType;
+  let ContinueClass: new () => PassThroughClassType;
 
   beforeAll(async () => {
     BaseClass = await getModuleDefault<NumberStringType>("BaseClass.mjs");
     SpyClass = await getModuleDefault<PassThroughClassWithSpy>("PassThrough_JasmineSpy.mjs");
     InstanceToComponentMapClass = await getModuleDefault<InstanceToComponentMap<NumberStringType>>("KeyToComponentMap_Base.mjs");
     EntryClass = await getModuleDefault<Entry_BaseType<NumberStringType>>("EntryClass.mjs");
+    ContinueClass = await getModuleDefault<PassThroughClassType>("PassThrough_Continue.mjs");
   });
 
   it("creates the base 'not-yet implemented' class", () => {
@@ -85,7 +87,7 @@ describe("Pass-through types generator", () => {
     expect(spyInstanceReturn.spy).toHaveBeenCalledTimes(1);
   });
 
-  it("creates an entry class which invokes the key-to-component map", async () => {
+  it("creates an entry class which invokes the key-to-component map", () => {
     const spyInstanceReturn = new SpyClass;
     spyInstanceReturn.spy.and.callFake(() => {
       return "Fear is the mind-killer."
@@ -98,6 +100,33 @@ describe("Pass-through types generator", () => {
     const instance = new EntryClass(map);
 
     expect(instance.repeatBack(3, "foo")).toBe("Fear is the mind-killer.");
+
+    const args = spyInstanceReturn.spy.calls.argsFor(0);
+    expect(args[0]).toBe("repeatBack");
+    // I can't really check args[1], as that's a PassThroughArgument I haven't seen.
+    expect(args[2]).toBe("foo");
+    expect(args[3]).toBe(3);
+    expect(args.length).toBe(4);
+
+    expect(spyInstanceReturn.spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates an extended continue component class", () => {
+    const spyInstanceReturn = new SpyClass;
+    spyInstanceReturn.spy.and.callFake(() => {
+      return "Law is the ultimate science."
+    });
+
+    const map = new InstanceToComponentMapClass;
+    map.addDefaultComponent("spy", spyInstanceReturn);
+    map.addDefaultComponent("continue", new ContinueClass);
+
+    map.addDefaultSequence("sequence", ["continue", "spy"]);
+    map.defaultStart = "sequence";
+
+    const instance = new EntryClass(map);
+
+    expect(instance.repeatBack(3, "foo")).toBe("Law is the ultimate science.");
 
     const args = spyInstanceReturn.spy.calls.argsFor(0);
     expect(args[0]).toBe("repeatBack");
