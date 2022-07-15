@@ -16,3 +16,5 @@ build/tsconfig.json
 build/**/ts-stdout.txt
 build/generated
 build/spec-generated
+
+playground/
