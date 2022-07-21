@@ -109,6 +109,19 @@ describe("InstanceToComponentMap", () => {
     );
   });
 
+  it("override lets you copy keys in a sequence when one of the subkeys is not copied", () => {
+    map.addDefaultComponent("continue", NST_CONTINUE);
+    map.addDefaultComponent("result", NST_THROW);
+
+    map.addDefaultSequence("continueAndResult", ["continue", "result"]);
+
+    const submap = map.override(stubType1, ["continue", "continueAndResult"]);
+    expect(Array.from(submap.keys)).toEqual(["continue", "continueAndResult"]);
+    expect(submap.getComponent("continue")).toBe(NST_CONTINUE);
+
+    expect(submap.getSequence("continueAndResult")).toEqual(["continue", "result"]);
+  });
+
   function passThrough() : PassThroughType<NumberStringType["repeatForward"]>
   {
     return map.buildPassThrough<NumberStringType["repeatForward"]>(
@@ -260,17 +273,6 @@ describe("InstanceToComponentMap", () => {
             "continue", "throw", "continue"
           ])
         ).toThrowError("Duplicate key among the subkeys!");
-      });
-
-      it("an unknown sequence key", () => {
-        map.addDefaultComponent("continue", NST_CONTINUE);
-        map.addDefaultComponent("result", NST_THROW);
-
-        expect(
-          () => map.addDefaultSequence("sequence", [
-            "continue", "result", "unknown"
-          ])
-        ).toThrowError(`Unknown subkey "unknown"!`);
       });
     });
 

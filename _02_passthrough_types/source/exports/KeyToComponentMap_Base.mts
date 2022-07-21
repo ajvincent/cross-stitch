@@ -254,10 +254,12 @@ class KeyToComponentMap<ClassType extends object>
         throw new Error("Top key cannot be among the subkeys!");
     }
 
+    /* Disabled because override() might not copy the subkeys.
     subKeys.forEach(subKey => {
       if (!this.#componentMap.has(subKey) && !this.#sequenceMap.has(subKey))
         throw new Error(`Unknown subkey "${String(subKey)}"!`);
     });
+    */
 
     if (this.#componentMap.has(topKey) || this.#sequenceMap.has(topKey))
       throw new Error(`The top key is already in the map!`);
