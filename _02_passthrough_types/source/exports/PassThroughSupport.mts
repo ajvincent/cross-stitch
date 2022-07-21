@@ -7,6 +7,21 @@ import type {
 
 export const PassThroughSymbol = Symbol("Indeterminate return");
 
+/*
+  It's very tempting to try saying:
+  type PassThroughType<
+    ClassType extends AnyFunction, Key extends OnlyFunctionKeys<ClassType>
+  > = {
+    modifiedArguments: Parameters<ClassType[Key]>
+    // ...
+  };
+
+  This *cannot work*, because Key is not restricted to one property.  It's
+  technically a union of properties at the type definition level.  It can have
+  any positive number of elements for Key.
+
+  That's why I keep getting "Type 'Key' cannot be used to index type 'ClassType'. ts(2536)" errors.
+*/
 /**
  * @see KeyToComponentMap_Base.mts for implementation of PassThroughType, in PassThroughArgument.
  */
