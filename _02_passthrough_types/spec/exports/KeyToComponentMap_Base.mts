@@ -122,7 +122,7 @@ describe("InstanceToComponentMap", () => {
     expect(submap.getSequence("continueAndResult")).toEqual(["continue", "result"]);
   });
 
-  function passThrough() : PassThroughType<NumberStringType["repeatForward"]>
+  function passThrough() : PassThroughType<NumberStringType, NumberStringType["repeatForward"]>
   {
     return map.buildPassThrough<NumberStringType["repeatForward"]>(
       stubType0,

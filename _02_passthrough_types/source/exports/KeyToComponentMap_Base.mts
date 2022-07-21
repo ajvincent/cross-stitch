@@ -160,10 +160,10 @@ export default class InstanceToComponentMap<ClassType extends object>
     instance: ClassType,
     methodName: PropertyKey,
     initialArguments: Parameters<MethodType>
-  ) : PassThroughType<MethodType>
+  ) : PassThroughType<ClassType, MethodType>
   {
     const submap = this.#overrideMap.get(instance) ?? this.#default;
-    return submap.buildPassThrough(methodName, initialArguments);
+    return submap.buildPassThrough(instance, methodName, initialArguments);
   }
 }
 Object.freeze(InstanceToComponentMap);
@@ -327,11 +327,12 @@ class KeyToComponentMap<ClassType extends object>
     MethodType extends AnyFunction
   >
   (
+    entryPoint: ClassType,
     methodName: PropertyKey,
     initialArguments: Parameters<MethodType>
-  ) : PassThroughType<MethodType>
+  ) : PassThroughType<ClassType, MethodType>
   {
-    return new PassThroughArgument<ClassType, MethodType>(this, methodName, initialArguments);
+    return new PassThroughArgument<ClassType, MethodType>(this, entryPoint, methodName, initialArguments);
   }
 }
 Object.freeze(KeyToComponentMap);
@@ -358,6 +359,8 @@ class PassThroughArgument<
    */
   modifiedArguments: Parameters<MethodType>;
 
+  readonly entryPoint: ClassType;
+
   readonly #componentMap: KeyToComponentMap<ClassType>;
   readonly #methodName: PropertyKey;
   readonly #visitedTargets: Set<PropertyKey> = new Set;
@@ -372,6 +375,7 @@ class PassThroughArgument<
    */
   constructor(
     componentMap: KeyToComponentMap<ClassType>,
+    entryPoint: ClassType,
     methodName: PropertyKey,
     initialArguments: Parameters<MethodType>
   )
@@ -379,6 +383,7 @@ class PassThroughArgument<
     this.#componentMap = componentMap;
     this.#methodName = methodName;
     this.modifiedArguments = initialArguments;
+    this.entryPoint = entryPoint;
     Object.seal(this);
   }
 
@@ -388,7 +393,7 @@ class PassThroughArgument<
    * @returns whatever the component returns.
    * @public
    */
-  callTarget(componentKey: PropertyKey) : ReturnOrPassThroughType<MethodType>
+  callTarget(componentKey: PropertyKey) : ReturnOrPassThroughType<ClassType, MethodType>
   {
     if (this.#visitedTargets.has(componentKey))
       throw new Error(`Visited target "${String(componentKey)}"!`);
@@ -396,7 +401,7 @@ class PassThroughArgument<
 
     const sequence = this.#componentMap.getSequence(componentKey);
     if (sequence.length) {
-      let result: ReturnOrPassThroughType<MethodType>;
+      let result: ReturnOrPassThroughType<ClassType, MethodType>;
       do {
         result = this.callTarget(sequence.shift() as PropertyKey);
 
@@ -409,7 +414,7 @@ class PassThroughArgument<
 
     const component = this.#componentMap.getComponent(componentKey);
 
-    const method = Reflect.get(component, this.#methodName) as MaybePassThrough<MethodType>;
+    const method = Reflect.get(component, this.#methodName) as MaybePassThrough<ClassType, MethodType>;
     return method.apply(component, [this, ...this.modifiedArguments]);
   }
 }

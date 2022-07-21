@@ -117,7 +117,7 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
     const methods = extendedClass.getMethods();
     methods.forEach(method => {
       const name = method.getName();
-      const revisedType = `PassThroughType<${this.#sourceTypeAlias}["${name}"]>`;
+      const revisedType = `PassThroughType<${this.#sourceTypeAlias}, ${this.#sourceTypeAlias}["${name}"]>`;
       method.insertParameter(0, {
         name: "__previousResults__",
         type: revisedType
@@ -152,7 +152,7 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
     const methods = extendedClass.getMethods();
     methods.forEach(method => {
       const name = method.getName();
-      const revisedType = `PassThroughType<${this.#sourceTypeAlias}["${name}"]>`;
+      const revisedType = `PassThroughType<${this.#sourceTypeAlias}, ${this.#sourceTypeAlias}["${name}"]>`;
       method.setReturnType(revisedType);
 
       const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
