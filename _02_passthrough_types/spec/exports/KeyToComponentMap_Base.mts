@@ -137,6 +137,7 @@ describe("InstanceToComponentMap", () => {
       const successPass = passThrough();
 
       expect(successPass.callTarget("result")).toBe("foofoofoo");
+      expect(successPass.entryPoint).toBe(stubType0);
     });
 
     it("itself on a component name", () => {
@@ -144,6 +145,7 @@ describe("InstanceToComponentMap", () => {
       const successPass = passThrough();
 
       expect(successPass.callTarget("continue")).toBe(successPass);
+      expect(successPass.entryPoint).toBe(stubType0);
     });
 
     it("a definite result on a sequence name", () => {
@@ -154,6 +156,7 @@ describe("InstanceToComponentMap", () => {
       const successPass = passThrough();
 
       expect(successPass.callTarget("sequence")).toBe("foofoofoo");
+      expect(successPass.entryPoint).toBe(stubType0);
     });
 
     it("itself on a component name", () => {
@@ -164,6 +167,7 @@ describe("InstanceToComponentMap", () => {
       const successPass = passThrough();
 
       expect(successPass.callTarget("sequence")).toBe(successPass);
+      expect(successPass.entryPoint).toBe(stubType0);
     });
   });
 

@@ -40,7 +40,7 @@ export type PassThroughType<
   // ReturnOrPassThroughType I'll explain in a moment.
   callTarget(key: PropertyKey) : ReturnOrPassThroughType<ClassType, MethodType>;
 
-  entryPoint: ClassType;
+  readonly entryPoint: ClassType;
 }
 
 // So we can return the actual return value to exit out of the component tree,

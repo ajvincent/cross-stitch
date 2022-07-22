@@ -81,7 +81,8 @@ describe("Pass-through types generator", () => {
 
     const args = spyInstanceReturn.spy.calls.argsFor(0);
     expect(args[0]).toBe("repeatForward");
-    // I can't really check args[1], as that's a PassThroughArgument I haven't seen.
+    expect(args[1]).toBe(passThrough);
+    expect(args[1].entryPoint).toBe(instance);
     expect(args[2]).toBe("foo");
     expect(args[3]).toBe(3);
     expect(args.length).toBe(4);
@@ -106,6 +107,7 @@ describe("Pass-through types generator", () => {
     const args = spyInstanceReturn.spy.calls.argsFor(0);
     expect(args[0]).toBe("repeatBack");
     // I can't really check args[1], as that's a PassThroughArgument I haven't seen.
+    expect(args[1].entryPoint).toBe(instance);
     expect(args[2]).toBe("foo");
     expect(args[3]).toBe(3);
     expect(args.length).toBe(4);
@@ -132,6 +134,7 @@ describe("Pass-through types generator", () => {
 
     const args = spyInstanceReturn.spy.calls.argsFor(0);
     expect(args[0]).toBe("repeatBack");
+    expect(args[1].entryPoint).toBe(instance);
     // I can't really check args[1], as that's a PassThroughArgument I haven't seen.
     expect(args[2]).toBe("foo");
     expect(args[3]).toBe(3);
@@ -160,5 +163,16 @@ describe("Pass-through types generator", () => {
     ).toThrowError("not yet implemented");
 
     expect(spyInstanceReturn.spy).toHaveBeenCalledTimes(0);
+  });
+
+  it("creates an entry class which throws when there is no final answer", () => {
+    const map = new InstanceToComponentMapClass;
+    map.addDefaultComponent("continue", new ContinueClass);
+    map.defaultStart = "continue";
+
+    const instance = new EntryClass(map);
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("No resolved result!");
   });
 });
