@@ -5,7 +5,7 @@ import url from "url";
 
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 
-import Generator from "../source/Generator.mjs";
+import Generator from "../source/BaseClassGenerator.mjs";
 
 export default async function() : Promise<void>
 {
