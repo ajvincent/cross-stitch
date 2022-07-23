@@ -56,7 +56,7 @@ Source:
   - [x] getReturnType()
 - [x] Extended "continue" class (returning previous results), copied from base class
 - [x] Entry class ("ForwardTo_Base") copied from base class
-  - [ ] Add a static property for the instance-to-component map
+  - Cannot add a static property for the instance-to-component map. "Static members cannot reference class type parameters. ts(2302)"
 - [x] Sequence support
 - [x] Extended "not implemented" class copied from base class
 
