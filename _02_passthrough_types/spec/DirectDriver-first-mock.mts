@@ -12,7 +12,7 @@ import NumberString_EntryBase from "../fixtures/first-mock/NSPT_ENTRY.mjs";
 
 import InstanceToComponentMap from "../source/exports/KeyToComponentMap_Base.mjs";
 
-it("DirectDriver mockup returns a sane value", () => {
+it("DirectDriver (first-mock) mockup returns a sane value", () => {
   const NST_COMPONENT_MAP = new InstanceToComponentMap<NumberStringType, NumberStringType>;
   NST_COMPONENT_MAP.addDefaultComponent("continue", NST_CONTINUE);
   NST_COMPONENT_MAP.addDefaultComponent("result", NST_RESULT);
