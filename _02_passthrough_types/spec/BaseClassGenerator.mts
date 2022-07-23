@@ -79,7 +79,8 @@ describe("Pass-through types generator", () => {
       NumberStringType["repeatForward"]
     >(instance, "repeatForward", ["foo", 3]);
 
-    expect(passThrough.callTarget("spy")).toBe("The spice must flow.");
+    passThrough.callTarget("spy");
+    expect(passThrough.getReturnValue()).toEqual([true, "The spice must flow."]);
 
     const args = spyInstanceReturn.spy.calls.argsFor(0);
     expect(args[0]).toBe("repeatForward");

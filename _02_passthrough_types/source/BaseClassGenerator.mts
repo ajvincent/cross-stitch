@@ -29,6 +29,7 @@ export default class BaseClassGenerator
    * @param sourceTypeAlias - The type alias to implement.
    * @param targetDir       - The directory to generate code into.
    * @param baseClassName   - The base class name for generated code.
+   * @param entryTypeAlias  - The type alias of the entry point.  Extends sourceTypeAlias.
    */
   constructor(
     sourceFile: ts.SourceFile,
@@ -151,8 +152,7 @@ export type PassThroughClassType = ComponentPassThroughClass<${
         type: revisedType
       });
 
-      const returnType = method.getReturnType().getText();
-      method.setReturnType(returnType + " | " + revisedType);
+      method.setReturnType("void");
     });
 
     extendedClassFile.fixMissingImports();
@@ -187,7 +187,6 @@ export type PassThroughClassType = ComponentPassThroughClass<${
     methods.forEach(method => {
       const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
       method.removeStatement(throwLine.getChildIndex());
-      method.addStatements("return __previousResults__;");
     });
 
     continueFile.formatText({

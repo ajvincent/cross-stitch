@@ -44,29 +44,22 @@ export type PassThroughType<
   modifiedArguments: Parameters<MethodType>;
 
   // This allows us to call another method with the modifiedArguments.
-  // ReturnOrPassThroughType I'll explain in a moment.
-  callTarget(key: PropertyKey) : ReturnOrPassThroughType<PublicClassType, MethodType, ThisClassType>;
+  callTarget(key: PropertyKey) : void;
+
+  /**
+   * Get the return value, if it's available.
+   */
+  getReturnValue() : [false, undefined] | [true, ReturnType<MethodType>];
+
+  /**
+   * Set the return value.  Write this as `return setReturnValue(...);`.
+   *
+   * @param value - The value to return.  Only callable once.
+   */
+  setReturnValue(value: ReturnType<MethodType>) : void;
 
   readonly entryPoint: ThisClassType;
 }
-
-/**
- * This is so we can return the actual return value to exit out of the component tree,
- * or we can return the pass-through type to signal "go on to the next" to
- * the caller.  We can also execute `return __inserted__.callTarget(nextKey)`
- * to pass off to another component.
- *
- * @typeParam PublicClassType - The class type each component guarantees to implement
- * @typeParam MethodType      - A public member method of PublicClassType
- * @typeParam ThisClassType   - A type with helper methods for components to call on the entryPoint.
- *                              Think of this as holding "pseudo-private" methods, which should be private in
- *                              the final integrated class.
- */
-export type ReturnOrPassThroughType<
-  PublicClassType extends object,
-  MethodType extends AnyFunction,
-  ThisClassType extends PublicClassType
-> = ReturnType<MethodType> | PassThroughType<PublicClassType, MethodType, ThisClassType>;
 
 // #endregion PassThroughType type
 
@@ -87,7 +80,7 @@ export type MaybePassThrough<
 > = (
   __previousResults__: PassThroughType<PublicClassType, MethodType, ThisClassType>,
   ...args: Parameters<MethodType>
-) => ReturnOrPassThroughType<PublicClassType, MethodType, ThisClassType>;
+) => void;
 
 /**
  * This converts all methods of a class to the MaybePassThrough type.

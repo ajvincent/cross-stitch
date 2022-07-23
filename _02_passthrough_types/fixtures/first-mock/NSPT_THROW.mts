@@ -13,8 +13,9 @@ export default class NSPT_THROW
   repeatForward(
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>,
     s: string, n: number
-  ): string | PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>
+  ) : void
   {
+    void(__previousResults__);
     void(s);
     void(n);
     throw new Error("repeatForward throw");
@@ -23,8 +24,9 @@ export default class NSPT_THROW
   repeatBack(
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>,
     n: number, s: string
-  ): string | PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>
+  ) : void
   {
+    void(__previousResults__);
     void(n);
     void(s);
     throw new Error("repeatBack throw");

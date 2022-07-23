@@ -23,27 +23,36 @@ At this stage, all we have is an API.  We need some way of identifying component
 ```typescript
 type NumberStringTypeWithPassThrough = {
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
+    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>,
     s: string,
     n: number
-  ): string | PassThroughType<NumberStringType, NumberStringType["repeatForward"]>;
+  ) : void
 
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
+    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>,
     n: number,
     s: string
-  ): string | PassThroughType<NumberStringType, NumberStringType["repeatBack"]>;
+  ) : void
 };
 ```
 
-This "pass-through type" has the same basic structure, with a prepended argument and a modified return type for each method.  Now, you can return the prepended argument from the pass-through type's methods.  Or (if the prepended argument's type is correct) you can return the invocation of a method of the prepended argument.
+This "pass-through type" has the same basic structure, with a prepended argument and a void return type for each method.  You set the actual return value by invoking `return __previousResults__.setReturnValue(rv);`.
 
 What's the shape of this new argument?
 
 ```typescript
+/**
+ * @typeParam PublicClassType - The class type each component guarantees to implement
+ * @typeParam MethodType      - A public member method of PublicClassType
+ * @typeParam ThisClassType   - A type with helper methods for components to call on the entryPoint.
+ *                              Think of this as holding "pseudo-private" methods, which should be private in
+ *                              the final integrated class.
+ * @see KeyToComponentMap_Base.mts for implementation of PassThroughType, in PassThroughArgument.
+ */
 export type PassThroughType<
-  ClassType extends object,
-  MethodType extends AnyFunction
+  PublicClassType extends object,
+  MethodType extends AnyFunction,
+  ThisClassType extends PublicClassType
 > =
 {
   // This marks the type as unique.
@@ -53,23 +62,23 @@ export type PassThroughType<
   modifiedArguments: Parameters<MethodType>;
 
   // This allows us to call another method with the modifiedArguments.
-  // ReturnOrPassThroughType I'll explain in a moment.
-  callTarget(key: PropertyKey) : ReturnOrPassThroughType<ClassType, MethodType>;
+  callTarget(key: PropertyKey) : void;
 
-  readonly entryPoint: ClassType;
+  /**
+   * Get the return value, if it's available.
+   */
+  getReturnValue() : [false, undefined] | [true, ReturnType<MethodType>];
+
+  /**
+   * Set the return value.  Write this as `return setReturnValue(...);`.
+   *
+   * @param value - The value to return.  Only callable once.
+   */
+  setReturnValue(value: ReturnType<MethodType>) : void;
+
+  readonly entryPoint: ThisClassType;
 }
-
-export type ReturnOrPassThroughType<
-  ClassType extends object,
-  MethodType extends AnyFunction
-> = ReturnType<MethodType> | PassThroughType<ClassType, MethodType>;
 ```
-
-This API specifies three specific properties of the `PassThroughType` argument:
-
-1. `modifiedArguments`, so you can change arguments from one component to another. (Strongly not recommended, but supported for compatibility)
-2. `callTarget()` allows you to directly call another component class with the same method name, by a component name.
-3. `entryPoint` gives you access to a shared component owning this and implementing the original API.
 
 Some sample code:
 
@@ -77,28 +86,30 @@ Some sample code:
 export default class ExampleComponent implements PassThroughClassType
 {
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
+    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], ExtendedEntryPoint>,
     s: string,
     n: number
-  ): ReturnOrPassThroughType<NumberStringType, NumberStringType["repeatForward"]>
+  ) : void
   {
-    if ((__previousResults__.entryPoint as ExtendedEntryPoint).isLogging())
+    if ((__previousResults__.entryPoint).isLogging())
     {
       const rv = __previousResults__.callTarget("logEntry");
-      if (rv !== __previousResults__)
-        return rv;
+      // Please don't set methodArguments unless you absolutely have to.
+      // This is effectively replacing existing arguments, which ESLint might warn you against anyway.
+      /** @see {@link https://eslint.org/docs/latest/rules/no-param-reassign} */
       [s, n] = __previousResults__.modifiedArguments;
     }
 
-    return s.repeat(n);
+    return __previousResults__.setReturnValue(s.repeat(n));
   }
 
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
+    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], ExtendedEntryPoint>,
     n: number,
     s: string
-  ): ReturnOrPassThroughType<NumberStringType, NumberStringType["repeatBack"]>
+  ) : void
   {
+    void(__previousResults__);
     void(n);
     void(s);
     throw new Error("not yetimplemented");
@@ -107,7 +118,7 @@ export default class ExampleComponent implements PassThroughClassType
 
 ```
 
-`__previousResults__.entryPoint` represents the `this` value in an integrated class, while `.callTarget("logEntry")` shows how we can hand off to another component class.  If the other component replaces the arguments (again, this is not recommended), we can pick up the change right away.
+`__previousResults__.entryPoint` represents the `this` value in an integrated class, while `.callTarget("logEntry")` shows how we can hand off to another component class.  If the other component replaces the arguments (again, this risks side effects), we can pick up the change right away.
 
 ## Code generation
 
@@ -128,7 +139,9 @@ This will generate several files.
 
 - For your use:
   - `BaseClass.mts` for a stub not-implemented class from [`TypeToClass`](../_01_ts-morph_utilities/)
-  - `KeyToComponentMap_Base.mts`, which exports a `InstanceToComponentMap` class.  This class provides API to define components, sequences of components, and which component key is the starting point.
+  - `KeyToComponentMap_Base.mts`, which exports a `InstanceToComponentMap` class.  
+    - This class provides API to define components, sequences of components, and which component key is the starting point.
+    - This module is also where `PassThroughArgument` instances, which implement `PassThroughType`, come from.
   - `EntryClass.mts` implementing your original type (in examples above, `NumberStringType`) to directly invoke a component class's equivalent method.  It takes an `InstanceToComponentMap` as a constructor argument.  I recommend subclassing this for additional properties.
   - `PassThrough_Continue.mts` as a base class for component classes.  Use this when you want to allow methods to not be implemented.
   - `PassThrough_NotImplemented.mts` as a base class for component classes.  Use this when you _want_ to throw for methods you haven't implemented.
@@ -180,24 +193,22 @@ export class MainClass extends ComponentBase
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
     s: string,
     n: number
-  ): ReturnOrPassThroughType<NumberStringType, NumberStringType["repeatForward"]>
+  ) : void
   {
     __previousResults__.callTarget("logEntry");
-    const rv = s.repeat(n);
+    __previousResults__.setReturnValue(s.repeat(n));
     __previousResults__.callTarget("logLeave");
-    return rv;
   }
 
   repeatBack(
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
     n: number,
     s: string
-  ): ReturnOrPassThroughType<NumberStringType, NumberStringType["repeatBack"]>
+  ) : void
   {
     __previousResults__.callTarget("logEntry");
-    const rv = s.repeat(n);
+    __previousResults__.setReturnValue(s.repeat(n));
     __previousResults__.callTarget("logLeave");
-    return rv;
   }
 }
 
@@ -230,20 +241,18 @@ export class LoggingClass extends ComponentBase
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
     s: string,
     n: number
-  ): ReturnOrPassThroughType<NumberStringType, NumberStringType["repeatForward"]>
+  ) : void
   {
     (__previousResults__ as FullClass).log(this.#isBefore, "repeatForward");
-    return __previousResults__;
   }
 
   repeatBack(
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
     n: number,
     s: string
-  ): ReturnOrPassThroughType<NumberStringType, NumberStringType["repeatBack"]>
+  ) : void
   {
     (__previousResults__ as FullClass).log(this.#isBefore, "repeatBack");
-    return __previousResults__;
   }
 }
 

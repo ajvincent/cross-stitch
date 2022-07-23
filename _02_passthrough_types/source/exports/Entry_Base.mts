@@ -7,7 +7,6 @@ import {
 } from "./Common.mjs";
 
 import InstanceToComponentMap from "./KeyToComponentMap_Base.mjs";
-import { PassThroughSymbol } from "./PassThroughSupport.mjs";
 
 export type Entry_BaseType<ClassType extends object> = ClassType & {
   [INVOKE_SYMBOL]<
@@ -65,10 +64,11 @@ export default class Entry_Base<
       initialArguments
     );
 
-    const result = passThrough.callTarget(startTarget);
-    if ((Object(result) === result) && Reflect.has(result, PassThroughSymbol))
+    passThrough.callTarget(startTarget);
+    const [hasReturn, result] = passThrough.getReturnValue();
+    if (!hasReturn)
       throw new Error("No resolved result!");
 
-    return result as ReturnType<MethodType>;
+    return result;
   }
 }

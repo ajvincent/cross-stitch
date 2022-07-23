@@ -5,7 +5,6 @@ import type {
 import {
   NST_CONTINUE,
   NST_RESULT,
-  NST_THROW,
 } from "../fixtures/first-mock/NST_INSTANCES.mjs";
 
 import NumberString_EntryBase from "../fixtures/first-mock/NSPT_ENTRY.mjs";
@@ -16,11 +15,10 @@ it("DirectDriver (first-mock) mockup returns a sane value", () => {
   const NST_COMPONENT_MAP = new InstanceToComponentMap<NumberStringType, NumberStringType>;
   NST_COMPONENT_MAP.addDefaultComponent("continue", NST_CONTINUE);
   NST_COMPONENT_MAP.addDefaultComponent("result", NST_RESULT);
-  NST_COMPONENT_MAP.addDefaultComponent("throw", NST_THROW);
 
   NST_COMPONENT_MAP.addDefaultSequence(
     "driver",
-    ["continue", "result", "throw"]
+    ["continue", "result"]
   );
 
   NST_COMPONENT_MAP.defaultStart = "driver";

@@ -17,22 +17,20 @@ export default class NSPT_RETURN
   repeatBack(
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringTypeAndLog>,
     n: number, s: string
-  ): string | PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringTypeAndLog>
+  ): void
   {
     __previousResults__.callTarget("logEnter");
-    const rv = s.repeat(n);
+    __previousResults__.setReturnValue(s.repeat(n));
     __previousResults__.callTarget("logLeave");
-    return rv;
   }
 
   repeatForward(
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringTypeAndLog>,
     s: string, n: number
-  ): string | PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringTypeAndLog>
+  ) : void
   {
     __previousResults__.callTarget("logEnter");
-    const rv = s.repeat(n);
+    __previousResults__.setReturnValue(s.repeat(n));
     __previousResults__.callTarget("logLeave");
-    return rv;
   }
 }

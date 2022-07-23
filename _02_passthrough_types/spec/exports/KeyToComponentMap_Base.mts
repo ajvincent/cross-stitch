@@ -132,19 +132,32 @@ describe("InstanceToComponentMap", () => {
   }
 
   describe(".buildPassThrough() creates a runnable pass-through argument which returns", () => {
+    it("[false, undefined] on calling .getReturnValue() without calling .setReturnValue()", () => {
+      const successPass = passThrough();
+      expect(successPass.getReturnValue()).toEqual([false, undefined]);
+    });
+
+    it("[true, string] on calling .getReturnValue() without calling .setReturnValue()", () => {
+      const successPass = passThrough();
+      successPass.setReturnValue("foo")
+      expect(successPass.getReturnValue()).toEqual([true, "foo"]);
+    });
+
     it("a definite result on a component name", () => {
       map.addDefaultComponent("result", NST_RESULT);
       const successPass = passThrough();
 
-      expect(successPass.callTarget("result")).toBe("foofoofoo");
+      successPass.callTarget("result");
+      expect(successPass.getReturnValue()).toEqual([true, "foofoofoo"]);
       expect(successPass.entryPoint).toBe(stubType0);
     });
 
-    it("itself on a component name", () => {
+    it("void on a component name", () => {
       map.addDefaultComponent("continue", NST_CONTINUE);
       const successPass = passThrough();
 
-      expect(successPass.callTarget("continue")).toBe(successPass);
+      successPass.callTarget("continue");
+      expect(successPass.getReturnValue()).toEqual([false, undefined]);
       expect(successPass.entryPoint).toBe(stubType0);
     });
 
@@ -155,18 +168,20 @@ describe("InstanceToComponentMap", () => {
       map.addDefaultSequence("sequence", ["continue", "result"]);
       const successPass = passThrough();
 
-      expect(successPass.callTarget("sequence")).toBe("foofoofoo");
+      successPass.callTarget("sequence");
+      expect(successPass.getReturnValue()).toEqual([true, "foofoofoo"]);
       expect(successPass.entryPoint).toBe(stubType0);
     });
 
-    it("itself on a component name", () => {
-      map.addDefaultComponent("continue", NST_CONTINUE);
-      map.addDefaultComponent("result", NST_CONTINUE);
+    it("void on a sequence name", () => {
+      map.addDefaultComponent("continue1", NST_CONTINUE);
+      map.addDefaultComponent("continue2", NST_CONTINUE);
 
-      map.addDefaultSequence("sequence", ["continue", "result"]);
+      map.addDefaultSequence("sequence", ["continue1", "continue2"]);
       const successPass = passThrough();
 
-      expect(successPass.callTarget("sequence")).toBe(successPass);
+      successPass.callTarget("sequence");
+      expect(successPass.getReturnValue()).toEqual([false, undefined]);
       expect(successPass.entryPoint).toBe(stubType0);
     });
   });
@@ -288,6 +303,14 @@ describe("InstanceToComponentMap", () => {
       expect(
         () => successPass.callTarget("result")
       ).toThrowError(`Visited target "result"!`);
+    });
+
+    it("set a pass-through's return argument twice", () => {
+      const successPass = passThrough();
+      successPass.setReturnValue("foo");
+      expect(() => {
+        successPass.setReturnValue("foo");
+      }).toThrowError("There is already a return value here!");
     });
   });
 });

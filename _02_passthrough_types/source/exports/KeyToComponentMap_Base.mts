@@ -8,7 +8,6 @@ import {
   PassThroughSymbol,
   PassThroughType,
   MaybePassThrough,
-  ReturnOrPassThroughType,
 } from "./PassThroughSupport.mjs";
 
 /**
@@ -372,6 +371,9 @@ class PassThroughArgument<
   readonly #methodName: PropertyKey;
   readonly #visitedTargets: Set<PropertyKey> = new Set;
 
+  #hasReturnValue = false;
+  #returnValue?: ReturnType<MethodType>;
+
   /**
    * Set up initial conditions.
    * @param componentMap     - The component map.
@@ -400,7 +402,7 @@ class PassThroughArgument<
    * @returns whatever the component returns.
    * @public
    */
-  callTarget(componentKey: PropertyKey) : ReturnOrPassThroughType<PublicClassType, MethodType, ThisClassType>
+  callTarget(componentKey: PropertyKey) : void
   {
     if (this.#visitedTargets.has(componentKey))
       throw new Error(`Visited target "${String(componentKey)}"!`);
@@ -408,21 +410,40 @@ class PassThroughArgument<
 
     const sequence = this.#componentMap.getSequence(componentKey);
     if (sequence.length) {
-      let result: ReturnOrPassThroughType<PublicClassType, MethodType, ThisClassType>;
       do {
-        result = this.callTarget(sequence.shift() as PropertyKey);
-
-        // The rule is always "Return the pass-through argument to continue, or something else to exit."
-        if (result !== this)
-          return result;
+        this.callTarget(sequence.shift() as PropertyKey);
       } while (sequence.length);
-      return result;
+
+      return;
     }
 
     const component = this.#componentMap.getComponent(componentKey);
 
     const method = Reflect.get(component, this.#methodName) as MaybePassThrough<PublicClassType, MethodType, ThisClassType>;
-    return method.apply(component, [this, ...this.modifiedArguments]);
+    method.apply(component, [this, ...this.modifiedArguments]);
+  }
+
+  /**
+   * Get the return value, if it's available.
+   */
+  getReturnValue(): [false, undefined] | [true, ReturnType<MethodType>]
+  {
+    if (!this.#hasReturnValue)
+      return [false, undefined];
+    return [true, this.#returnValue as ReturnType<MethodType>];
+  }
+
+  /**
+   * Set the return value.
+   *
+   * @param value - The value to return.  Only callable once.
+   */
+  setReturnValue(value: ReturnType<MethodType>): void
+  {
+    if (this.#hasReturnValue)
+      throw new Error("There is already a return value here!");
+    this.#hasReturnValue = true;
+    this.#returnValue = value;
   }
 }
 Object.freeze(PassThroughArgument);

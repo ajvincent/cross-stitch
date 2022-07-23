@@ -13,20 +13,20 @@ export default class NSPT_CONTINUE
   repeatForward(
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>,
     s: string, n: number
-  ) : PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>
+  ) : void
   {
+    void(__previousResults__);
     void(s);
     void(n);
-    return __previousResults__;
   }
 
   repeatBack(
     __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>,
     n: number, s: string
-  ): PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>
+  ) : void
   {
+    void(__previousResults__);
     void(n);
     void(s);
-    return __previousResults__;
   }
 }
