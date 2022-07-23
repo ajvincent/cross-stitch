@@ -45,7 +45,7 @@ Source:
   - [ ] Pass `defaultKeyMap` into instances of the entry class
 - [x] Create pass-through class type
   - [ ] returns are void
-  - [ ] entryPoint: ThisClassType extends PublicClassType
+  - [x] entryPoint: ThisClassType extends PublicClassType
   - [ ] setReturnType()
   - [ ] getReturnType()
 - [x] Extended "continue" class (returning previous results), copied from base class

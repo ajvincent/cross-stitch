@@ -9,7 +9,7 @@ import type {
 } from "../NumberStringType.mjs";
 
 export default class NumberString_EntryBase
-               extends Entry_Base<NumberStringType>
+               extends Entry_Base<NumberStringType, NumberStringType>
                implements NumberStringType
 {
   repeatForward(s: string, n: number): string

@@ -5,4 +5,4 @@ import type { ComponentPassThroughClass } from "../source/exports/PassThroughSup
 
 //import type { TypeToClassCallback } from "../../_01_ts-morph_utilities/source/TypeToClass.mjs";
 
-export type NumberStringComponent = ComponentPassThroughClass<NumberStringType>;
+export type NumberStringComponent = ComponentPassThroughClass<NumberStringType, NumberStringType>;

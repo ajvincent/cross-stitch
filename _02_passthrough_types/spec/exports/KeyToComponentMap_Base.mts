@@ -40,7 +40,7 @@ const stubType1: NumberStringType =
 };
 
 describe("InstanceToComponentMap", () => {
-  let map: InstanceToComponentMap<NumberStringType>;
+  let map: InstanceToComponentMap<NumberStringType, NumberStringType>;
   beforeEach(() => map = new InstanceToComponentMap);
 
   it("instances are frozen", () => {
@@ -122,7 +122,7 @@ describe("InstanceToComponentMap", () => {
     expect(submap.getSequence("continueAndResult")).toEqual(["continue", "result"]);
   });
 
-  function passThrough() : PassThroughType<NumberStringType, NumberStringType["repeatForward"]>
+  function passThrough() : PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>
   {
     return map.buildPassThrough<NumberStringType["repeatForward"]>(
       stubType0,

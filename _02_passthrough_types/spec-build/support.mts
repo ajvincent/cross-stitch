@@ -31,7 +31,8 @@ export default async function() : Promise<void>
     fixturesDir.addSourceFileAtPath("NumberStringType.mts"),
     "NumberStringType",
     generatedDir,
-    "NumberStringClass"
+    "NumberStringClass",
+    "NumberStringType",
   );
 
   await generator.run();
@@ -71,7 +72,8 @@ async function createJasmineSpyClass(
     method.removeStatement(throwLine.getChildIndex());
     method.addStatements(`return this.spy("${name}", __previousResults__, s, n) as ReturnOrPassThroughType<
     NumberStringType,
-    NumberStringType["${name}"]
+    NumberStringType["${name}"],
+    NumberStringType
   >;`);
   });
 

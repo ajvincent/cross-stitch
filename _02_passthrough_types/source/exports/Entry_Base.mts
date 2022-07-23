@@ -23,13 +23,14 @@ export type Entry_BaseType<ClassType extends object> = ClassType & {
  * The entry point from a non-augmented type into pass-through-augmented components.
  */
 export default class Entry_Base<
-  ClassType extends object
+  ClassType extends object,
+  ThisClassType extends ClassType,
 >
 {
-  readonly #extendedMap: InstanceToComponentMap<ClassType>;
+  readonly #extendedMap: InstanceToComponentMap<ClassType, ThisClassType>;
 
   constructor(
-    extendedMap: InstanceToComponentMap<ClassType>,
+    extendedMap: InstanceToComponentMap<ClassType, ThisClassType>,
   )
   {
     if (new.target === Entry_Base)
@@ -59,7 +60,7 @@ export default class Entry_Base<
 
     // This is safe because we're in a protected method.
     const passThrough = this.#extendedMap.buildPassThrough<MethodType>(
-      this as unknown as ClassType,
+      this as unknown as ThisClassType,
       methodName,
       initialArguments
     );

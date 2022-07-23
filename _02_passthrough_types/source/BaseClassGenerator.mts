@@ -17,11 +17,12 @@ export type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
 
 export default class BaseClassGenerator
 {
-  #sourceFile: ts.SourceFile;
-  #sourceTypeAlias: string;
+  readonly #sourceFile: ts.SourceFile;
+  readonly #sourceTypeAlias: string;
+  readonly #entryTypeAlias: string;
 
-  #targetDir: ts.Directory;
-  #baseClassName: string;
+  readonly #targetDir: ts.Directory;
+  readonly #baseClassName: string;
 
   /**
    * @param sourceFile      - The source file containing the type alias.
@@ -34,14 +35,14 @@ export default class BaseClassGenerator
     sourceTypeAlias: string,
     targetDir: ts.Directory,
     baseClassName: string,
+    entryTypeAlias: string,
   )
   {
     this.#sourceFile = sourceFile;
     this.#sourceTypeAlias = sourceTypeAlias;
     this.#baseClassName = baseClassName;
     this.#targetDir = targetDir;
-
-    void(this.#baseClassName);
+    this.#entryTypeAlias = entryTypeAlias
   }
 
   #runPromise = new SingletonPromise(() => this.#run());
@@ -110,7 +111,11 @@ export default class BaseClassGenerator
   {
     const passThroughTypeFile = this.#targetDir.createSourceFile("PassThroughClassType.mts");
     passThroughTypeFile.addStatements(`
-export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeAlias}>;
+export type PassThroughClassType = ComponentPassThroughClass<${
+  this.#sourceTypeAlias
+}, ${
+  this.#entryTypeAlias
+}>;
     `.trim() + "\n");
     passThroughTypeFile.fixMissingImports();
     await passThroughTypeFile.save();
@@ -136,7 +141,11 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
     const methods = extendedClass.getMethods();
     methods.forEach(method => {
       const name = method.getName();
-      const revisedType = `PassThroughType<${this.#sourceTypeAlias}, ${this.#sourceTypeAlias}["${name}"]>`;
+      const revisedType = `PassThroughType<
+      ${this.#sourceTypeAlias},
+      ${this.#sourceTypeAlias}["${name}"],
+      ${this.#entryTypeAlias}
+      >`;
       method.insertParameter(0, {
         name: "__previousResults__",
         type: revisedType
@@ -200,7 +209,7 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
   {
     const entryClassFile = baseClassFile.copy("EntryClass.mts");
     const entryClass = entryClassFile.getClassOrThrow(this.#baseClassName);
-    entryClass.setExtends(`Entry_Base<${this.#sourceTypeAlias}>`);
+    entryClass.setExtends(`Entry_Base<${this.#sourceTypeAlias}, ${this.#entryTypeAlias}>`);
 
     const methods = entryClass.getMethods();
     methods.forEach(method => {

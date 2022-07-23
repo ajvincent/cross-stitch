@@ -3,7 +3,7 @@ import type { ComponentPassThroughClass } from "../source/exports/PassThroughSup
 import type { Entry_BaseType } from "../source/exports/Entry_Base.mjs";
 import InstanceToComponentMap from "../source/exports/KeyToComponentMap_Base.mjs";
 
-type PassThroughClassType = ComponentPassThroughClass<NumberStringType>;
+type PassThroughClassType = ComponentPassThroughClass<NumberStringType, NumberStringType>;
 type PassThroughClassWithSpy = PassThroughClassType & { spy: jasmine.Spy };
 
 describe("Pass-through types generator", () => {
@@ -17,15 +17,17 @@ describe("Pass-through types generator", () => {
 
   let BaseClass: new () => NumberStringType;
   let SpyClass: new () => PassThroughClassWithSpy;
-  let InstanceToComponentMapClass: new () => InstanceToComponentMap<NumberStringType>;
-  let EntryClass: new (extendedMap: InstanceToComponentMap<NumberStringType>) => NumberStringType;
+  let InstanceToComponentMapClass: new () => InstanceToComponentMap<NumberStringType, NumberStringType>;
+  let EntryClass: new (extendedMap: InstanceToComponentMap<NumberStringType, NumberStringType>) => NumberStringType;
   let ContinueClass: new () => PassThroughClassType;
   let ThrowClass: new () => PassThroughClassType;
 
   beforeAll(async () => {
     BaseClass = await getModuleDefault<NumberStringType>("BaseClass.mjs");
     SpyClass = await getModuleDefault<PassThroughClassWithSpy>("PassThrough_JasmineSpy.mjs");
-    InstanceToComponentMapClass = await getModuleDefault<InstanceToComponentMap<NumberStringType>>("KeyToComponentMap_Base.mjs");
+    InstanceToComponentMapClass = await getModuleDefault<
+      InstanceToComponentMap<NumberStringType, NumberStringType>
+    >("KeyToComponentMap_Base.mjs");
     EntryClass = await getModuleDefault<Entry_BaseType<NumberStringType>>("EntryClass.mjs");
     ContinueClass = await getModuleDefault<PassThroughClassType>("PassThrough_Continue.mjs");
     ThrowClass = await getModuleDefault<PassThroughClassType>("PassThrough_NotImplemented.mjs")
