@@ -5,7 +5,7 @@ import url from "url";
 
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 
-import Generator from "../source/BaseClassGenerator.mjs";
+import BaseClassGenerator from "../source/BaseClassGenerator.mjs";
 
 export default async function() : Promise<void>
 {
@@ -27,7 +27,7 @@ export default async function() : Promise<void>
   const fixturesDir  = project.addDirectoryAtPath(path.join(parentDir, "fixtures"));
   const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated"));
 
-  const generator = new Generator(
+  const generator = new BaseClassGenerator(
     fixturesDir.addSourceFileAtPath("NumberStringType.mts"),
     "NumberStringType",
     generatedDir,

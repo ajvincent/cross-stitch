@@ -346,7 +346,7 @@ Object.freeze(KeyToComponentMap.prototype);
 class PassThroughArgument<
   ClassType extends object,
   MethodType extends AnyFunction
->
+> implements PassThroughType<ClassType, MethodType>
 {
   /**
    * A simple flag to indicate this is a pass-through argument.

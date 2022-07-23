@@ -15,7 +15,7 @@ const parentDir = path.normalize(path.resolve(url.fileURLToPath(import.meta.url)
 //type InterfaceOrTypeAlias = ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
 export type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
 
-export default class Generator
+export default class BaseClassGenerator
 {
   #sourceFile: ts.SourceFile;
   #sourceTypeAlias: string;
@@ -23,6 +23,12 @@ export default class Generator
   #targetDir: ts.Directory;
   #baseClassName: string;
 
+  /**
+   * @param sourceFile      - The source file containing the type alias.
+   * @param sourceTypeAlias - The type alias to implement.
+   * @param targetDir       - The directory to generate code into.
+   * @param baseClassName   - The base class name for generated code.
+   */
   constructor(
     sourceFile: ts.SourceFile,
     sourceTypeAlias: string,
@@ -75,6 +81,10 @@ export default class Generator
     this.#targetDir.addSourceFileAtPath(leafName);
   }
 
+  /**
+   * Create the base class, with not-implemented methods and no pass-through extensions.
+   * @returns The BaseClass.mts source file
+   */
   async #createBaseClass() : Promise<ts.SourceFile>
   {
     const baseClassFile = this.#targetDir.createSourceFile("BaseClass.mts");
@@ -93,6 +103,9 @@ export default class Generator
     return baseClassFile;
   }
 
+  /**
+   * Create the pass-through type.  Note this file may be deleted in the future.
+   */
   async #createPassThroughType() : Promise<void>
   {
     const passThroughTypeFile = this.#targetDir.createSourceFile("PassThroughClassType.mts");
@@ -103,6 +116,12 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
     await passThroughTypeFile.save();
   }
 
+  /**
+   * Copy the base class, prepend the pass-through argument and set the return type on a "not-implemented" component class.
+   *
+   * @param baseClassFile - the promised file from this.#createBaseClass()
+   * @returns the generated class file.
+   */
   async #createExtendedNIClass(
     baseClassFile: ts.SourceFile
   ) : Promise<ts.SourceFile>
@@ -139,6 +158,12 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
     return extendedClassFile;
   }
 
+  /**
+   * Copy the "not-implemented" class, and transform the copy into a "pass-through-continue" class.
+   *
+   * @param niClassFile - the promised file from this.#createExtendedNIClass()
+   * @returns the generated class file.
+   */
   async #createExtendedContinueClass(
     niClassFile: ts.SourceFile
   ) : Promise<void>
@@ -151,10 +176,6 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
 
     const methods = extendedClass.getMethods();
     methods.forEach(method => {
-      const name = method.getName();
-      const revisedType = `PassThroughType<${this.#sourceTypeAlias}, ${this.#sourceTypeAlias}["${name}"]>`;
-      method.setReturnType(revisedType);
-
       const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
       method.removeStatement(throwLine.getChildIndex());
       method.addStatements("return __previousResults__;");
@@ -169,6 +190,10 @@ export type PassThroughClassType = ComponentPassThroughClass<${this.#sourceTypeA
     await continueFile.save();
   }
 
+  /**
+   * Copy the base class, and transform the copy to create pass-through arguments and call the start component.
+   * @param baseClassFile - the promised file from this.#createBaseClass()
+   */
   async #createEntryClass(
     baseClassFile: ts.SourceFile
   ) : Promise<void>
