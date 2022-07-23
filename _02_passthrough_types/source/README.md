@@ -23,7 +23,9 @@
   - [ ] `@stitch.sequence`
   - [ ] `@stitch.current` symbol for "current class or sequence" to feed into `@stitch.sequence`
   - [ ] `@stitch.entryPoint`
-  - [ ] `@stitch.renameToPrivate(fieldName)` for entryPoint
+  - [ ] `@stitch.renameToPrivate(fieldName, "method" | "property" | "readonly property")` for entryPoint
+  - [ ] `@stitch.rewriteForPrivate(fieldName, ts-morph callback)` for entryPoint
+  - [ ] README: tie these concepts to aspect-oriented programming models
 - [ ] TypeScript-ESLint to check properties for conflicts
   - [ ] Helper module to invoke these rules (until I can export them)
   - [ ] method names are unique except for those in the specified class type
@@ -43,11 +45,12 @@ Source:
   - [ ] Pass `defaultKeyMap` into instances of the entry class
 - [x] Create pass-through class type
   - [ ] returns are void
-  - [ ] entryPoint: FinalClassType extends ClassType
+  - [ ] entryPoint: ThisClassType extends PublicClassType
   - [ ] setReturnType()
   - [ ] getReturnType()
 - [x] Extended "continue" class (returning previous results), copied from base class
 - [x] Entry class ("ForwardTo_Base") copied from base class
+  - [ ] Add a static property for the instance-to-component map
 - [x] Sequence support
 - [x] Extended "not implemented" class copied from base class
 
