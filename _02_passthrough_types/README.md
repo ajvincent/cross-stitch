@@ -282,7 +282,7 @@ export default function __Builder__(
   console: Console,
 )
 {
-  return new FullClass(map, console);
+  return new FullClass(map.defaultKeyMap, console);
 }
 ```
 

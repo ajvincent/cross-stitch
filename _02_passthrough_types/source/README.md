@@ -47,8 +47,8 @@ Source:
 
 - [x] Create base "not implemented" class via TypeToClass
 - [x] Key-to-component map
-  - [ ] `InstanceToComponentMap.defaultKeyMap`
-  - [ ] Pass `defaultKeyMap` into instances of the entry class
+  - [x] `InstanceToComponentMap.defaultKeyMap`
+  - [x] Pass `defaultKeyMap` into instances of the entry class
 - [x] Create pass-through class type
   - [x] returns are void
   - [x] entryPoint: ThisClassType extends PublicClassType

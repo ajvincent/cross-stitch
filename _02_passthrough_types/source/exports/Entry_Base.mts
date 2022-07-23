@@ -6,7 +6,7 @@ import {
   PropertyKey,
 } from "./Common.mjs";
 
-import InstanceToComponentMap from "./KeyToComponentMap_Base.mjs";
+import type { ReadonlyKeyToComponentMap } from "./KeyToComponentMap_Base.mjs";
 
 export type Entry_BaseType<ClassType extends object> = ClassType & {
   [INVOKE_SYMBOL]<
@@ -26,16 +26,14 @@ export default class Entry_Base<
   ThisClassType extends ClassType,
 >
 {
-  readonly #extendedMap: InstanceToComponentMap<ClassType, ThisClassType>;
+  readonly #extendedMap: ReadonlyKeyToComponentMap<ClassType, ThisClassType>;
 
   constructor(
-    extendedMap: InstanceToComponentMap<ClassType, ThisClassType>,
+    extendedMap: ReadonlyKeyToComponentMap<ClassType, ThisClassType>,
   )
   {
     if (new.target === Entry_Base)
       throw new Error("Do not construct this class directly: subclass it!");
-    if (!extendedMap.defaultStart)
-      throw new Error("No default start for the extended map?  I need one!");
     this.#extendedMap = extendedMap;
   }
 
@@ -53,7 +51,7 @@ export default class Entry_Base<
     initialArguments: Parameters<MethodType>
   ): ReturnType<MethodType>
   {
-    const startTarget = this.#extendedMap.defaultStart;
+    const startTarget = this.#extendedMap.startComponent;
     if (!startTarget)
       throw new Error("assertion failure: we should have a start target");
 

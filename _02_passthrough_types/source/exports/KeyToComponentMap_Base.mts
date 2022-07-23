@@ -34,6 +34,11 @@ export default class InstanceToComponentMap<
     Object.freeze(this);
   }
 
+  get defaultKeyMap() : ReadonlyKeyToComponentMap<ClassType, ThisClassType>
+  {
+    return this.#default;
+  }
+
   /**
    * Get a component.
    *
@@ -176,10 +181,68 @@ Object.freeze(InstanceToComponentMap.prototype);
  * matching the API of the pass-through-augmented class, or to a sequence of existing
  * keys.
  */
-class KeyToComponentMap<
+export interface ReadonlyKeyToComponentMap<
   ClassType extends object,
   ThisClassType extends ClassType
 >
+{
+  /**
+   * Get a component.
+   *
+   * @param key - The key for the component.
+   * @returns The component.
+   * @throws if there is no component for the key.
+   * @internal
+   */
+  getComponent(
+    key: PropertyKey
+  ) : ComponentPassThroughClass<ClassType, ThisClassType>;
+
+  /**
+   * Get a sequence for a known top key.
+   * @param topKey   - The top key to look up.
+   * @returns The sequence, or an empty array if there is no sequence.
+   * @internal
+   */
+  getSequence(
+    topKey: PropertyKey
+  ) : PropertyKey[];
+
+  /**
+   * A list of known component and sequence keys.
+   */
+  get keys(): PropertyKey[];
+
+  /**
+   * The start component key.  Required before creating a base instance.
+   */
+  get startComponent(): PropertyKey | undefined;
+
+  /**
+   * Build a pass-through argument for a method.
+   *
+   * @typeParam MethodType - The type of the non-augmented method.
+   * @param methodName       - The name of the method to invoke.
+   * @param initialArguments - The initial arguments of the method.
+   * @returns The pass-through argument.
+   *
+   * @internal
+   * @see Entry_Base.prototype[INVOKE_SYMBOL]
+   */
+  buildPassThrough<
+    MethodType extends AnyFunction
+  >
+  (
+    entryPoint: ThisClassType,
+    methodName: PropertyKey,
+    initialArguments: Parameters<MethodType>
+  ) : PassThroughType<ClassType, MethodType, ThisClassType>;
+}
+
+class KeyToComponentMap<
+  ClassType extends object,
+  ThisClassType extends ClassType
+> implements ReadonlyKeyToComponentMap<ClassType, ThisClassType>
 {
   /**
    * Disallow empty string keys.
@@ -239,6 +302,19 @@ class KeyToComponentMap<
   }
 
   /**
+   * Get a sequence for a known top key.
+   * @param topKey   - The top key to look up.
+   * @returns The sequence, or an empty array if there is no sequence.
+   * @internal
+   */
+  getSequence(
+    topKey: PropertyKey
+  ): PropertyKey[]
+  {
+    return this.#sequenceMap.get(topKey)?.slice() ?? [];
+  }
+
+  /**
    * Add a sequence.
    * @param topKey  - The key defining the sequence.
    * @param subKeys - The keys of the sequence.
@@ -270,19 +346,6 @@ class KeyToComponentMap<
       throw new Error(`The top key is already in the map!`);
 
     this.#sequenceMap.set(topKey, subKeys.slice());
-  }
-
-  /**
-   * Get a sequence for a known top key.
-   * @param topKey   - The top key to look up.
-   * @returns The sequence, or an empty array if there is no sequence.
-   * @internal
-   */
-  getSequence(
-    topKey: PropertyKey
-  ): PropertyKey[]
-  {
-    return this.#sequenceMap.get(topKey)?.slice() ?? [];
   }
 
   /**
@@ -367,7 +430,7 @@ class PassThroughArgument<
 
   readonly entryPoint: ThisClassType;
 
-  readonly #componentMap: KeyToComponentMap<PublicClassType, ThisClassType>;
+  readonly #componentMap: ReadonlyKeyToComponentMap<PublicClassType, ThisClassType>;
   readonly #methodName: PropertyKey;
   readonly #visitedTargets: Set<PropertyKey> = new Set;
 
@@ -383,7 +446,7 @@ class PassThroughArgument<
    * @see KeyToComponentMap.prototype.buildPassThrough
    */
   constructor(
-    componentMap: KeyToComponentMap<PublicClassType, ThisClassType>,
+    componentMap: ReadonlyKeyToComponentMap<PublicClassType, ThisClassType>,
     entryPoint: ThisClassType,
     methodName: PropertyKey,
     initialArguments: Parameters<MethodType>
@@ -419,7 +482,9 @@ class PassThroughArgument<
 
     const component = this.#componentMap.getComponent(componentKey);
 
-    const method = Reflect.get(component, this.#methodName) as MaybePassThrough<PublicClassType, MethodType, ThisClassType>;
+    const method = Reflect.get(
+      component, this.#methodName
+    ) as MaybePassThrough<PublicClassType, MethodType, ThisClassType>;
     method.apply(component, [this, ...this.modifiedArguments]);
   }
 

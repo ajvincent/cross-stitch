@@ -23,7 +23,7 @@ it("DirectDriver (log-subtarget) mockup returns a sane value", async () => {
   NST_COMPONENT_MAP.addDefaultComponent("logLeave", NST_LEAVE);
 
   NST_COMPONENT_MAP.defaultStart = "result";
-  const TestClass = new NumberString_EntryBase(NST_COMPONENT_MAP);
+  const TestClass = new NumberString_EntryBase(NST_COMPONENT_MAP.defaultKeyMap);
   expect(TestClass.consoleStream.readableLength).toBe(0);
 
   expect(TestClass.repeatForward("foo", 3)).toBe("foofoofoo");

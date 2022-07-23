@@ -22,7 +22,7 @@ it("DirectDriver (first-mock) mockup returns a sane value", () => {
   );
 
   NST_COMPONENT_MAP.defaultStart = "driver";
-  const TestClass = new NumberString_EntryBase(NST_COMPONENT_MAP);
+  const TestClass = new NumberString_EntryBase(NST_COMPONENT_MAP.defaultKeyMap);
 
   expect(TestClass.repeatForward("foo", 3)).toBe("foofoofoo");
 });

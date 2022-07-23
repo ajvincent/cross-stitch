@@ -1,7 +1,9 @@
 import type { NumberStringType } from "../fixtures/NumberStringType.mjs";
 import type { ComponentPassThroughClass } from "../source/exports/PassThroughSupport.mjs";
 import type { Entry_BaseType } from "../source/exports/Entry_Base.mjs";
-import InstanceToComponentMap from "../source/exports/KeyToComponentMap_Base.mjs";
+import InstanceToComponentMap, {
+  ReadonlyKeyToComponentMap
+} from "../source/exports/KeyToComponentMap_Base.mjs";
 
 type PassThroughClassType = ComponentPassThroughClass<NumberStringType, NumberStringType>;
 type PassThroughClassWithSpy = PassThroughClassType & { spy: jasmine.Spy };
@@ -18,7 +20,7 @@ describe("Pass-through types generator", () => {
   let BaseClass: new () => NumberStringType;
   let SpyClass: new () => PassThroughClassWithSpy;
   let InstanceToComponentMapClass: new () => InstanceToComponentMap<NumberStringType, NumberStringType>;
-  let EntryClass: new (extendedMap: InstanceToComponentMap<NumberStringType, NumberStringType>) => NumberStringType;
+  let EntryClass: new (extendedMap: ReadonlyKeyToComponentMap<NumberStringType, NumberStringType>) => NumberStringType;
   let ContinueClass: new () => PassThroughClassType;
   let ThrowClass: new () => PassThroughClassType;
 
@@ -103,7 +105,7 @@ describe("Pass-through types generator", () => {
     map.addDefaultComponent("spy", spyInstanceReturn);
     map.defaultStart = "spy";
 
-    const instance = new EntryClass(map);
+    const instance = new EntryClass(map.defaultKeyMap);
 
     expect(instance.repeatBack(3, "foo")).toBe("Fear is the mind-killer.");
 
@@ -131,7 +133,7 @@ describe("Pass-through types generator", () => {
     map.addDefaultSequence("sequence", ["continue", "spy"]);
     map.defaultStart = "sequence";
 
-    const instance = new EntryClass(map);
+    const instance = new EntryClass(map.defaultKeyMap);
 
     expect(instance.repeatBack(3, "foo")).toBe("Law is the ultimate science.");
 
@@ -159,7 +161,7 @@ describe("Pass-through types generator", () => {
     map.addDefaultSequence("sequence", ["throw", "spy"]);
     map.defaultStart = "sequence";
 
-    const instance = new EntryClass(map);
+    const instance = new EntryClass(map.defaultKeyMap);
 
     expect(
       () => instance.repeatForward("foo", 3)
@@ -173,7 +175,7 @@ describe("Pass-through types generator", () => {
     map.addDefaultComponent("continue", new ContinueClass);
     map.defaultStart = "continue";
 
-    const instance = new EntryClass(map);
+    const instance = new EntryClass(map.defaultKeyMap);
     expect(
       () => instance.repeatBack(3, "foo")
     ).toThrowError("No resolved result!");

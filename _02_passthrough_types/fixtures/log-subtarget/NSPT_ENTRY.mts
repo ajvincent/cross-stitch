@@ -3,7 +3,7 @@ import {
 } from "../../source/exports/Common.mjs";
 
 import Entry_Base from "../../source/exports/Entry_Base.mjs";
-import InstanceToComponentMap from "../../source/exports/KeyToComponentMap_Base.mjs";
+import type { ReadonlyKeyToComponentMap } from "../../source/exports/KeyToComponentMap_Base.mjs";
 
 import type {
   NumberStringType
@@ -31,7 +31,7 @@ export default class NumberString_EntryBase
   });
 
   constructor(
-    extendedMap: InstanceToComponentMap<NumberStringType, NumberStringTypeAndLog>,
+    extendedMap: ReadonlyKeyToComponentMap<NumberStringType, NumberStringTypeAndLog>,
   )
   {
     super(extendedMap);
