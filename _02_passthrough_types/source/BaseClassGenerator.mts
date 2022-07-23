@@ -36,7 +36,7 @@ export default class BaseClassGenerator
     sourceTypeAlias: string,
     targetDir: ts.Directory,
     baseClassName: string,
-    entryTypeAlias: string,
+    entryTypeAlias: string = sourceTypeAlias,
   )
   {
     this.#sourceFile = sourceFile;
@@ -98,7 +98,7 @@ export default class BaseClassGenerator
 
     TTC.addTypeAliasOrInterface(
       this.#sourceFile,
-      this.#sourceTypeAlias
+      this.#entryTypeAlias
     );
 
     await baseClassFile.save();

@@ -129,7 +129,8 @@ const generator = new BaseClassGenerator(
   sourceDir.addSourceFileAtPath("NumberStringType.mts"),
   "NumberStringType",
   generatedDir,
-  "NumberStringClass"
+  "NumberStringClass",
+  "NumberStringClassWithPrivateFields",
 );
 
 await generator.run();
