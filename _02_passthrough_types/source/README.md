@@ -7,13 +7,13 @@
   - [x] Component classes need a pass-through argument
   - [x] Bootstrap from standard API to a component class
   - [x] Sequence of component classes
-- [ ] Define the map of property keys to component classes
+- [x] Define the map of property keys to component classes
   - [x] At build time for integration tests
   - [x] Overrideable for unit tests
   - [x] Map a set to one instance for overrides
   - [x] Special protected field (key is a symbol) for shared base class
-  - [ ] How to handle private, static properties?
-  - [ ] Needs to hold properties for shared class outside
+  - [x] How to handle private, static properties?
+  - [x] Needs to hold properties for shared class outside
 - [ ] JSON schema for configuring build projects
 - [ ] Decorators
   - [ ] Add support to `InvokeTSC.mts`
