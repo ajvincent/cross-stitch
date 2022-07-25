@@ -117,6 +117,18 @@ export type PassThroughClassType = ComponentPassThroughClass<${
 }, ${
   this.#entryTypeAlias
 }>;
+
+export const ComponentMap = new InstanceToComponentMap<${
+  this.#sourceTypeAlias
+}, ${
+  this.#entryTypeAlias
+}>;
+
+export type PassThroughArgumentType<MethodType extends AnyFunction> = PassThroughType<${
+  this.#sourceTypeAlias
+}, MethodType, ${
+  this.#entryTypeAlias
+}>;
     `.trim() + "\n");
     passThroughTypeFile.fixMissingImports();
     await passThroughTypeFile.save();
@@ -142,11 +154,7 @@ export type PassThroughClassType = ComponentPassThroughClass<${
     const methods = extendedClass.getMethods();
     methods.forEach(method => {
       const name = method.getName();
-      const revisedType = `PassThroughType<
-      ${this.#sourceTypeAlias},
-      ${this.#sourceTypeAlias}["${name}"],
-      ${this.#entryTypeAlias}
-      >`;
+      const revisedType = `PassThroughArgumentType<${this.#sourceTypeAlias}["${name}"]>`;
       method.insertParameter(0, {
         name: "__previousResults__",
         type: revisedType
