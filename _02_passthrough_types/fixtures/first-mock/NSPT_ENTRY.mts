@@ -2,7 +2,7 @@ import {
   INVOKE_SYMBOL,
 } from "../../source/exports/Common.mjs";
 
-import Entry_Base from "../../source/exports/Entry_Base.mjs";
+import Entry_Base from "./Entry_Base.mjs";
 
 import type {
   NumberStringType
