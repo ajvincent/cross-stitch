@@ -1,6 +1,6 @@
 import type { NumberStringType } from "../fixtures/NumberStringType.mjs";
 import type { ComponentPassThroughClass } from "../source/exports/PassThroughSupport.mjs";
-import type { Entry_BaseType } from "../source/exports/Entry_Base.mjs";
+import type { Entry_BaseType } from "../source/exports/Common.mjs";
 import InstanceToComponentMap, {
   ReadonlyKeyToComponentMap
 } from "../source/exports/KeyToComponentMap_Base.mjs";

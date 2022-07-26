@@ -22,3 +22,13 @@ export type OnlyFunctionKeys<ClassType> = keyof {
 
 // A key for derived classes to use.  A symbol to prevent conflicts with existing types.
 export const INVOKE_SYMBOL = Symbol("protected invoke");
+
+export type Entry_BaseType<ClassType extends object> = ClassType & {
+  [INVOKE_SYMBOL]<
+    MethodType extends AnyFunction,
+  >
+  (
+    methodName: PropertyKey,
+    initialArguments: Parameters<MethodType>
+  ): ReturnType<MethodType>
+}
