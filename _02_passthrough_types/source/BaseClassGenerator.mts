@@ -122,6 +122,12 @@ export const ComponentMap = new InstanceToComponentMap<${
 }, ${
   this.#entryTypeAlias
 }>;
+
+export type PassThroughArgumentType<MethodType extends AnyFunction> = PassThroughType<${
+  this.#sourceTypeAlias
+}, MethodType, ${
+  this.#entryTypeAlias
+}>;
     `.trim() + "\n");
 
     passThroughTypeFile.fixMissingImports();
