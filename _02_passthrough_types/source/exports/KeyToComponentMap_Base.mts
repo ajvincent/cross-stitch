@@ -10,6 +10,83 @@ import {
   MaybePassThrough,
 } from "./PassThroughSupport.mjs";
 
+export type InstanceToComponentMap_Type<ClassType extends object, ThisClassType extends ClassType> =
+{
+  /**
+   * @deprecated Use getMapForInstance() below.
+   * @internal
+   */
+  get defaultKeyMap(): ReadonlyKeyToComponentMap<ClassType, ThisClassType>;
+
+  /**
+   * Get a component map.
+   * @param instance - The instance to get the map for.
+   * @returns the component map.
+   * @internal
+   */
+  getMapForInstance(instance: ClassType): ReadonlyKeyToComponentMap<ClassType, ThisClassType>;
+  /**
+   * Get a component.
+   *
+   * @param instance      - The instance to get a component for.
+   * @param componentKey  - The key for the component.
+   * @returns The component.
+   * @throws if there is no component for the key.
+   * @internal
+   */
+  getComponent(instance: ClassType, componentKey: PropertyKey): ComponentPassThroughClass<ClassType, ThisClassType>;
+  /**
+   * Add a default component by key name.
+   *
+   * @param key       - The key for the component.
+   * @param component - The component.
+   */
+  addDefaultComponent(key: PropertyKey, component: ComponentPassThroughClass<ClassType, ThisClassType>): void;
+  /**
+   * Get a sequence for a known top key.
+   * @param instance - The instance to get a component for.
+   * @param topKey   - The top key to look up.
+   * @returns The sequence, or an empty array if there is no sequence.
+   * @internal
+   */
+  getSequence(instance: ClassType, topKey: PropertyKey): PropertyKey[];
+  /**
+   * Add a default sequence.
+   * @param topKey  - The key defining the sequence.
+   * @param subKeys - The keys of the sequence.
+   */
+  addDefaultSequence(topKey: PropertyKey, subKeys: PropertyKey[]): void;
+  /**
+   * A list of known component and sequence keys for the default map.
+   */
+  get defaultKeys(): PropertyKey[];
+  /**
+   * The start component key.  Required before creating a base instance.
+   */
+  get defaultStart(): PropertyKey | undefined;
+  set defaultStart(key: PropertyKey | undefined);
+  /**
+   * Return a new KeyToComponentMap inheriting components from the default map.
+   * @param instance      - The instance to form the override for.
+   * @param componentKeys - The keys of the components to inherit.
+   * @returns
+   */
+  override(instance: ClassType, componentKeys: PropertyKey[]): KeyToComponentMap<ClassType, ThisClassType>;
+  /**
+   * Build a pass-through argument for a method.
+   *
+   * @typeParam MethodType - The type of the non-augmented method.
+   * @param instance         - The instance to get a component for.
+   * @param methodName       - The name of the method to invoke.
+   * @param initialArguments - The initial arguments of the method.
+   * @returns The pass-through argument.
+   *
+   * @internal
+   * @see Entry_Base.prototype[INVOKE_SYMBOL]
+   */
+  buildPassThrough<MethodType extends AnyFunction>(instance: ThisClassType, methodName: PropertyKey, initialArguments: Parameters<MethodType>): PassThroughType<ClassType, MethodType, ThisClassType>;
+}
+
 /**
  * This provides a mapping from an instance of a base class to pass-through
  * component classes (and sequences thereof), and API for setting default
@@ -22,7 +99,7 @@ import {
 export default class InstanceToComponentMap<
   ClassType extends object,
   ThisClassType extends ClassType
->
+> implements InstanceToComponentMap_Type<ClassType, ThisClassType>
 {
   readonly #overrideMap = new WeakMap<ClassType, KeyToComponentMap<ClassType, ThisClassType>>;
   readonly #default = new KeyToComponentMap<ClassType, ThisClassType>;
@@ -34,9 +111,26 @@ export default class InstanceToComponentMap<
     Object.freeze(this);
   }
 
+  /**
+   * @deprecated Use getMapForInstance() below.
+   * @internal
+   */
   get defaultKeyMap() : ReadonlyKeyToComponentMap<ClassType, ThisClassType>
   {
     return this.#default;
+  }
+
+  /**
+   * Get a component map.
+   * @param instance - The instance to get the map for.
+   * @returns the component map.
+   * @internal
+   */
+  getMapForInstance(
+    instance: ClassType
+  ) : ReadonlyKeyToComponentMap<ClassType, ThisClassType>
+  {
+    return this.#overrideMap.get(instance) || this.#default;
   }
 
   /**

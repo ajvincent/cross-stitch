@@ -1,9 +1,7 @@
 import type { NumberStringType } from "../fixtures/NumberStringType.mjs";
 import type { ComponentPassThroughClass } from "../source/exports/PassThroughSupport.mjs";
+import type { InstanceToComponentMap_Type } from "../source/exports/KeyToComponentMap_Base.mjs";
 import type { Entry_BaseType } from "../source/exports/Common.mjs";
-import InstanceToComponentMap, {
-  ReadonlyKeyToComponentMap
-} from "../source/exports/KeyToComponentMap_Base.mjs";
 
 type PassThroughClassType = ComponentPassThroughClass<NumberStringType, NumberStringType>;
 type PassThroughClassWithSpy = PassThroughClassType & { spy: jasmine.Spy };
@@ -17,22 +15,27 @@ describe("Pass-through types generator", () => {
     return (await import("../spec-generated/" + leafName)).default;
   }
 
+  async function getModulePart<U>(leafName: string, property: string) : Promise<U> {
+    return (await import("../spec-generated/" + leafName))[property] as U;
+  }
+
   let BaseClass: new () => NumberStringType;
   let SpyClass: new () => PassThroughClassWithSpy;
-  let InstanceToComponentMapClass: new () => InstanceToComponentMap<NumberStringType, NumberStringType>;
-  let EntryClass: new (extendedMap: ReadonlyKeyToComponentMap<NumberStringType, NumberStringType>) => NumberStringType;
+  let ComponentMap: InstanceToComponentMap_Type<NumberStringType, NumberStringType>;
+  let EntryClass: new () => NumberStringType;
   let ContinueClass: new () => PassThroughClassType;
   let ThrowClass: new () => PassThroughClassType;
 
   beforeAll(async () => {
     BaseClass = await getModuleDefault<NumberStringType>("BaseClass.mjs");
     SpyClass = await getModuleDefault<PassThroughClassWithSpy>("PassThrough_JasmineSpy.mjs");
-    InstanceToComponentMapClass = await getModuleDefault<
-      InstanceToComponentMap<NumberStringType, NumberStringType>
-    >("KeyToComponentMap_Base.mjs");
     EntryClass = await getModuleDefault<Entry_BaseType<NumberStringType>>("EntryClass.mjs");
     ContinueClass = await getModuleDefault<PassThroughClassType>("PassThrough_Continue.mjs");
-    ThrowClass = await getModuleDefault<PassThroughClassType>("PassThrough_NotImplemented.mjs")
+    ThrowClass = await getModuleDefault<PassThroughClassType>("PassThrough_NotImplemented.mjs");
+
+    ComponentMap = await getModulePart<
+      InstanceToComponentMap_Type<NumberStringType, NumberStringType>
+    >("PassThroughClassType.mjs", "ComponentMap");
   });
 
   it("creates the base 'not-yet implemented' class", () => {
@@ -72,11 +75,12 @@ describe("Pass-through types generator", () => {
       return "The spice must flow."
     });
 
-    const map = new InstanceToComponentMapClass;
-    map.addDefaultComponent("spy", spyInstanceReturn);
-    map.defaultStart = "spy";
-
     const instance = new BaseClass;
+
+    const map = ComponentMap.override(instance, []);
+    map.addComponent("spy", spyInstanceReturn);
+    map.startComponent = "spy";
+
     const passThrough = map.buildPassThrough<
       NumberStringType["repeatForward"]
     >(instance, "repeatForward", ["foo", 3]);
@@ -101,11 +105,12 @@ describe("Pass-through types generator", () => {
       return "Fear is the mind-killer."
     });
 
-    const map = new InstanceToComponentMapClass;
-    map.addDefaultComponent("spy", spyInstanceReturn);
-    map.defaultStart = "spy";
-
-    const instance = new EntryClass(map.defaultKeyMap);
+    const instance = new EntryClass;
+    {
+      const map = ComponentMap.override(instance, []);
+      map.addComponent("spy", spyInstanceReturn);
+      map.startComponent = "spy";
+    }
 
     expect(instance.repeatBack(3, "foo")).toBe("Fear is the mind-killer.");
 
@@ -126,14 +131,15 @@ describe("Pass-through types generator", () => {
       return "Law is the ultimate science."
     });
 
-    const map = new InstanceToComponentMapClass;
-    map.addDefaultComponent("spy", spyInstanceReturn);
-    map.addDefaultComponent("continue", new ContinueClass);
+    const instance = new EntryClass;
+    {
+      const map = ComponentMap.override(instance, []);
+      map.addComponent("spy", spyInstanceReturn);
+      map.addComponent("continue", new ContinueClass);
 
-    map.addDefaultSequence("sequence", ["continue", "spy"]);
-    map.defaultStart = "sequence";
-
-    const instance = new EntryClass(map.defaultKeyMap);
+      map.addSequence("sequence", ["continue", "spy"]);
+      map.startComponent = "sequence";
+    }
 
     expect(instance.repeatBack(3, "foo")).toBe("Law is the ultimate science.");
 
@@ -154,14 +160,15 @@ describe("Pass-through types generator", () => {
       return "I am a desert creature."
     });
 
-    const map = new InstanceToComponentMapClass;
-    map.addDefaultComponent("spy", spyInstanceReturn);
-    map.addDefaultComponent("throw", new ThrowClass);
+    const instance = new EntryClass;
+    {
+      const map = ComponentMap.override(instance, [])
+      map.addComponent("spy", spyInstanceReturn);
+      map.addComponent("throw", new ThrowClass);
 
-    map.addDefaultSequence("sequence", ["throw", "spy"]);
-    map.defaultStart = "sequence";
-
-    const instance = new EntryClass(map.defaultKeyMap);
+      map.addSequence("sequence", ["throw", "spy"]);
+      map.startComponent = "sequence";
+    }
 
     expect(
       () => instance.repeatForward("foo", 3)
@@ -171,11 +178,13 @@ describe("Pass-through types generator", () => {
   });
 
   it("creates an entry class which throws when there is no final answer", () => {
-    const map = new InstanceToComponentMapClass;
-    map.addDefaultComponent("continue", new ContinueClass);
-    map.defaultStart = "continue";
+    const instance = new EntryClass;
+    {
+      const map = ComponentMap.override(instance, []);
+      map.addComponent("continue", new ContinueClass);
+      map.startComponent = "continue";
+    }
 
-    const instance = new EntryClass(map.defaultKeyMap);
     expect(
       () => instance.repeatBack(3, "foo")
     ).toThrowError("No resolved result!");

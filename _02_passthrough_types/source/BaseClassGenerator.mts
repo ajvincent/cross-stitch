@@ -57,7 +57,6 @@ export default class BaseClassGenerator
   {
     await PromiseAllParallel([
       "Common.mts",
-      "Entry_Base.mts",
       "KeyToComponentMap_Base.mts",
       "PassThroughSupport.mts",
     ], leafName => this.#copyExport(leafName));
@@ -117,7 +116,14 @@ export type PassThroughClassType = ComponentPassThroughClass<${
 }, ${
   this.#entryTypeAlias
 }>;
+
+export const ComponentMap = new InstanceToComponentMap<${
+  this.#sourceTypeAlias
+}, ${
+  this.#entryTypeAlias
+}>;
     `.trim() + "\n");
+
     passThroughTypeFile.fixMissingImports();
     await passThroughTypeFile.save();
   }
@@ -208,15 +214,14 @@ export type PassThroughClassType = ComponentPassThroughClass<${
   {
     const entryClassFile = baseClassFile.copy("EntryClass.mts");
     const entryClass = entryClassFile.getClassOrThrow(this.#baseClassName);
-    entryClass.setExtends(`Entry_Base<${this.#sourceTypeAlias}, ${this.#entryTypeAlias}>`);
 
     const methods = entryClass.getMethods();
     methods.forEach(method => {
       const name = method.getName();
       const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
-      method.removeStatement(throwLine.getChildIndex());
+      method.removeStatements([0, throwLine.getChildIndex()]);
       method.addStatements(
-        `return this[INVOKE_SYMBOL]<${
+        `return this.#INVOKE_SYMBOL<${
           this.#sourceTypeAlias
         }["${
           name
@@ -227,6 +232,17 @@ export type PassThroughClassType = ComponentPassThroughClass<${
         }]);`
       );
     });
+
+    {
+      const invokeSymbolMethod = await fs.readFile(
+        path.join(parentDir, "source/exports/EntryClass.mts.in"),
+        {
+          encoding: "utf-8"
+        }
+      );
+
+      entryClass.addMember(invokeSymbolMethod);
+    }
 
     entryClassFile.fixMissingImports();
     await entryClassFile.save();
