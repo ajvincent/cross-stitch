@@ -148,11 +148,7 @@ export const ComponentMap = new InstanceToComponentMap<${
     const methods = extendedClass.getMethods();
     methods.forEach(method => {
       const name = method.getName();
-      const revisedType = `PassThroughType<
-      ${this.#sourceTypeAlias},
-      ${this.#sourceTypeAlias}["${name}"],
-      ${this.#entryTypeAlias}
-      >`;
+      const revisedType = `PassThroughArgumentType<${this.#sourceTypeAlias}["${name}"]>`;
       method.insertParameter(0, {
         name: "__previousResults__",
         type: revisedType
