@@ -48,7 +48,7 @@ const InvokeTSC = {
     defaultConfiguration: function () {
         return {
             "compilerOptions": {
-                "lib": ["es2021"],
+                "lib": ["es2022"],
                 "module": "es2022",
                 "target": "es2022",
                 "moduleResolution": "node16",
