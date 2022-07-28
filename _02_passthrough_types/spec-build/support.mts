@@ -7,10 +7,12 @@ import url from "url";
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 
 import ComponentClassGenerator from "../source/ComponentClassGenerator.mjs";
+import ProjectDriver from "../source/ProjectDriver.mjs";
 
 export default async function() : Promise<void>
 {
   await buildComponentClasses();
+  await buildProjectDirectory();
 }
 
 async function buildComponentClasses() : Promise<void>
@@ -93,4 +95,11 @@ async function createJasmineSpyClass(
 
   SpyClassFile.fixMissingImports();
   await SpyClassFile.save();
+}
+
+async function buildProjectDirectory() : Promise<void>
+{
+  await ProjectDriver(
+    path.join(parentDir, "fixtures/NumberString-project.json")
+  );
 }
