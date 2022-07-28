@@ -11,8 +11,10 @@ import ProjectDriver from "../source/ProjectDriver.mjs";
 
 export default async function() : Promise<void>
 {
-  await buildComponentClasses();
-  await buildProjectDirectory();
+  await Promise.all([
+    buildComponentClasses(),
+    buildProjectDirectory(),
+  ]);
 }
 
 async function buildComponentClasses() : Promise<void>
@@ -49,15 +51,16 @@ async function buildComponentClasses() : Promise<void>
 
   await generator.run();
 
-  await createJasmineSpyClass(generatedDir);
+  await createJasmineSpyClass(generatedDir, ".");
 }
 
 async function createJasmineSpyClass(
-  generatedDir: ts.Directory
+  generatedDir: ts.Directory,
+  targetDir: string
 ) : Promise<void>
 {
   const NI_File = generatedDir.getSourceFileOrThrow("PassThrough_NotImplemented.mts");
-  const SpyClassFile = NI_File.copy("PassThrough_JasmineSpy.mts");
+  const SpyClassFile = NI_File.copy(path.join(targetDir, "PassThrough_JasmineSpy.mts"));
 
   const SpyClass = SpyClassFile.getClassOrThrow("NumberStringClass_PassThroughNI");
   SpyClass.rename("NumberStringClass_JasmineSpy");
@@ -87,19 +90,34 @@ async function createJasmineSpyClass(
     );`);
   });
 
+  if (targetDir === "..") {
+    const importStatements = SpyClassFile.getImportDeclarations();
+    importStatements.forEach(stmt => {
+      const specifier = stmt.getModuleSpecifier();
+      let text = specifier.getText();
+      text = text.replace(/"$/, `.mjs"`);
+      specifier.replaceWithText(text);
+    });
+  }
+
   SpyClassFile.formatText({
     ensureNewLineAtEndOfFile: true,
     placeOpenBraceOnNewLineForFunctions: true,
     indentSize: 2,
   });
 
-  SpyClassFile.fixMissingImports();
   await SpyClassFile.save();
 }
 
 async function buildProjectDirectory() : Promise<void>
 {
-  await ProjectDriver(
+  const project = await ProjectDriver(
     path.join(parentDir, "fixtures/NumberString-project.json")
+  );
+
+  await createJasmineSpyClass(
+    project.getDirectoryOrThrow(
+      path.join(parentDir, "spec-generated/project/generated")
+    ), ".."
   );
 }

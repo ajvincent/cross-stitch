@@ -3,7 +3,12 @@ import path from "path";
 
 import ts from "ts-morph";
 
-import { StaticValidator, BuildData } from "./ProjectJSON.mjs";
+import {
+  StaticValidator,
+  BuildData,
+  ComponentLocationData,
+  SequenceKeysData,
+} from "./ProjectJSON.mjs";
 import ComponentClassGenerator from "./ComponentClassGenerator.mjs";
 
 export default async function ProjectDriver(
@@ -59,6 +64,27 @@ export default async function ProjectDriver(
   );
 
   await generator.run();
+
+  // Build the component map's keys.
+  const entries: [string, SequenceKeysData | ComponentLocationData][] = Object.entries(config.keys).map(
+    ([key, componentOrSequence]) => {
+      if (componentOrSequence.type === "sequence") {
+        return [key, componentOrSequence];
+      }
+
+      let componentPath = relPath(componentOrSequence.file);
+      componentPath = path.relative(targetDir, componentPath);
+      if (!componentPath.startsWith("."))
+        componentPath = "./" + componentPath;
+
+      const component: ComponentLocationData = {
+        type: "component",
+        file: componentPath
+      };
+      return [key, component];
+    }
+  );
+  await generator.addKeys(Object.fromEntries(entries));
 
   return project;
 }

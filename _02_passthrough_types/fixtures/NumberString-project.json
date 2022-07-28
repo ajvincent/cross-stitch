@@ -1,10 +1,24 @@
 {
   "keys": {
+    "NotImplemented": {
+      "type": "component",
+      "file": "../spec-generated/project/generated/PassThrough_NotImplemented.mjs"
+    },
+
+    "Continue": {
+      "type": "component",
+      "file": "../spec-generated/project/generated/PassThrough_Continue.mjs"
+    },
+
+    "_Spy": {
+      "type": "component",
+      "file": "../spec-generated/project/PassThrough_JasmineSpy.mjs"
+    }
   },
   "componentGenerator": {
     "sourceTypeLocation": "NumberStringType.mts",
     "sourceTypeAlias": "NumberStringType",
-    "targetDirLocation": "../spec-generated/project",
+    "targetDirLocation": "../spec-generated/project/generated",
     "baseClassName": "NumberStringClass",
     "entryTypeAlias": "NumberStringType"
   }

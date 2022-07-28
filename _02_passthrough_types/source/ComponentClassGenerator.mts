@@ -6,6 +6,8 @@ import {
 
 import TypeToClass from "../../_01_ts-morph_utilities/source/TypeToClass.mjs";
 
+import type { KeysAsProperties } from "./ProjectJSON.mjs";
+
 import path from "path";
 import url from "url";
 import fs from "fs/promises";
@@ -23,6 +25,8 @@ export default class ComponentClassGenerator
 
   readonly #targetDir: ts.Directory;
   readonly #baseClassName: string;
+
+  #completedInitialRun = false;
 
   /**
    * @param sourceFile      - The source file containing the type alias.
@@ -53,6 +57,38 @@ export default class ComponentClassGenerator
     await this.#runPromise.run();
   }
 
+  async addKeys(keys: KeysAsProperties) : Promise<void>
+  {
+    if (!this.#completedInitialRun)
+      throw new Error("Call `await this.run();` first!");
+
+    const passThroughTypeFile = this.#targetDir.getSourceFileOrThrow("PassThroughClassType.mts");
+
+    const importStatements: string[] = [];
+    const defineComponentMapLines: string[] = [];
+
+    Object.entries(keys).forEach(([key, componentOrSequence]) => {
+      if (componentOrSequence.type === "sequence") {
+        defineComponentMapLines.push(`
+ComponentMap.addDefaultSequence("${key}", ${JSON.stringify(componentOrSequence.subkeys)});
+        `.trim());
+        return;
+      }
+
+      importStatements.push(`
+import ${key}_Class from "${componentOrSequence.file}";
+      `.trim());
+      defineComponentMapLines.push(`
+ComponentMap.addDefaultComponent("${key}", new ${key}_Class);
+      `.trim());
+    });
+
+    passThroughTypeFile.addStatements(importStatements.join("\n"));
+    passThroughTypeFile.addStatements(defineComponentMapLines.join("\n"));
+
+    await passThroughTypeFile.save();
+  }
+
   async #run() : Promise<void>
   {
     await PromiseAllParallel([
@@ -68,6 +104,8 @@ export default class ComponentClassGenerator
     await this.#createExtendedContinueClass(extendedNIClassFile);
 
     await this.#createEntryClass(baseClassFile);
+
+    this.#completedInitialRun = true;
   }
 
   async #copyExport(
@@ -117,15 +155,15 @@ export type PassThroughClassType = ComponentPassThroughClass<${
   this.#entryTypeAlias
 }>;
 
-export const ComponentMap = new InstanceToComponentMap<${
-  this.#sourceTypeAlias
-}, ${
-  this.#entryTypeAlias
-}>;
-
 export type PassThroughArgumentType<MethodType extends AnyFunction> = PassThroughType<${
   this.#sourceTypeAlias
 }, MethodType, ${
+  this.#entryTypeAlias
+}>;
+
+export const ComponentMap = new InstanceToComponentMap<${
+  this.#sourceTypeAlias
+}, ${
   this.#entryTypeAlias
 }>;
     `.trim() + "\n");

@@ -10,17 +10,17 @@ _02_passthrough_types/source/ProjectJSON.mts(98,17): error TS2351: This expressi
   Type 'typeof import("/home/ajvincent/code-generation/cross-stitch/node_modules/ajv/dist/ajv")' has no construct signatures.
 */
 
-type ComponentLocationData = {
+export type ComponentLocationData = {
   "type": "component",
   readonly "file": string
 };
 
-type SequenceKeysData = {
+export type SequenceKeysData = {
   "type": "sequence",
   readonly "subkeys": ReadonlyArray<string>
 };
 
-type KeysAsProperties = {
+export type KeysAsProperties = {
   readonly [key: string]: ComponentLocationData | SequenceKeysData
 };
 
