@@ -12,12 +12,12 @@ _02_passthrough_types/source/ProjectJSON.mts(98,17): error TS2351: This expressi
 
 type ComponentLocationData = {
   "type": "component",
-  "file": string
+  readonly "file": string
 };
 
 type SequenceKeysData = {
   "type": "sequence",
-  "subkeys": string[]
+  "subkeys": ReadonlyArray<string>
 };
 
 type KeysAsProperties = {
@@ -34,7 +34,7 @@ type ClassGeneratorData = {
 
 export type BuildData = {
   readonly keys: KeysAsProperties;
-  readonly startComponent: string | null;
+  readonly startComponent?: string;
   readonly classGenerator: ClassGeneratorData
 }
 
@@ -132,6 +132,7 @@ const BuildDataSchema : JSONSchemaType<BuildData> = {
     "startComponent": {
       "type": "string",
       "minLength": 1,
+      "nullable": true,
     },
 
     "classGenerator": ClassGeneratorSchema
