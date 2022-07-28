@@ -1,6 +1,7 @@
 import ts from "ts-morph";
 
 import path from "path";
+import fs from "fs/promises";
 import url from "url";
 
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
@@ -9,6 +10,15 @@ import ComponentClassGenerator from "../source/ComponentClassGenerator.mjs";
 
 export default async function() : Promise<void>
 {
+  await buildComponentClasses();
+}
+
+async function buildComponentClasses() : Promise<void>
+{
+  await fs.mkdir(
+    path.join(parentDir, "spec-generated/component-classes")
+  );
+
   const project = new ts.Project({
     compilerOptions: {
       lib: ["es2022"],
@@ -25,7 +35,7 @@ export default async function() : Promise<void>
   });
 
   const fixturesDir  = project.addDirectoryAtPath(path.join(parentDir, "fixtures"));
-  const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated"));
+  const generatedDir = project.addDirectoryAtPath(path.join(parentDir, "spec-generated/component-classes"));
 
   const generator = new ComponentClassGenerator(
     fixturesDir.addSourceFileAtPath("NumberStringType.mts"),

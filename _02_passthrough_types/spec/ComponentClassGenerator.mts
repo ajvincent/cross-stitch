@@ -12,11 +12,11 @@ describe("Component class generator", () => {
     new() : U
   }>
   {
-    return (await import("../spec-generated/" + leafName)).default;
+    return (await import("../spec-generated/component-classes/" + leafName)).default;
   }
 
   async function getModulePart<U>(leafName: string, property: string) : Promise<U> {
-    return (await import("../spec-generated/" + leafName))[property] as U;
+    return (await import("../spec-generated/component-classes/" + leafName))[property] as U;
   }
 
   let BaseClass: new () => NumberStringType;
