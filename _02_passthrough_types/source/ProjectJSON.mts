@@ -162,7 +162,7 @@ const BuildDataSchema : JSONSchemaType<BuildData> = {
 const ajv = new Ajv();
 const SchemaValidator = ajv.compile(BuildDataSchema);
 
-export function StaticValidator(data: unknown) : BuildData
+export function StaticValidator(data: unknown) : data is BuildData
 {
   // Do we have valid data?
   const pass = SchemaValidator(data);
@@ -204,5 +204,5 @@ export function StaticValidator(data: unknown) : BuildData
   if (data.startComponent && !keys.has(data.startComponent))
     throw new Error(`Start component name "${data.startComponent}" does not have a component or sequence!`);
 
-  return data;
+  return true;
 }
