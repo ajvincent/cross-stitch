@@ -125,7 +125,7 @@ export default class ExampleComponent implements PassThroughClassType
 From [`spec-build/support.mts`](spec-build/support.mts):
 
 ```typescript
-const generator = new BaseClassGenerator(
+const generator = new ComponentClassGenerator(
   sourceDir.addSourceFileAtPath("NumberStringType.mts"),
   "NumberStringType",
   generatedDir,

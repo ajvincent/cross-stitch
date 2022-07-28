@@ -15,7 +15,7 @@ const parentDir = path.normalize(path.resolve(url.fileURLToPath(import.meta.url)
 //type InterfaceOrTypeAlias = ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
 export type FieldDeclaration = ts.MethodDeclaration | ts.PropertyDeclaration;
 
-export default class BaseClassGenerator
+export default class ComponentClassGenerator
 {
   readonly #sourceFile: ts.SourceFile;
   readonly #sourceTypeAlias: string;

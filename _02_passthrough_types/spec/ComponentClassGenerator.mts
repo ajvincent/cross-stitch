@@ -6,7 +6,7 @@ import type { Entry_BaseType } from "../source/exports/Common.mjs";
 type PassThroughClassType = ComponentPassThroughClass<NumberStringType, NumberStringType>;
 type PassThroughClassWithSpy = PassThroughClassType & { spy: jasmine.Spy };
 
-describe("Pass-through types generator", () => {
+describe("Component class generator", () => {
   // Required because a completely resolved URI at build time doesn't exist.
   async function getModuleDefault<U>(leafName: string) : Promise<{
     new() : U
