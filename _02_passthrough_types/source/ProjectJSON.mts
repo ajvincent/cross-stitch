@@ -17,7 +17,7 @@ type ComponentLocationData = {
 
 type SequenceKeysData = {
   "type": "sequence",
-  "subkeys": ReadonlyArray<string>
+  readonly "subkeys": ReadonlyArray<string>
 };
 
 type KeysAsProperties = {
@@ -38,7 +38,7 @@ export type BuildData = {
 
   readonly componentGenerator: ComponentGeneratorData;
 
-  sourceDirectories?: ReadonlyArray<string>;
+  readonly sourceDirectories?: ReadonlyArray<string>;
 }
 
 //#region subschemas
