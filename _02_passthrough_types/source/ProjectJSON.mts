@@ -21,21 +21,21 @@ type SequenceKeysData = {
 };
 
 type KeysAsProperties = {
-  [key: string]: ComponentLocationData | SequenceKeysData
+  readonly [key: string]: ComponentLocationData | SequenceKeysData
 };
 
 type ClassGeneratorData = {
-  sourceTypeLocation: string,
-  sourceTypeAlias: string,
-  targetDirLocation: string,
-  baseClassName: string,
-  entryTypeAlias: string,
+  readonly sourceTypeLocation: string,
+  readonly sourceTypeAlias: string,
+  readonly targetDirLocation: string,
+  readonly baseClassName: string,
+  readonly entryTypeAlias: string,
 };
 
 export type BuildData = {
-  keys: KeysAsProperties;
-  startComponent: string | null;
-  classGenerator: ClassGeneratorData
+  readonly keys: KeysAsProperties;
+  readonly startComponent: string | null;
+  readonly classGenerator: ClassGeneratorData
 }
 
 //#region subschemas
@@ -68,7 +68,8 @@ const SequenceKeysSchema: JSONSchemaType<SequenceKeysData> = {
       "items": {
         "type": "string",
         "minLength": 1
-      }
+      },
+      "minItems": 1,
     }
   },
   "required": ["type", "subkeys"],
@@ -138,21 +139,21 @@ const BuildDataSchema : JSONSchemaType<BuildData> = {
 
   "required": [
     "keys",
-    "classGenerator"
+    "classGenerator",
   ],
 
   "additionalProperties": false
 }
 
 const ajv = new Ajv();
-const StaticValidator = ajv.compile(BuildDataSchema);
+const SchemaValidator = ajv.compile(BuildDataSchema);
 
-export default function validate(data: unknown) : BuildData
+export function StaticValidator(data: unknown) : BuildData
 {
   // Do we have valid data?
-  const pass = StaticValidator(data);
+  const pass = SchemaValidator(data);
   if (!pass) {
-    const errors = StaticValidator.errors ?? [] as ErrorObject[];
+    const errors = SchemaValidator.errors ?? [] as ErrorObject[];
 
     throw new Error("data did not pass schema", {
       cause: new AggregateError(errors.map(e => new Error(e.message)))
