@@ -24,7 +24,7 @@ type KeysAsProperties = {
   readonly [key: string]: ComponentLocationData | SequenceKeysData
 };
 
-type ClassGeneratorData = {
+type ComponentGeneratorData = {
   readonly sourceTypeLocation: string,
   readonly sourceTypeAlias: string,
   readonly targetDirLocation: string,
@@ -35,7 +35,10 @@ type ClassGeneratorData = {
 export type BuildData = {
   readonly keys: KeysAsProperties;
   readonly startComponent?: string;
-  readonly classGenerator: ClassGeneratorData
+
+  readonly componentGenerator: ComponentGeneratorData;
+
+  sourceDirectories?: ReadonlyArray<string>;
 }
 
 //#region subschemas
@@ -76,7 +79,7 @@ const SequenceKeysSchema: JSONSchemaType<SequenceKeysData> = {
   "additionalProperties": false,
 };
 
-const ClassGeneratorSchema: JSONSchemaType<ClassGeneratorData> = {
+const ComponentGeneratorSchema: JSONSchemaType<ComponentGeneratorData> = {
   "type": "object",
   "properties": {
     "sourceTypeLocation": {
@@ -135,12 +138,22 @@ const BuildDataSchema : JSONSchemaType<BuildData> = {
       "nullable": true,
     },
 
-    "classGenerator": ClassGeneratorSchema
+    "componentGenerator": ComponentGeneratorSchema,
+
+    "sourceDirectories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+      },
+      "minItems": 1,
+      "nullable": true,
+    },
   },
 
   "required": [
     "keys",
-    "classGenerator",
+    "componentGenerator",
   ],
 
   "additionalProperties": false
