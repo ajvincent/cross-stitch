@@ -27,6 +27,7 @@ export default class ComponentClassGenerator
   readonly #baseClassName: string;
 
   #completedInitialRun = false;
+  #hasStartComponent = false;
 
   /**
    * @param sourceFile      - The source file containing the type alias.
@@ -57,6 +58,12 @@ export default class ComponentClassGenerator
     await this.#runPromise.run();
   }
 
+  /**
+   * Add component and sequence keys.
+   *
+   * @param keys - The keys to add.
+   * @internal
+   */
   async addKeys(keys: KeysAsProperties) : Promise<void>
   {
     if (!this.#completedInitialRun)
@@ -85,6 +92,28 @@ ComponentMap.addDefaultComponent("${key}", new ${key}_Class);
 
     passThroughTypeFile.addStatements(importStatements.join("\n"));
     passThroughTypeFile.addStatements(defineComponentMapLines.join("\n"));
+
+    await passThroughTypeFile.save();
+  }
+
+  /**
+   * Set the start component.
+   *
+   * @param startComponent - the starting component.
+   * @internal
+   */
+  async setStartComponent(startComponent: string) : Promise<void>
+  {
+    if (!this.#completedInitialRun)
+      throw new Error("Call `await this.run();` first!");
+    if (this.#hasStartComponent)
+      throw new Error("You have already called this.setStartComponent()!");
+    this.#hasStartComponent = true;
+
+    const passThroughTypeFile = this.#targetDir.getSourceFileOrThrow("PassThroughClassType.mts");
+    passThroughTypeFile.addStatements(`
+      ComponentMap.defaultStart = "${startComponent}";
+    `.trim());
 
     await passThroughTypeFile.save();
   }

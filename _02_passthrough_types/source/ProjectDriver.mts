@@ -86,5 +86,8 @@ export default async function ProjectDriver(
   );
   await generator.addKeys(Object.fromEntries(entries));
 
+  if (config.startComponent)
+    await generator.setStartComponent(config.startComponent);
+
   return project;
 }

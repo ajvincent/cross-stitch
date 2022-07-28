@@ -13,8 +13,16 @@
     "_Spy": {
       "type": "component",
       "file": "../spec-generated/project/PassThrough_JasmineSpy.mjs"
+    },
+
+    "ContinueToSpy": {
+      "type": "sequence",
+      "subkeys": ["Continue", "_Spy"]
     }
   },
+
+  "startComponent": "_Spy",
+
   "componentGenerator": {
     "sourceTypeLocation": "NumberStringType.mts",
     "sourceTypeAlias": "NumberStringType",
