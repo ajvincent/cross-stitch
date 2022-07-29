@@ -15,6 +15,10 @@ export type ComponentLocationData = {
   readonly "file": string
 };
 
+/**
+ * @deprecated  
+ * I will be removing this once I have decorators providing sequence support.
+ */
 export type SequenceKeysData = {
   "type": "sequence",
   readonly "subkeys": ReadonlyArray<string>
