@@ -7,6 +7,8 @@ interface CrossStitchDecoratorsInterface<ClassType extends object>
 }
 */
 
+export const stitchCurrent = Symbol("stitch current class");
+
 class CrossStitchDecorators
 {
   #map = new WeakMap<Function, string>;
@@ -17,6 +19,15 @@ class CrossStitchDecorators
     return function<TFunction extends Function>(_class: TFunction)
     {
       _map.set(_class, componentName);
+    }
+  }
+
+  sequence(...names: (string | symbol)[]) : ClassDecorator
+  {
+    return function<TFunction extends Function>(_class: TFunction)
+    {
+      void(_class);
+      void(names);
     }
   }
 }
