@@ -1,0 +1,14 @@
+[
+  {
+    "keys": {
+    },
+
+    "componentGenerator": {
+      "sourceTypeLocation": "NumberStringType.mts",
+      "sourceTypeAlias": "NumberStringType",
+      "targetDirLocation": "./generated",
+      "baseClassName": "NumberStringClass",
+      "entryTypeAlias": "NumberStringType"
+    }
+  }
+]

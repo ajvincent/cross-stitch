@@ -182,12 +182,9 @@ class DirStage
       }
     }
 
-    console.log("Creating generated:");
-    const generatedDir = path.resolve(this.#dir, "generated");
-    await fs.mkdir(generatedDir, { recursive: true });
-
-    const buildNext = (await import(pathToModule)).default as (s: string) => Promise<void>;
-    await buildNext(generatedDir);
+    console.log("Executing build:");
+    const buildNext = (await import(pathToModule)).default as () => Promise<void>;
+    await buildNext();
   }
 
   async #specBuild() : Promise<void>

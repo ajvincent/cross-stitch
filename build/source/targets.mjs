@@ -134,11 +134,9 @@ class DirStage {
                 await this.#invokeTSCWithFiles(tsFiles, path.join(this.#dir, "build", "tsconfig.json"));
             }
         }
-        console.log("Creating generated:");
-        const generatedDir = path.resolve(this.#dir, "generated");
-        await fs.mkdir(generatedDir, { recursive: true });
+        console.log("Executing build:");
         const buildNext = (await import(pathToModule)).default;
-        await buildNext(generatedDir);
+        await buildNext();
     }
     async #specBuild() {
         const buildDir = path.resolve(this.#dir, "spec-build");
