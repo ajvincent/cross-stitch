@@ -23,13 +23,13 @@ At this stage, all we have is an API.  We need some way of identifying component
 ```typescript
 type NumberStringTypeWithPassThrough = {
   repeatForward(
-    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>,
+    __passThrough__: PassThroughArgumentType<NumberStringType["repeatForward"]>,
     s: string,
     n: number
   ) : void
 
   repeatBack(
-    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>,
+    __passThrough__: PassThroughArgumentType<NumberStringType["repeatBack"]>,
     n: number,
     s: string
   ) : void
@@ -78,6 +78,15 @@ export type PassThroughType<
 
   readonly entryPoint: ThisClassType;
 }
+
+// This is generated.  I put it here for illustration.
+export type PassThroughArgumentType<
+  MethodType extends AnyFunction
+> = PassThroughType<
+  NumberStringType,
+  MethodType,
+  ExtendedEntryPoint
+>;
 ```
 
 Some sample code:
@@ -86,7 +95,7 @@ Some sample code:
 export default class ExampleComponent implements PassThroughClassType
 {
   repeatForward(
-    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], ExtendedEntryPoint>,
+    __passThrough__: PassThroughArgumentType<NumberStringType["repeatForward"]>,
     s: string,
     n: number
   ) : void
@@ -94,7 +103,7 @@ export default class ExampleComponent implements PassThroughClassType
     if ((__passThrough__.entryPoint).isLogging())
     {
       const rv = __passThrough__.callTarget("logEntry");
-      // Please don't set methodArguments unless you absolutely have to.
+      // Please don't set modifiedArguments unless you absolutely have to.
       // This is effectively replacing existing arguments, which ESLint might warn you against anyway.
       /** @see {@link https://eslint.org/docs/latest/rules/no-param-reassign} */
       [s, n] = __passThrough__.modifiedArguments;
@@ -104,7 +113,7 @@ export default class ExampleComponent implements PassThroughClassType
   }
 
   repeatBack(
-    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], ExtendedEntryPoint>,
+    __passThrough__: PassThroughArgumentType<NumberStringType["repeatBack"]>,
     n: number,
     s: string
   ) : void
@@ -120,20 +129,78 @@ export default class ExampleComponent implements PassThroughClassType
 
 `__passThrough__.entryPoint` represents the `this` value in an integrated class, while `.callTarget("logEntry")` shows how we can hand off to another component class.  If the other component replaces the arguments (again, this risks side effects), we can pick up the change right away.
 
+## Project configuration
+
+Cross-stitch supports a particular configuration as JSON.  (Comments not supported.)
+
+```JSON with Comments
+[
+  {
+    "keys": {
+      /* The key ("_Spy") defines a component name.
+       * The "file" field defines the location of a module exporting a default class
+       * implementing the pass-through class type.
+       * The "type" field will be removed in a future build, so this will soon change
+       * into "_Spy": "../spec-generated/project/PassThrough_JasmineSpy.mjs".
+       *
+       * Typically, this is a component you write.
+       */
+      "_Spy": {
+        "type": "component",
+        "file": "../spec-generated/project/PassThrough_JasmineSpy.mjs"
+      },
+
+      /* The ComponentClassGenerator provides two base classes you can inherit from
+       * for convenience.  This one automatically throws from every method, in
+       * case you forgot to implement a method.
+       */
+      "NotImplemented": {
+        "type": "component",
+        "file": "../spec-generated/project/generated/PassThrough_NotImplemented.mjs"
+      },
+
+      /* This provides all the methods as no-op, so if you forget to implement a method,
+         or you want a partial interface implementation, you can use this.
+       */
+      "Continue": {
+        "type": "component",
+        "file": "../spec-generated/project/generated/PassThrough_Continue.mjs"
+      },
+    },
+
+    /* This identifies the starting component for all calls into the entry-point class. */
+    "startComponent": "_Spy",
+
+    "componentGenerator": {
+      /* Where the source file is, relative to the JSON file. */
+      "sourceTypeLocation": "NumberStringType.mts",
+
+      /* The type alias to implement. */
+      "sourceTypeAlias": "NumberStringType",
+
+      /* The directory to generate code into, relative to the JSON file. */
+      "targetDirLocation": "../spec-generated/project/generated",
+
+      /* The base class name for generated code. */
+      "baseClassName": "NumberStringClass",
+
+      /* The type alias of the entry point.  Extends sourceTypeAlias. */
+      "entryTypeAlias": "NumberStringType"
+    }
+  },
+
+  {
+    // You can specify several build projects in parallel here, each following the above format.
+  }
+]
+```
+
 ## Code generation
 
-From [`spec-build/support.mts`](spec-build/support.mts):
-
 ```typescript
-const generator = new ComponentClassGenerator(
-  sourceDir.addSourceFileAtPath("NumberStringType.mts"),
-  "NumberStringType",
-  generatedDir,
-  "NumberStringClass",
-  "NumberStringClassWithPrivateFields",
+await ProjectDriver(
+  path.join(parentDir, "project.json")
 );
-
-await generator.run();
 ```
 
 This will generate several files.  
@@ -149,12 +216,49 @@ This will generate several files.
 - For internal use:
   - `Common.mts` for shared TypeScript types.
   - `Entry_Base.mts`, which is the base class for `EntryClass.mts`, to actually create the `PassThroughType` and invoke the starting component's matching method.
-  - `PassThroughClassType.mts` just defines a helper type.  Technically it isn't required, and I may delete it later.
+  - `PassThroughClassType.mts` defines several types and the `ComponentMap`, which loads the component classes.  
   - `PassThroughSupport.mts` defines the generic types for component classes.
 
 ## Tying components together
 
-This is manual for now.  Decorators and a custom JSON schema will automate this, and I'll add a new section here as I flesh them out.
+The JSON format defines components.  Decorators (via [our decorators namespace code](../_03_decorators_namespace/)) will define sequences of components.  (Technically, I have that implemented now in the JSON, but that approach is not supported, and I will remove it as the decorators mature.)
+
+## A more complete example
+
+### project.json
+
+```json
+[
+  {
+    "keys": {
+      "main": {
+        "type": "component",
+        "file": "MainComponent.mjs"
+      },
+
+      "logEntry": {
+        "type": "component",
+        "file": "LoggingComponent.mjs"
+      },
+
+      "logLeave": {
+        "type": "component",
+        "file": "LoggingComponent.mjs"
+      }
+    },
+
+    "startComponent": "main",
+
+    "componentGenerator": {
+      "sourceTypeLocation": "NumberStringType.mts",
+      "sourceTypeAlias": "NumberStringType",
+      "targetDirLocation": "../spec-generated/project/generated",
+      "baseClassName": "NumberStringClass",
+      "entryTypeAlias": "NumberStringType"
+    }
+  }
+]
+```
 
 ### FullClass.mts
 
@@ -163,16 +267,16 @@ import EntryClass from "./generated/EntryClass.mts";
 import InstanceToComponentMap from "./generated/KeyToComponentMap_Base.mjs";
 import type { NumberStringType } from "./generated/NumberStringType.mts";
 
+import { Console } from "console";
+
 export default class FullClass extends EntryClass
 {
   readonly #console: Console;
 
   constructor(
-    extendedMap: InstanceToComponentMap<ClassType>,
     console: Console,
   )
   {
-    super(extendedMap);
     this.#console = console;
   }
 
@@ -186,12 +290,13 @@ export default class FullClass extends EntryClass
 ### MainComponent.mts
 
 ```typescript
-import ComponentBase from "./generated/PassThrough_Continue.mts";
+import ComponentBase from "./generated/PassThrough_Continue.mjs";
+import type { PassThroughArgumentType } from "./generated/PassThroughClassType.mjs";
 
-export class MainClass extends ComponentBase
+export default class MainClass extends ComponentBase
 {
   repeatForward(
-    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
+    __passThrough__: PassThroughArgumentType<NumberStringType["repeatForward"]>,
     s: string,
     n: number
   ) : void
@@ -202,7 +307,7 @@ export class MainClass extends ComponentBase
   }
 
   repeatBack(
-    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
+    __passThrough__: PassThroughArgumentType<NumberStringType["repeatBack"]>,
     n: number,
     s: string
   ) : void
@@ -212,84 +317,46 @@ export class MainClass extends ComponentBase
     __passThrough__.callTarget("logLeave");
   }
 }
-
-export function addComponents(
-  extendedMap: InstanceToComponentMap<ClassType>,
-)
-{
-  extendedMap.addDefaultComponent("main", new MainClass(extendedMap));
-  extendedMap.defaultStart = "main";
-}
 ```
 
-### LoggingComponents.mts
+### LoggingComponent.mts
 
 ```typescript
-import ComponentBase from "./generated/PassThrough_Continue.mts";
+import ComponentBase from "./generated/PassThrough_Continue.mjs";
+import type { PassThroughArgumentType } from "./generated/PassThroughClassType.mjs";
 
-export class LoggingClass extends ComponentBase
+export default class LoggingClass extends ComponentBase
 {
-  #isBefore: boolean;
-  constructor(
-    extendedMap: InstanceToComponentMap<ClassType>,
-    isBefore: boolean,
-  )
-  {
-    super(extendedMap);
-    this.#isBefore = isBefore;
-  }
   repeatForward(
-    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
+    __passThrough__: PassThroughArgumentType<NumberStringType["repeatForward"]>,
     s: string,
     n: number
   ) : void
   {
-    (__passThrough__ as FullClass).log(this.#isBefore, "repeatForward");
+    __passThrough__.entryPoint.log("repeatForward");
   }
 
   repeatBack(
-    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
+    __passThrough__: PassThroughArgumentType<NumberStringType, NumberStringType["repeatBack"]>,
     n: number,
     s: string
   ) : void
   {
-    (__passThrough__ as FullClass).log(this.#isBefore, "repeatBack");
+    __passThrough__.entryPoint.log("repeatBack");
   }
-}
-
-export function addComponents(
-  extendedMap: InstanceToComponentMap<ClassType>,
-)
-{
-  extendedMap.addDefaultComponent("logEntry", new LoggingClass(extendedMap, true));
-  extendedMap.addDefaultComponent("logLeave", new LoggingClass(extendedMap, false));
 }
 ```
 
-### integration.mts
+### build.mts
 
 ```typescript
-import InstanceToComponentMap from "./generated/KeyToComponentMap_Base.mjs";
-import FullClass from "./FullClass.mts";
-import { addComponents as addMain } from "./MainClass.mts";
-import { addComponents as addLogging } from "./Logging.mts";
-
-const map = new InstanceToComponentMap;
-addMain(map);
-addLogging(map);
-
-export default function __Builder__(
-  console: Console,
-)
-{
-  return new FullClass(map.defaultKeyMap, console);
-}
+await ProjectDriver(path.join(parentDir, "project.json"));
 ```
 
 ### spec.mts
 
 ```typescript
-import FullClass from "./integration.mts";
+import FullClass from "../source/integration.mts";
 import { Console } from "console";
 
 describe("FullClass", () => {
