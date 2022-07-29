@@ -1,8 +1,7 @@
 import NumberStringClass_PassThroughNI from "./generated/PassThrough_NotImplemented.mjs";
 
 import {
-  getStitchNamespace,
-  stitchCurrent
+  getStitchNamespace
 } from "../source/Decorators.mjs";
 import {
   PassThroughArgumentType
@@ -12,8 +11,9 @@ const stitch = getStitchNamespace(
   "_03_decorators_namespace/NumberStringType",
 );
 
+@stitch.enter
 @stitch.componentKey("main")
-@stitch.sequence("one", "two", stitchCurrent, "three")
+@stitch.leave
 export default class NumberStringMain extends NumberStringClass_PassThroughNI
 {
   repeatForward(
