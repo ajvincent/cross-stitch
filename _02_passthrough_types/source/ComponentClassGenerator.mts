@@ -223,7 +223,7 @@ export const ComponentMap = new InstanceToComponentMap<${
       const name = method.getName();
       const revisedType = `PassThroughArgumentType<${this.#sourceTypeAlias}["${name}"]>`;
       method.insertParameter(0, {
-        name: "__previousResults__",
+        name: "__passThrough__",
         type: revisedType
       });
 

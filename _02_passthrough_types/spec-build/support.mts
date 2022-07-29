@@ -85,8 +85,8 @@ async function createJasmineSpyClass(
 
     const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
     method.removeStatement(throwLine.getChildIndex());
-    method.addStatements(`__previousResults__.setReturnValue(
-      this.spy("${name}", __previousResults__, s, n) as ReturnType<NumberStringType["${name}"]>
+    method.addStatements(`__passThrough__.setReturnValue(
+      this.spy("${name}", __passThrough__, s, n) as ReturnType<NumberStringType["${name}"]>
     );`);
   });
 

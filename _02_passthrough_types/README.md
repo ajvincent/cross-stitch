@@ -23,20 +23,20 @@ At this stage, all we have is an API.  We need some way of identifying component
 ```typescript
 type NumberStringTypeWithPassThrough = {
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>,
     s: string,
     n: number
   ) : void
 
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>,
     n: number,
     s: string
   ) : void
 };
 ```
 
-This "pass-through type" has the same basic structure, with a prepended argument and a void return type for each method.  You set the actual return value by invoking `return __previousResults__.setReturnValue(rv);`.
+This "pass-through type" has the same basic structure, with a prepended argument and a void return type for each method.  You set the actual return value by invoking `return __passThrough__.setReturnValue(rv);`.
 
 What's the shape of this new argument?
 
@@ -86,30 +86,30 @@ Some sample code:
 export default class ExampleComponent implements PassThroughClassType
 {
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], ExtendedEntryPoint>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], ExtendedEntryPoint>,
     s: string,
     n: number
   ) : void
   {
-    if ((__previousResults__.entryPoint).isLogging())
+    if ((__passThrough__.entryPoint).isLogging())
     {
-      const rv = __previousResults__.callTarget("logEntry");
+      const rv = __passThrough__.callTarget("logEntry");
       // Please don't set methodArguments unless you absolutely have to.
       // This is effectively replacing existing arguments, which ESLint might warn you against anyway.
       /** @see {@link https://eslint.org/docs/latest/rules/no-param-reassign} */
-      [s, n] = __previousResults__.modifiedArguments;
+      [s, n] = __passThrough__.modifiedArguments;
     }
 
-    return __previousResults__.setReturnValue(s.repeat(n));
+    return __passThrough__.setReturnValue(s.repeat(n));
   }
 
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], ExtendedEntryPoint>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], ExtendedEntryPoint>,
     n: number,
     s: string
   ) : void
   {
-    void(__previousResults__);
+    void(__passThrough__);
     void(n);
     void(s);
     throw new Error("not yetimplemented");
@@ -118,7 +118,7 @@ export default class ExampleComponent implements PassThroughClassType
 
 ```
 
-`__previousResults__.entryPoint` represents the `this` value in an integrated class, while `.callTarget("logEntry")` shows how we can hand off to another component class.  If the other component replaces the arguments (again, this risks side effects), we can pick up the change right away.
+`__passThrough__.entryPoint` represents the `this` value in an integrated class, while `.callTarget("logEntry")` shows how we can hand off to another component class.  If the other component replaces the arguments (again, this risks side effects), we can pick up the change right away.
 
 ## Code generation
 
@@ -191,25 +191,25 @@ import ComponentBase from "./generated/PassThrough_Continue.mts";
 export class MainClass extends ComponentBase
 {
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
     s: string,
     n: number
   ) : void
   {
-    __previousResults__.callTarget("logEntry");
-    __previousResults__.setReturnValue(s.repeat(n));
-    __previousResults__.callTarget("logLeave");
+    __passThrough__.callTarget("logEntry");
+    __passThrough__.setReturnValue(s.repeat(n));
+    __passThrough__.callTarget("logLeave");
   }
 
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
     n: number,
     s: string
   ) : void
   {
-    __previousResults__.callTarget("logEntry");
-    __previousResults__.setReturnValue(s.repeat(n));
-    __previousResults__.callTarget("logLeave");
+    __passThrough__.callTarget("logEntry");
+    __passThrough__.setReturnValue(s.repeat(n));
+    __passThrough__.callTarget("logLeave");
   }
 }
 
@@ -239,21 +239,21 @@ export class LoggingClass extends ComponentBase
     this.#isBefore = isBefore;
   }
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"]>,
     s: string,
     n: number
   ) : void
   {
-    (__previousResults__ as FullClass).log(this.#isBefore, "repeatForward");
+    (__passThrough__ as FullClass).log(this.#isBefore, "repeatForward");
   }
 
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"]>,
     n: number,
     s: string
   ) : void
   {
-    (__previousResults__ as FullClass).log(this.#isBefore, "repeatBack");
+    (__passThrough__ as FullClass).log(this.#isBefore, "repeatBack");
   }
 }
 

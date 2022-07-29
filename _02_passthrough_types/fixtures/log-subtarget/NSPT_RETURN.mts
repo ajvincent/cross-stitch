@@ -15,22 +15,22 @@ export default class NSPT_RETURN
                implements ComponentPassThroughClass<NumberStringType, NumberStringTypeAndLog>
 {
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringTypeAndLog>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringTypeAndLog>,
     n: number, s: string
   ): void
   {
-    __previousResults__.callTarget("logEnter");
-    __previousResults__.setReturnValue(s.repeat(n));
-    __previousResults__.callTarget("logLeave");
+    __passThrough__.callTarget("logEnter");
+    __passThrough__.setReturnValue(s.repeat(n));
+    __passThrough__.callTarget("logLeave");
   }
 
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringTypeAndLog>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringTypeAndLog>,
     s: string, n: number
   ) : void
   {
-    __previousResults__.callTarget("logEnter");
-    __previousResults__.setReturnValue(s.repeat(n));
-    __previousResults__.callTarget("logLeave");
+    __passThrough__.callTarget("logEnter");
+    __passThrough__.setReturnValue(s.repeat(n));
+    __passThrough__.callTarget("logLeave");
   }
 }

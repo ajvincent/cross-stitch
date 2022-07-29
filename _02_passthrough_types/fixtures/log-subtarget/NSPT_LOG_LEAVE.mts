@@ -15,22 +15,22 @@ export default class NSPT_LOG_LEAVE
                implements ComponentPassThroughClass<NumberStringType, NumberStringTypeAndLog>
 {
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringTypeAndLog>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringTypeAndLog>,
     s: string, n: number
   ) : void
   {
     void(s);
     void(n);
-    __previousResults__.entryPoint.log(false, "repeatForward");
+    __passThrough__.entryPoint.log(false, "repeatForward");
   }
 
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringTypeAndLog>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringTypeAndLog>,
     n: number, s: string
   ) : void
   {
     void(n);
     void(s);
-    __previousResults__.entryPoint.log(false, "repeatBack");
+    __passThrough__.entryPoint.log(false, "repeatBack");
   }
 }

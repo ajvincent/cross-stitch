@@ -78,7 +78,7 @@ export type MaybePassThrough<
   MethodType extends AnyFunction,
   ThisClassType extends PublicClassType
 > = (
-  __previousResults__: PassThroughType<PublicClassType, MethodType, ThisClassType>,
+  __passThrough__: PassThroughType<PublicClassType, MethodType, ThisClassType>,
   ...args: Parameters<MethodType>
 ) => void;
 

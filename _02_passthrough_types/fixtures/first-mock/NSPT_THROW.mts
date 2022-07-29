@@ -11,22 +11,22 @@ export default class NSPT_THROW
                implements ComponentPassThroughClass<NumberStringType, NumberStringType>
 {
   repeatForward(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatForward"], NumberStringType>,
     s: string, n: number
   ) : void
   {
-    void(__previousResults__);
+    void(__passThrough__);
     void(s);
     void(n);
     throw new Error("repeatForward throw");
   }
 
   repeatBack(
-    __previousResults__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>,
+    __passThrough__: PassThroughType<NumberStringType, NumberStringType["repeatBack"], NumberStringType>,
     n: number, s: string
   ) : void
   {
-    void(__previousResults__);
+    void(__passThrough__);
     void(n);
     void(s);
     throw new Error("repeatBack throw");
