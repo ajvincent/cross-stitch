@@ -43,6 +43,8 @@ export type BuildData = {
   readonly componentGenerator: ComponentGeneratorData;
 
   readonly sourceDirectories?: ReadonlyArray<string>;
+
+  readonly schemaDate: 20220729;
 }
 
 export type BuildDataArray = ReadonlyArray<BuildData>;
@@ -155,11 +157,17 @@ const BuildDataSchema : JSONSchemaType<BuildData> = {
       "minItems": 1,
       "nullable": true,
     },
+
+    "schemaDate": {
+      "type": "number",
+      "enum": [20220729]
+    }
   },
 
   "required": [
     "keys",
     "componentGenerator",
+    "schemaDate",
   ],
 
   "additionalProperties": false

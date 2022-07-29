@@ -6,6 +6,7 @@ describe("ProjectJSON: StaticValidator", () => {
 
   beforeEach(() => {
     rawData = {
+      "schemaDate": 20220729,
       "keys": {
       },
       "componentGenerator": {
@@ -94,6 +95,19 @@ describe("ProjectJSON: StaticValidator", () => {
         expect(x.cause.errors.length).toBe(1);
         expect(x.cause.errors[0].message).toBe("must have required property 'keys'");
       }
+    });
+
+    it("a schemaDate mismatch", () => {
+      rawData.schemaDate = 20220728;
+      expect(
+        () => StaticValidator([rawData])
+      ).toThrowError("data did not pass schema");
+
+
+      delete rawData.schemaDate;
+      expect(
+        () => StaticValidator([rawData])
+      ).toThrowError("data did not pass schema");
     });
 
     it("a missing componentGenerator", () => {
