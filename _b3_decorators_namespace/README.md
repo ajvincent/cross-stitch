@@ -13,3 +13,5 @@
     - This would necessitate an `enter` and a `leave` decorator just to make sure it's running in the right order.  That's an ugly hack.
   - They don't recognize the `this` object very well right now: `@stitch.enter` doesn't pick up the `stitch` value.
   - The documentation is not clear on _typed_ decorators.
+
+As I was writing this, I was contemplating moving the decorators modules back into stage 2, but I couldn't convince myself it would work there either.
