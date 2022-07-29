@@ -203,9 +203,9 @@ Now, I haven't _fully_ thought through the example above as I write this.  So ex
 
 This project will take several phases to complete:
 1. Leveraging [ts-morph](https://ts-morph.com) to [generate stub classes from existing types](./_01_ts-morph_utilities/).
-2. (In progress) Defining [pass-through types, types to rewrite existing user types, and generate component class stubs](./_02_passthrough_types).
-3. (Pending) [A JSON schema for configuring build projects](https://github.com/ajvincent/cross-stitch/issues/12).
-4. (Pending) [Defining aspect-oriented decorators, and dynamic runtime modules to bootstrap aspect weaving](https://github.com/ajvincent/cross-stitch/issues/7).
+2. Defining [pass-through types, types to rewrite existing user types, and generate component class stubs](./_02_passthrough_types).
+3. [Configuring build projects](./_02_passthrough_types).
+4. (In progress) [Defining aspect-oriented decorators, and dynamic runtime modules to bootstrap aspect weaving](https://github.com/ajvincent/cross-stitch/issues/7).
 5. (Pending) [Static analysis](https://en.wikipedia.org/wiki/Static_program_analysis) and [weaving component classes into integrated modules](https://github.com/ajvincent/cross-stitch/issues/8).
 6. (Pending) [Rollup](https://rollupjs.org/guide/en/) of [this project's code for exporting](https://github.com/ajvincent/cross-stitch/issues/10) via [npm](https://npmjs.com), including types.
 7. (Pending) [Dogfooding](https://en.wikipedia.org/wiki/Eating_your_own_dog_food) via [my es-membrane project](https://github.com/ajvincent/es-membrane)
