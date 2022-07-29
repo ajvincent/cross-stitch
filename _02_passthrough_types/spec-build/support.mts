@@ -111,9 +111,9 @@ async function createJasmineSpyClass(
 
 async function buildProjectDirectory() : Promise<void>
 {
-  const project = await ProjectDriver(
+  const project = (await ProjectDriver(
     path.join(parentDir, "fixtures/NumberString-project.json")
-  );
+  ))[0];
 
   await createJasmineSpyClass(
     project.getDirectoryOrThrow(

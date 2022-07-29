@@ -20,7 +20,7 @@ describe("ProjectJSON: StaticValidator", () => {
 
   describe("accepts raw data with", () => {
     it("no keys and a componentGenerator", () => {
-      expect(StaticValidator(rawData)).toBeTruthy();
+      expect(StaticValidator([rawData])).toBeTruthy();
     });
 
     it("a component key and a class generator", () => {
@@ -28,7 +28,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "type": "component",
         "file": "foo.mjs",
       };
-      expect(StaticValidator(rawData)).toBeTruthy();
+      expect(StaticValidator([rawData])).toBeTruthy();
     });
 
     it("a component key, a start component and a class generator", () => {
@@ -37,7 +37,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "file": "foo.mjs",
       };
       rawData.startComponent = "foo";
-      expect(StaticValidator(rawData)).toBeTruthy();
+      expect(StaticValidator([rawData])).toBeTruthy();
     });
 
     it("a component key, a sequence and a class generator", () => {
@@ -50,25 +50,37 @@ describe("ProjectJSON: StaticValidator", () => {
         "subkeys": ["foo"]
       };
       rawData.startComponent = "bar";
-      expect(StaticValidator(rawData)).toBeTruthy();
+      expect(StaticValidator([rawData])).toBeTruthy();
     });
 
     it("a sourceDirectories property containing strings", () => {
       rawData.sourceDirectories = [
         "foo"
       ];
-      expect(StaticValidator(rawData)).toBeTruthy();
+      expect(StaticValidator([rawData])).toBeTruthy();
     });
   });
 
   describe("throws for", () => {
+    it("a top-level value that isn't an array of BuildData objects", () => {
+      expect(
+        () => StaticValidator(rawData)
+      ).toThrowError("data did not pass schema");
+    });
+
+    it("an empty array of BuildData objects", () => {
+      expect(
+        () => StaticValidator([])
+      ).toThrowError("data did not pass schema");
+    });
+
     it("a missing set of keys", () => {
       delete rawData.keys;
       let x: Error = new Error;
       expect(
         () => {
           try {
-            StaticValidator(rawData);
+            StaticValidator([rawData]);
           }
           catch (ex) {
             x = ex as Error;
@@ -87,14 +99,14 @@ describe("ProjectJSON: StaticValidator", () => {
     it("a missing componentGenerator", () => {
       delete rawData.componentGenerator;
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
     it("an extra property on the raw data", () => {
       rawData.extra = true;
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
@@ -103,7 +115,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "type": "component",
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
@@ -112,7 +124,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "type": "sequence",
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
@@ -122,7 +134,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "file": "foo.mjs",
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
@@ -133,7 +145,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "extra": true,
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
@@ -143,7 +155,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "file": "foo.mts",
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
@@ -158,7 +170,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "extra": true,
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
@@ -172,12 +184,12 @@ describe("ProjectJSON: StaticValidator", () => {
         "subkeys": [true],
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
 
       rawData.keys.bar.subkeys = true;
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
@@ -191,7 +203,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "subkeys": ["foo", "foo"],
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError(`Missed subkey (maybe a duplicate?) : "foo"`);
     });
 
@@ -210,7 +222,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "subkeys": ["foo"],
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError(`Missed subkey (maybe a duplicate?) : "foo"`);
     });
 
@@ -220,7 +232,7 @@ describe("ProjectJSON: StaticValidator", () => {
         "subkeys": ["foo"],
       };
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError(`Missed subkey (maybe a duplicate?) : "foo"`);
     });
 
@@ -236,7 +248,7 @@ describe("ProjectJSON: StaticValidator", () => {
 
       rawData.startComponent = "wop";
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError(`Start component name "wop" does not have a component or sequence!`);
     });
 
@@ -244,67 +256,67 @@ describe("ProjectJSON: StaticValidator", () => {
       it("missing a sourceTypeLocation", () => {
         rawData.componentGenerator.sourceTypeLocation = "";
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
 
         delete rawData.componentGenerator.sourceTypeLocation;
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
       });
 
       it("missing a sourceTypeAlias", () => {
         rawData.componentGenerator.sourceTypeAlias = "";
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
 
         delete rawData.componentGenerator.sourceTypeAlias;
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
       });
 
       it("missing a targetDirLocation", () => {
         rawData.componentGenerator.targetDirLocation = "";
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
 
         delete rawData.componentGenerator.targetDirLocation;
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
       });
 
       it("missing a baseClassName", () => {
         rawData.componentGenerator.baseClassName = "";
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
 
         delete rawData.componentGenerator.baseClassName;
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
       });
 
       it("missing an entryTypeAlias", () => {
         rawData.componentGenerator.entryTypeAlias = "";
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
 
         delete rawData.componentGenerator.entryTypeAlias;
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
       });
 
       it("with an extra property", () => {
         rawData.componentGenerator.extra = true;
         expect(
-          () => StaticValidator(rawData)
+          () => StaticValidator([rawData])
         ).toThrowError("data did not pass schema");
       });
     });
@@ -312,26 +324,26 @@ describe("ProjectJSON: StaticValidator", () => {
     it("a sourceDirectories empty array property", () => {
       rawData.sourceDirectories = [];
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
     it("a sourceDirectories non-array property", () => {
       rawData.sourceDirectories = true;
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
     it("a sourceDirectories array property containing values other than non-empty strings", () => {
       rawData.sourceDirectories = ["foo", ""];
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
 
       rawData.sourceDirectories = ["foo", true];
       expect(
-        () => StaticValidator(rawData)
+        () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
   });

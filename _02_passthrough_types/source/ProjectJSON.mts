@@ -41,6 +41,8 @@ export type BuildData = {
   readonly sourceDirectories?: ReadonlyArray<string>;
 }
 
+export type BuildDataArray = ReadonlyArray<BuildData>;
+
 //#region subschemas
 
 const ComponentLocationSchema: JSONSchemaType<ComponentLocationData> = {
@@ -159,10 +161,16 @@ const BuildDataSchema : JSONSchemaType<BuildData> = {
   "additionalProperties": false
 }
 
-const ajv = new Ajv();
-const SchemaValidator = ajv.compile(BuildDataSchema);
+const BuildDataArraySchema: JSONSchemaType<BuildDataArray> = {
+  "type": "array",
+  "minItems": 1,
+  "items": BuildDataSchema
+};
 
-export function StaticValidator(data: unknown) : data is BuildData
+const ajv = new Ajv();
+const SchemaValidator = ajv.compile(BuildDataArraySchema);
+
+export function StaticValidator(data: unknown) : data is BuildDataArray
 {
   // Do we have valid data?
   const pass = SchemaValidator(data);
@@ -174,6 +182,11 @@ export function StaticValidator(data: unknown) : data is BuildData
     });
   }
 
+  return data.every(buildData => StaticValidatorOne(buildData));
+}
+
+function StaticValidatorOne(data: BuildData) : true
+{
   const entries = Object.entries(data.keys);
   const components = new Map<string, ComponentLocationData>,
         sequences = new Map<string, SequenceKeysData>,

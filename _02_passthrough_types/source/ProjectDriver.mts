@@ -13,20 +13,30 @@ import ComponentClassGenerator from "./ComponentClassGenerator.mjs";
 
 export default async function ProjectDriver(
   pathToProjectJSON: string
+) : Promise<ts.Project[]>
+{
+  let configs: ReadonlyArray<BuildData>;
+  {
+    const contents = JSON.parse(await fs.readFile(pathToProjectJSON, { encoding: "utf-8"}));
+    if (!StaticValidator(contents))
+      throw new Error("static validation failed");
+    configs = contents;
+  }
+
+  return Promise.all(configs.map(
+    buildData => OneProjectDriver(pathToProjectJSON, buildData)
+  ));
+}
+
+async function OneProjectDriver(
+  pathToProjectJSON: string,
+  config: BuildData
 ) : Promise<ts.Project>
 {
   const baseDir = path.dirname(pathToProjectJSON);
   function relPath(...parts: string[]) : string
   {
     return path.resolve(baseDir, ...parts);
-  }
-
-  let config: BuildData;
-  {
-    const contents = JSON.parse(await fs.readFile(pathToProjectJSON, { encoding: "utf-8"}));
-    if (!StaticValidator(contents))
-      throw new Error("static validation failed");
-    config = contents;
   }
 
   const project: ts.Project = new ts.Project({
