@@ -16,8 +16,8 @@ export type ComponentLocationData = {
 };
 
 /**
- * @deprecated  
- * I will be removing this once I have decorators providing sequence support.
+ * I can't deprecate this yet.  I had planned on making decorators specify the sequence keys
+ * inline in modules, but at this time (July 29, 2022), decorators are not capable of doing this.
  */
 export type SequenceKeysData = {
   "type": "sequence",

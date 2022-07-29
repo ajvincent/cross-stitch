@@ -184,6 +184,15 @@ export default class TypeToClass
     return firstBaseNode;
   }
 
+  /**
+   * Add a field to a cache map of the class's source.
+   *
+   * @param firstTypeNode - The first TS node to define the type.
+   * @param field         - The symbol identifying the field.
+   * @param allFieldsMap  - A cache for source code snippets of the class.
+   *                        Keys represent the field as a string.
+   *                        Values are the initial code snippets.
+   */
   #fillFieldsMap(
     firstTypeNode: InterfaceOrTypeAlias,
     field: ts.Symbol,
@@ -233,6 +242,13 @@ export default class TypeToClass
     allFieldsMap.set(name, text);
   }
 
+  /**
+   * Invoke the user callback, and clean up resulting code, for a field.
+   *
+   * @param firstTypeNode  - The first TS node to define the type.
+   * @param field          - The name of the field to pass to the user callback.
+   * @param acceptedFields - The current list of accepted fields for the class.
+   */
   #modifyField(
     firstTypeNode: InterfaceOrTypeAlias,
     field: string,
@@ -280,8 +296,8 @@ export default class TypeToClass
       const descendantIdentifiers = body.getDescendantsOfKind(ts.SyntaxKind.Identifier);
       descendantIdentifiers.forEach(id => found.add(id.getText()));
     }
-  
-    const parameters = method.getParameters().reverse();
+
+    const parameters = method.getParameters().slice().reverse();
     parameters.forEach(p => {
       const id = p.getName();
       if (!found.has(id)) {

@@ -54,8 +54,8 @@ const InvokeTSC = {
                 "moduleResolution": "node16",
                 "sourceMap": true,
                 "declaration": true,
-                "experimentalDecorators": true,
                 /*
+                "experimentalDecorators": true,
                 "emitDecoratorMetadata": true,
                 */
             },
