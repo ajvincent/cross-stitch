@@ -172,7 +172,7 @@ class DirStage
     console.log("Compiling build:");
     {
       let { files: tsFiles } = await readDirsDeep(buildDir);
-      tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f) && f !== pathToMTS);
+      tsFiles = tsFiles.filter(f => /(?<!\.d)\.mts$/.test(f));
 
       if (tsFiles.length > 0) {
         await this.#invokeTSCWithFiles(
