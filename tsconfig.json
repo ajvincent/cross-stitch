@@ -5,7 +5,9 @@
     "target": "es2022",
     "moduleResolution": "node",
     "sourceMap": true,
-    "declaration": true
+    "declaration": true,
+
+    "experimentalDecorators": true
   },
 
   "exclude": [

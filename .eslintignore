@@ -1,1 +1,2 @@
-**/spec/ProjectJSON.mjs
+_02_passthrough_types/spec/ProjectJSON.mjs
+_03_decorators_namespace/fixtures/*.mjs

@@ -2,11 +2,11 @@
 
 - [ ] Decorators
   - [ ] Add support to `InvokeTSC.mts`
-  - [ ] `const stitch = CrossStitchDecorators.getNamespace(name);`
-  - [ ] `@stitch.componentKey(componentName: string)`
+  - [x] `const stitch = getStitchNamespace(name);`
+  - [x] `@stitch.componentKey(componentName: string)`
   - [ ] `@stitch.setsReturn(always: boolean)`
   - [ ] `@stitch.sequence`
-  - [ ] `@stitch.current` symbol for "current class or sequence" to feed into `@stitch.sequence`
+  - [ ] `stitchCurrent` symbol for "current class or sequence" to feed into `@stitch.sequence`
   - [ ] `@stitch.entryPoint`
   - [ ] `@stitch.renameToPrivate(fieldName, "method" | "property" | "readonly property")` for entryPoint
   - [ ] `@stitch.rewriteForPrivate(fieldName, ts-morph callback)` for entryPoint

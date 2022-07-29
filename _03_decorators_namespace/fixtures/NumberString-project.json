@@ -1,7 +1,13 @@
 [
   {
     "keys": {
+      "main": {
+        "type": "component",
+        "file": "main.mjs"
+      }
     },
+
+    "startComponent": "main",
 
     "componentGenerator": {
       "sourceTypeLocation": "NumberStringType.mts",
