@@ -90,8 +90,8 @@ const InvokeTSC =
         "sourceMap": true,
         "declaration": true,
 
-        "experimentalDecorators": true,
         /*
+        "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         */
       },
