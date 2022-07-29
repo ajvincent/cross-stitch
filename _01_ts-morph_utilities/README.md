@@ -18,6 +18,7 @@ That said, if you have a parameterized type, or a mapped type, or a conditional 
    - A `ts-morph` `MethodDeclaration` or `PropertyDeclaration` for the property name.
    - A `ts-morph` `TypeAliasDeclaration` or `InterfaceDeclaration` for the type we're iterating over.
    - This callback must return true to preserve the field, or false to tell `TypeToClass` to delete it.
+   - For convenience, `TypeToClass` provides a static `buildStatementsCallback(statements)` method to generate this callback with common code in every method.
 
 To the method `addTypeAliasOrInterface()`,
 

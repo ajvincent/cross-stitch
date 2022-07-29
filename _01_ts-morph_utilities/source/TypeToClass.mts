@@ -13,6 +13,11 @@ export type TypeToClassCallback = (
   baseNode: InterfaceOrTypeAlias,
 ) => boolean;
 
+/**
+ *
+ * @param statements - the code to insert on every method.
+ * @returns the callback
+ */
 function buildStatementsCallback(
   statements: string
 ) : TypeToClassCallback
@@ -22,7 +27,7 @@ function buildStatementsCallback(
     propertyName,
     propertyNode,
     baseNode,
-  ) : boolean =>
+  ) : true =>
   {
     void(baseNode);
     if (ts.Node.isMethodDeclaration(propertyNode)) {
