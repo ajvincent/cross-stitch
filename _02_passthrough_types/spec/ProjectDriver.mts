@@ -61,7 +61,7 @@ describe("Project Driver creates an EntryClass which", () => {
   it("we can insert components into", () => {
     spy.and.returnValue("bar");
 
-    const map = ComponentMap.override(entry, ["_Spy", "Continue"]);
+    const map = ComponentMap.override(entry, ["Continue"]);
 
     const secondSpy = new SpyClass;
     secondSpy.spy.and.returnValue("wop");

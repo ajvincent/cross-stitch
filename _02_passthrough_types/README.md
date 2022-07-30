@@ -136,6 +136,9 @@ Cross-stitch supports a particular configuration as JSON.  (Comments not support
 ```JSON with Comments
 [
   {
+    /* Versioning of schemas. */
+    "schemaDate": 20220729,
+
     "keys": {
       /* The key ("_Spy") defines a component name.
        * The "file" field defines the location of a module exporting a default class
@@ -166,6 +169,16 @@ Cross-stitch supports a particular configuration as JSON.  (Comments not support
         "type": "component",
         "file": "../spec-generated/project/generated/PassThrough_Continue.mjs"
       },
+
+      /* This provides a simple architecture for defining sequences.
+       */
+      "Continue_to_Spy": {
+        "type": "sequence",
+        "subkeys": [
+          "Continue",
+          "_Spy"
+        ]
+      }
     },
 
     /* This identifies the starting component for all calls into the entry-point class. */
@@ -230,8 +243,10 @@ The JSON format defines components.  Decorators (via [our decorators namespace c
 ```json
 [
   {
+    "schemaDate": 20220729,
+
     "keys": {
-      "main": {
+      "mainComponent": {
         "type": "component",
         "file": "MainComponent.mjs"
       },
@@ -244,6 +259,11 @@ The JSON format defines components.  Decorators (via [our decorators namespace c
       "logLeave": {
         "type": "component",
         "file": "LoggingComponent.mjs"
+      },
+
+      "main": {
+        "type": "sequence",
+        "subkeys": ["logEntry", "mainComponent", "logLeave"]
       }
     },
 
