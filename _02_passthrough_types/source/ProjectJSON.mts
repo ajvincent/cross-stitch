@@ -29,23 +29,29 @@ export type KeysAsProperties = {
 };
 
 type ComponentGeneratorData = {
-  readonly sourceTypeLocation: string,
-  readonly sourceTypeAlias: string,
-  readonly targetDirLocation: string,
-  readonly baseClassName: string,
-  readonly entryTypeAlias: string,
+  readonly sourceTypeLocation: string;
+  readonly sourceTypeAlias: string;
+  readonly targetDirLocation: string;
+  readonly baseClassName: string;
+  readonly entryTypeAlias: string;
+};
+
+type IntegrationTargetData = {
+  readonly directory: string;
+  readonly leafName: string;
 };
 
 export type BuildData = {
+  readonly schemaDate: 20220729;
+
   readonly keys: KeysAsProperties;
   readonly startComponent?: string;
 
   readonly componentGenerator: ComponentGeneratorData;
 
   readonly sourceDirectories?: ReadonlyArray<string>;
-
-  readonly schemaDate: 20220729;
-}
+  readonly integrationTargets?: IntegrationTargetData[];
+};
 
 export type BuildDataArray = ReadonlyArray<BuildData>;
 
@@ -126,12 +132,35 @@ const ComponentGeneratorSchema: JSONSchemaType<ComponentGeneratorData> = {
   "additionalProperties": false,
 };
 
+const IntegrationTargetSchema: JSONSchemaType<IntegrationTargetData> = {
+  "type": "object",
+  "properties": {
+    "directory": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "leafName": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+
+  "required": ["directory", "leafName"],
+  "additionalProperties": false,
+  "nullable": true
+}
 // #endregion subschemas
 
 const BuildDataSchema : JSONSchemaType<BuildData> = {
   "type": "object",
 
   "properties": {
+    "schemaDate": {
+      "type": "number",
+      "enum": [20220729]
+    },
+
     "keys": {
       "type": "object",
       "required": [],
@@ -158,9 +187,11 @@ const BuildDataSchema : JSONSchemaType<BuildData> = {
       "nullable": true,
     },
 
-    "schemaDate": {
-      "type": "number",
-      "enum": [20220729]
+    "integrationTargets": {
+      "type": "array",
+      "nullable": true,
+      "items": IntegrationTargetSchema,
+      "minItems": 1
     }
   },
 
