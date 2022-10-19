@@ -1,8 +1,8 @@
 import {
-  default as Ajv,
   JSONSchemaType,
   ErrorObject
 } from "ajv";
+import Ajv from 'ajv';
 
 //import Ajv from "ajv";
 /*
@@ -210,7 +210,7 @@ const BuildDataArraySchema: JSONSchemaType<BuildDataArray> = {
   "items": BuildDataSchema
 };
 
-const ajv = new Ajv();
+const ajv = new Ajv.default();
 const SchemaValidator = ajv.compile(BuildDataArraySchema);
 
 export function StaticValidator(data: unknown) : data is BuildDataArray
