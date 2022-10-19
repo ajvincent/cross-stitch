@@ -4,12 +4,6 @@ import {
 } from "ajv";
 import Ajv from 'ajv';
 
-//import Ajv from "ajv";
-/*
-_02_passthrough_types/source/ProjectJSON.mts(98,17): error TS2351: This expression is not constructable.
-  Type 'typeof import("/home/ajvincent/code-generation/cross-stitch/node_modules/ajv/dist/ajv")' has no construct signatures.
-*/
-
 export type ComponentLocationData = {
   "type": "component",
   readonly "file": string
