@@ -223,7 +223,7 @@ This will generate several files.
   - `KeyToComponentMap_Base.mts`, which exports a `InstanceToComponentMap` class.  
     - This class provides API to define components, sequences of components, and which component key is the starting point.
     - This module is also where `PassThroughArgument` instances, which implement `PassThroughType`, come from.
-  - `EntryClass.mts` implementing your original type (in examples above, `NumberStringType`) to directly invoke a component class's equivalent method.  It takes an `InstanceToComponentMap` as a constructor argument.  I recommend subclassing this for additional properties.
+  - `EntryClass.mts` implementing your original type (in examples above, `NumberStringType`) to directly invoke a component class's equivalent method.  I recommend subclassing this for additional properties.
   - `PassThrough_Continue.mts` as a base class for component classes.  Use this when you want to allow methods to not be implemented.
   - `PassThrough_NotImplemented.mts` as a base class for component classes.  Use this when you _want_ to throw for methods you haven't implemented.
 - For internal use:
