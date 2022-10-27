@@ -137,20 +137,34 @@ Cross-stitch supports a particular configuration as JSON.  (Comments not support
 [
   {
     /* Versioning of schemas. */
-    "schemaDate": 20220729,
+    "schemaDate": 20221027,
 
     "keys": {
       /* The key ("_Spy") defines a component name.
        * The "file" field defines the location of a module exporting a default class
        * implementing the pass-through class type.
-       * The "type" field will be removed in a future build, so this will soon change
-       * into "_Spy": "../spec-generated/project/PassThrough_JasmineSpy.mjs".
+       * The "type" field may be removed in a future build.
+       *
+       * The "setReturn" field must be one of three values:
+       * - "never" indicating the component public methods never return a value.
+       * - "may" for component public methods sometimes returning a value.
+       * - "must" for component public methods always returning a value.
+       *
+       * The "role" must be one of several values:
+       * - "precondition" for debug-only assertion checks run before any main-body code.
+       * - "checkArguments" for argument validation before any main-body code.
+       * - "body" for a main-body code section.  This is the only one where "setReturn" may be "must" or "may".
+       * - "bodyAssert" for debug-only main-body code.
+       * - "checkReturn" for return-value validation after main-body code.
+       * - "postcondition" for debug-only assertion checks run after any main-body code.
        *
        * Typically, this is a component you write.
        */
       "_Spy": {
         "type": "component",
-        "file": "../spec-generated/project/PassThrough_JasmineSpy.mjs"
+        "file": "../spec-generated/project/PassThrough_JasmineSpy.mjs",
+        "role": "body",
+        "setReturn": "may"
       },
 
       /* The ComponentClassGenerator provides two base classes you can inherit from
@@ -159,7 +173,9 @@ Cross-stitch supports a particular configuration as JSON.  (Comments not support
        */
       "NotImplemented": {
         "type": "component",
-        "file": "../spec-generated/project/generated/PassThrough_NotImplemented.mjs"
+        "file": "../spec-generated/project/generated/PassThrough_NotImplemented.mjs",
+        "role": "body",
+        "setReturn": "never"
       },
 
       /* This provides all the methods as no-op, so if you forget to implement a method,
@@ -167,7 +183,9 @@ Cross-stitch supports a particular configuration as JSON.  (Comments not support
        */
       "Continue": {
         "type": "component",
-        "file": "../spec-generated/project/generated/PassThrough_Continue.mjs"
+        "file": "../spec-generated/project/generated/PassThrough_Continue.mjs",
+        "role": "body",
+        "setReturn": "never"
       },
 
       /* This provides a simple architecture for defining sequences.
@@ -243,7 +261,7 @@ The JSON format defines components.  Decorators (via [our decorators namespace c
 ```json
 [
   {
-    "schemaDate": 20220729,
+    "schemaDate": 20221027,
 
     "keys": {
       "mainComponent": {

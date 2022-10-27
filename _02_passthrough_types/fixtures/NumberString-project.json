@@ -1,21 +1,27 @@
 [
   {
-    "schemaDate": 20220729,
+    "schemaDate": 20221027,
 
     "keys": {
       "NotImplemented": {
         "type": "component",
-        "file": "../spec-generated/project/generated/PassThrough_NotImplemented.mjs"
+        "file": "../spec-generated/project/generated/PassThrough_NotImplemented.mjs",
+        "role": "body",
+        "setReturn": "never"
       },
 
       "Continue": {
         "type": "component",
-        "file": "../spec-generated/project/generated/PassThrough_Continue.mjs"
+        "file": "../spec-generated/project/generated/PassThrough_Continue.mjs",
+        "role": "body",
+        "setReturn": "never"
       },
 
       "_Spy": {
         "type": "component",
-        "file": "../spec-generated/project/PassThrough_JasmineSpy.mjs"
+        "file": "../spec-generated/project/PassThrough_JasmineSpy.mjs",
+        "role": "body",
+        "setReturn": "may"
       },
 
       "ContinueToSpy": {

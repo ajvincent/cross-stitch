@@ -6,7 +6,7 @@ describe("ProjectJSON: StaticValidator", () => {
 
   beforeEach(() => {
     rawData = {
-      "schemaDate": 20220729,
+      "schemaDate": 20221027,
       "keys": {
       },
       "componentGenerator": {
@@ -19,33 +19,33 @@ describe("ProjectJSON: StaticValidator", () => {
     };
   });
 
+  function buildComponent(file: string) : object {
+    return {
+      type: "component",
+      file,
+      role: "body",
+      "setReturn": "must"
+    };
+  }
+
   describe("accepts raw data with", () => {
     it("no keys and a componentGenerator", () => {
       expect(StaticValidator([rawData])).toBeTruthy();
     });
 
     it("a component key and a class generator", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
       expect(StaticValidator([rawData])).toBeTruthy();
     });
 
     it("a component key, a start component and a class generator", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
       rawData.startComponent = "foo";
       expect(StaticValidator([rawData])).toBeTruthy();
     });
 
     it("a component key, a sequence and a class generator", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
       rawData.keys.bar = {
         "type": "sequence",
         "subkeys": ["foo"]
@@ -125,9 +125,8 @@ describe("ProjectJSON: StaticValidator", () => {
     });
 
     it("a component key missing a file property", () => {
-      rawData.keys.foo = {
-        "type": "component",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
+      delete rawData.keys.foo.file;
       expect(
         () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
@@ -143,41 +142,30 @@ describe("ProjectJSON: StaticValidator", () => {
     });
 
     it("a key not matching the type", () => {
-      rawData.keys.foo = {
-        "type": "foo",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
+      rawData.keys.foo.type = "foo";
       expect(
         () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
     it("a component key with an extra property", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-        "extra": true,
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
+      rawData.keys.foo.extra = true;
       expect(
         () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
     it("a component key whose file doesn't end in .mjs", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mts",
-      };
+      rawData.keys.foo = buildComponent("foo.mts");
       expect(
         () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
     });
 
     it("a sequence key with an extra property", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
       rawData.keys.bar = {
         "type": "sequence",
         "subkeys": ["foo"],
@@ -189,10 +177,7 @@ describe("ProjectJSON: StaticValidator", () => {
     });
 
     it("a sequence key with subkeys not being an array of strings", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
       rawData.keys.bar = {
         "type": "sequence",
         "subkeys": [true],
@@ -208,10 +193,7 @@ describe("ProjectJSON: StaticValidator", () => {
     });
 
     it("a sequence key with duplicate subkeys", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
       rawData.keys.bar = {
         "type": "sequence",
         "subkeys": ["foo", "foo"],
@@ -222,10 +204,7 @@ describe("ProjectJSON: StaticValidator", () => {
     });
 
     it("two sequence keys sharing a subkey", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
       rawData.keys.bar = {
         "type": "sequence",
         "subkeys": ["foo"],
@@ -251,10 +230,7 @@ describe("ProjectJSON: StaticValidator", () => {
     });
 
     it("a start component that doesn't point to a named key", () => {
-      rawData.keys.foo = {
-        "type": "component",
-        "file": "foo.mjs",
-      };
+      rawData.keys.foo = buildComponent("foo.mjs");
       rawData.keys.bar = {
         "type": "sequence",
         "subkeys": ["foo"],
@@ -359,6 +335,44 @@ describe("ProjectJSON: StaticValidator", () => {
       expect(
         () => StaticValidator([rawData])
       ).toThrowError("data did not pass schema");
+    });
+  });
+
+  describe("with setReturn", () => {
+    beforeEach(() => {
+      rawData.keys.foo = buildComponent("foo.mjs");
+    });
+
+    const roleItems = Object.freeze([
+      "precondition",
+      "checkArguments",
+      "bodyAssert",
+      "body",
+      "checkReturn",
+      "postcondition",
+    ]);
+
+    function shouldAccept(setReturn: string, role: string) : boolean
+    {
+      return (setReturn === "never") || (role === "body");
+    }
+
+    [ "never", "must", "may" ].forEach((setReturn: string) => {
+      describe(setReturn + " and role", () => {
+        roleItems.forEach((role: string) => {
+          const rejects = !shouldAccept(setReturn, role);
+          it(`${role} does ${rejects ? "not " : ""}validate`, () => {
+            rawData.keys.foo.setReturn = setReturn;
+            rawData.keys.foo.role = role;
+
+            const expectation = expect(() => StaticValidator([rawData]));
+            if (rejects)
+              expectation.toThrowError("data did not pass schema");
+            else
+              expectation.not.toThrow();
+          });
+        });
+      })
     });
   });
 });

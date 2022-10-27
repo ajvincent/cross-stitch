@@ -6,7 +6,8 @@ import ts from "ts-morph";
 import {
   StaticValidator,
   BuildData,
-  ComponentLocationData,
+  PassiveComponentData,
+  BodyComponentData,
   SequenceKeysData,
 } from "./ProjectJSON.mjs";
 import ComponentClassGenerator from "./ComponentClassGenerator.mjs";
@@ -76,7 +77,7 @@ async function OneProjectDriver(
   await generator.run();
 
   // Build the component map's keys.
-  const entries: [string, SequenceKeysData | ComponentLocationData][] = Object.entries(config.keys).map(
+  const entries: [string, SequenceKeysData | PassiveComponentData | BodyComponentData][] = Object.entries(config.keys).map(
     ([key, componentOrSequence]) => {
       if (componentOrSequence.type === "sequence") {
         return [key, componentOrSequence];
@@ -87,9 +88,11 @@ async function OneProjectDriver(
       if (!componentPath.startsWith("."))
         componentPath = "./" + componentPath;
 
-      const component: ComponentLocationData = {
+      const component: BodyComponentData = {
         type: "component",
-        file: componentPath
+        file: componentPath,
+        "setReturn": "may",
+        "role": "body"
       };
       return [key, component];
     }

@@ -4,9 +4,19 @@ import {
 } from "ajv";
 import Ajv from 'ajv';
 
-export type ComponentLocationData = {
-  "type": "component",
+type ComponentLocationBaseData = {
+  readonly "type": "component",
   readonly "file": string
+};
+
+export type PassiveComponentData = ComponentLocationBaseData & {
+  readonly "setReturn": "never",
+  readonly "role": ("precondition" | "checkArguments" | "bodyAssert" | "checkReturn" | "postcondition"),
+};
+
+export type BodyComponentData = ComponentLocationBaseData & {
+  readonly "setReturn": ("must" | "may" | "never"),
+  readonly "role": "body",
 };
 
 /**
@@ -14,12 +24,12 @@ export type ComponentLocationData = {
  * inline in modules, but at this time (July 29, 2022), decorators are not capable of doing this.
  */
 export type SequenceKeysData = {
-  "type": "sequence",
+  readonly "type": "sequence",
   readonly "subkeys": ReadonlyArray<string>
 };
 
 export type KeysAsProperties = {
-  readonly [key: string]: ComponentLocationData | SequenceKeysData
+  readonly [key: string]: PassiveComponentData | BodyComponentData | SequenceKeysData
 };
 
 type ComponentGeneratorData = {
@@ -36,7 +46,7 @@ type IntegrationTargetData = {
 };
 
 export type BuildData = {
-  readonly schemaDate: 20220729;
+  readonly schemaDate: 20221027;
 
   readonly keys: KeysAsProperties;
   readonly startComponent?: string;
@@ -51,20 +61,74 @@ export type BuildDataArray = ReadonlyArray<BuildData>;
 
 //#region subschemas
 
-const ComponentLocationSchema: JSONSchemaType<ComponentLocationData> = {
+const PassiveComponentDataSchema: JSONSchemaType<PassiveComponentData> = {
   "type": "object",
   "properties": {
     "type": {
       "type": "string",
-      "enum": ["component"]
+      "const": "component"
     },
     "file": {
       "type": "string",
       "pattern": ".\\.mjs$"
+    },
+
+    "setReturn": {
+      "type": "string",
+      "const": "never"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "precondition",
+        "checkArguments",
+        "bodyAssert",
+        "checkReturn",
+        "postcondition"
+      ]
     }
   },
-  "required": ["type", "file"],
-  "additionalProperties": false,
+  "required": [
+    "type",
+    "file",
+    "setReturn",
+    "role"
+  ],
+  "additionalProperties": false
+};
+
+const BodyComponentDataSchema: JSONSchemaType<BodyComponentData> = {
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "component"
+    },
+    "file": {
+      "type": "string",
+      "pattern": ".\\.mjs$"
+    },
+    "setReturn": {
+      "type": "string",
+      "enum": [
+        "must",
+        "may",
+        "never"
+      ]
+    },
+    "role": {
+      "type": "string",
+      "const": "body"
+    }
+  },
+
+  "required": [
+    "type",
+    "file",
+    "setReturn",
+    "role"
+  ],
+  "additionalProperties": false
 };
 
 const SequenceKeysSchema: JSONSchemaType<SequenceKeysData> = {
@@ -152,14 +216,18 @@ const BuildDataSchema : JSONSchemaType<BuildData> = {
   "properties": {
     "schemaDate": {
       "type": "number",
-      "enum": [20220729]
+      "enum": [20221027]
     },
 
     "keys": {
       "type": "object",
       "required": [],
       "additionalProperties": {
-        "oneOf": [ ComponentLocationSchema, SequenceKeysSchema ],
+        "oneOf": [
+          PassiveComponentDataSchema,
+          BodyComponentDataSchema,
+          SequenceKeysSchema
+        ],
       },
     },
 
@@ -225,7 +293,7 @@ export function StaticValidator(data: unknown) : data is BuildDataArray
 function StaticValidatorOne(data: BuildData) : true
 {
   const entries = Object.entries(data.keys);
-  const components = new Map<string, ComponentLocationData>,
+  const components = new Map<string, PassiveComponentData | BodyComponentData>,
         sequences = new Map<string, SequenceKeysData>,
         keys = new Set<string>;
 
