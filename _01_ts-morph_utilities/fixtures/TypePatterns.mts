@@ -7,9 +7,17 @@ export interface NumberStringFoo extends NumberStringType
   repeatFoo(n: number) : string;
 }
 
+// properties, accessors
 export type IsTypedNST = {
   type: string;
 };
+
+export type Getter = {
+  get foo() : string;
+}
+export type Setter = {
+  set foo(s: string);
+}
 
 // never type
 type neverProperty = {
