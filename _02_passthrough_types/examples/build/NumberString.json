@@ -5,37 +5,37 @@
     "keys": {
       "NotImplemented": {
         "type": "component",
-        "file": "../spec-generated/project/generated/PassThrough_NotImplemented.mjs",
+        "file": "../generated/PassThrough_NotImplemented.mjs",
         "role": "body",
         "setReturn": "never"
       },
 
       "Continue": {
         "type": "component",
-        "file": "../spec-generated/project/generated/PassThrough_Continue.mjs",
+        "file": "../generated/PassThrough_Continue.mjs",
         "role": "body",
         "setReturn": "never"
       },
 
-      "_Spy": {
+      "MainBody": {
         "type": "component",
-        "file": "../spec-generated/project/PassThrough_JasmineSpy.mjs",
+        "file": "../source/MainBody.mjs",
         "role": "body",
-        "setReturn": "may"
+        "setReturn": "must"
       },
 
-      "ContinueToSpy": {
+      "main": {
         "type": "sequence",
-        "subkeys": ["Continue", "_Spy"]
+        "subkeys": ["Continue", "MainBody"]
       }
     },
 
-    "startComponent": "_Spy",
+    "startComponent": "main",
 
     "componentGenerator": {
       "sourceTypeLocation": "NumberStringType.mts",
       "sourceTypeAlias": "NumberStringType",
-      "targetDirLocation": "../spec-generated/project/generated",
+      "targetDirLocation": "../generated",
       "baseClassName": "NumberStringClass",
       "entryTypeAlias": "NumberStringType"
     }

@@ -1,5 +1,11 @@
 # Pass-through components
 
+## Introduction
+
+To enable class metaprogramming by components, this subproject provides tools to generate base classes for components.  With a JSON file you provide specifying the class components you want to use, this subproject also creates an `EntryClass.mts` file which _should_ behave like your final target class.
+
+See [our examples as test code](examples) for illustrations.
+
 ## Concepts as types
 
 Consider again our base type:
@@ -76,6 +82,9 @@ export type PassThroughType<
    */
   setReturnValue(value: ReturnType<MethodType>) : void;
 
+  /**
+   * The entry class's instance which triggered all this work.  This is for recursive calls.
+   */
   readonly entryPoint: ThisClassType;
 }
 
@@ -244,10 +253,9 @@ This will generate several files.
   - `EntryClass.mts` implementing your original type (in examples above, `NumberStringType`) to directly invoke a component class's equivalent method.  I recommend subclassing this for additional properties.
   - `PassThrough_Continue.mts` as a base class for component classes.  Use this when you want to allow methods to not be implemented.
   - `PassThrough_NotImplemented.mts` as a base class for component classes.  Use this when you _want_ to throw for methods you haven't implemented.
+  - `PassThroughClassType.mts` defines several types and the `ComponentMap`, which loads the component classes.
 - For internal use:
   - `Common.mts` for shared TypeScript types.
-  - `Entry_Base.mts`, which is the base class for `EntryClass.mts`, to actually create the `PassThroughType` and invoke the starting component's matching method.
-  - `PassThroughClassType.mts` defines several types and the `ComponentMap`, which loads the component classes.  
   - `PassThroughSupport.mts` defines the generic types for component classes.
 
 ## Tying components together
@@ -266,17 +274,23 @@ The JSON format defines components.  Decorators (via [our decorators namespace c
     "keys": {
       "mainComponent": {
         "type": "component",
-        "file": "MainComponent.mjs"
+        "file": "MainComponent.mjs",
+        "role": "body",
+        "setReturn": "must"
       },
 
       "logEntry": {
         "type": "component",
-        "file": "LoggingComponent.mjs"
+        "file": "LoggingComponent.mjs",
+        "role": "precondition",
+        "setReturn": "never"
       },
 
       "logLeave": {
         "type": "component",
-        "file": "LoggingComponent.mjs"
+        "file": "LoggingComponent.mjs",
+        "role": "postcondition",
+        "setReturn": "never"
       },
 
       "main": {

@@ -13,7 +13,9 @@ export default async function() : Promise<void>
 {
   await Promise.all([
     buildComponentClasses(),
-    buildProjectDirectory(),
+    buildProjectDirectory("base"),
+    buildProjectDirectory("debug"),
+    buildProjectDirectory("optimized"),
   ]);
 }
 
@@ -49,18 +51,21 @@ async function buildComponentClasses() : Promise<void>
     "NumberStringType",
   );
 
-  await generator.run();
+  await generator.start();
 
-  await createJasmineSpyClass(generatedDir, ".");
+  await createJasmineSpyClass(generatedDir);
+
+  await generator.finalize();
 }
 
 async function createJasmineSpyClass(
   generatedDir: ts.Directory,
-  targetDir: string
+  leafName = "PassThrough_JasmineSpy.mts",
+  doNotReturn = false
 ) : Promise<void>
 {
   const NI_File = generatedDir.getSourceFileOrThrow("PassThrough_NotImplemented.mts");
-  const SpyClassFile = NI_File.copy(path.join(targetDir, "PassThrough_JasmineSpy.mts"));
+  const SpyClassFile = NI_File.copy(path.join(".", leafName));
 
   const SpyClass = SpyClassFile.getClassOrThrow("NumberStringClass_PassThroughNI");
   SpyClass.rename("NumberStringClass_JasmineSpy");
@@ -85,20 +90,14 @@ async function createJasmineSpyClass(
 
     const throwLine = method.getStatementByKindOrThrow(ts.SyntaxKind.ThrowStatement);
     method.removeStatement(throwLine.getChildIndex());
-    method.addStatements(`__passThrough__.setReturnValue(
-      this.spy("${name}", __passThrough__, s, n) as ReturnType<NumberStringType["${name}"]>
-    );`);
+    method.addStatements(doNotReturn ?
+      `this.spy("${name}", __passThrough__, s, n)`
+      :
+      `__passThrough__.setReturnValue(
+        this.spy("${name}", __passThrough__, s, n) as ReturnType<NumberStringType["${name}"]>
+      );`
+    );
   });
-
-  if (targetDir === "..") {
-    const importStatements = SpyClassFile.getImportDeclarations();
-    importStatements.forEach(stmt => {
-      const specifier = stmt.getModuleSpecifier();
-      let text = specifier.getText();
-      text = text.replace(/"$/, `.mjs"`);
-      specifier.replaceWithText(text);
-    });
-  }
 
   SpyClassFile.formatText({
     ensureNewLineAtEndOfFile: true,
@@ -109,15 +108,26 @@ async function createJasmineSpyClass(
   await SpyClassFile.save();
 }
 
-async function buildProjectDirectory() : Promise<void>
+async function buildProjectDirectory(tail: string) : Promise<void>
 {
   const project = (await ProjectDriver(
-    path.join(parentDir, "fixtures/NumberString-project.json")
+    path.join(parentDir, `fixtures/NumberString-${tail}.json`),
+    tail === "optimized"
   ))[0];
 
   await createJasmineSpyClass(
     project.getDirectoryOrThrow(
-      path.join(parentDir, "spec-generated/project/generated")
-    ), ".."
+      path.join(parentDir, "spec-generated/project/generated-" + tail)
+    ),
+    "PassThrough_JasmineSpy_WithReturn.mts",
+    false
+  );
+
+  await createJasmineSpyClass(
+    project.getDirectoryOrThrow(
+      path.join(parentDir, "spec-generated/project/generated-" + tail)
+    ),
+    "PassThrough_JasmineSpy_NoReturn.mts",
+    true
   );
 }

@@ -28,8 +28,10 @@ export type SequenceKeysData = {
   readonly "subkeys": ReadonlyArray<string>
 };
 
+export type ComponentOrSequence = PassiveComponentData | BodyComponentData | SequenceKeysData;
+
 export type KeysAsProperties = {
-  readonly [key: string]: PassiveComponentData | BodyComponentData | SequenceKeysData
+  readonly [key: string]: ComponentOrSequence;
 };
 
 type ComponentGeneratorData = {
@@ -322,5 +324,47 @@ function StaticValidatorOne(data: BuildData) : true
   if (data.startComponent && !keys.has(data.startComponent))
     throw new Error(`Start component name "${data.startComponent}" does not have a component or sequence!`);
 
+  // Are the components in a sequence in the proper role order?
+  {
+    type validRoles = PassiveComponentData["role"] | BodyComponentData["role"];
+    let currentState: validRoles = "precondition", currentOrder: number = StageMap.get(currentState) as number;
+    sequences.forEach((sequence, key) => {
+      let mustReturnFound = false;
+      sequence.subkeys.forEach((subkey => {
+        const component = components.get(subkey) as PassiveComponentData | BodyComponentData;
+        const nextState : validRoles = component.role;
+        const nextOrder = StageMap.get(nextState) as number;
+
+        if (nextOrder < currentOrder) {
+          throw new Error(`In sequence key "${key}", components with role ${nextState} must precede components with role ${currentState}!`);
+        }
+
+        if (mustReturnFound && (
+            (component.role === "body") || (component.role === "bodyAssert")
+        ))
+        {
+          throw new Error(`In sequence key "${key}", body components with setReturn "must" must be the last body components!`);
+        }
+
+        currentState = component.role;
+        currentOrder = nextOrder;
+
+        // Disallow body components after a setReturn: must case.
+        if ((component.role === "body") && (component.setReturn === "must")) {
+          mustReturnFound = true;
+        }
+      }));
+    });
+  }
+
   return true;
 }
+
+const StageMap: ReadonlyMap<string, number> = new Map([
+  ["precondition", 0],
+  ["checkArguments", 1],
+  ["bodyAssert", 2],
+  ["body", 2],
+  ["checkReturn", 3],
+  ["postcondition", 4]
+]);
