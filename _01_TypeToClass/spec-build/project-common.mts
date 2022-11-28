@@ -147,6 +147,13 @@ async function buildSingleTypePattern(
   );
 }
 
+function logSourceFileStructure(
+  sourceFile: ts.SourceFile
+) : void
+{
+  console.log(sourceFile.getStructure());
+}
+
 export {
   fixturesDir,
   generatedDir,
@@ -158,4 +165,5 @@ export {
   ManyTypesToClass,
   buildSingleTypePattern,
   NotImplementedCallbacks,
+  logSourceFileStructure,
 };
