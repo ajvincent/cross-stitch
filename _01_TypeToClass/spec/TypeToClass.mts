@@ -139,4 +139,18 @@ describe("TypeToClass supports", () => {
       () => instance.repeatBack(3, "foo")
     ).toThrowError("not yet implemented");
   });
+
+  /** @see {@link ../spec-build/targets/IsTypedNSTWithConstructor.mts#} */
+  it(`properties of a type which the constructor defines`, async () => {
+    const TypedClass = await getModuleDefaultClass<IsTypedNST>(moduleSource, "IsTypedNSTWithConstructor.mjs");
+    expect(Reflect.ownKeys(TypedClass.prototype)).toEqual([
+      "constructor",
+    ]);
+
+    const instance = new TypedClass;
+    expect(Reflect.ownKeys(instance)).toEqual([
+      "type"
+    ]);
+    expect(instance.type).toBe("foo");
+  });
 });

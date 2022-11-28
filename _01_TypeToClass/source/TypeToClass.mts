@@ -20,7 +20,7 @@ export type TypeToClassCallbacks =
   maybeAddProperty(
     classDeclaration: ts.ClassDeclaration,
     structures: UserPropertyDictionary & UserBothAccessorsDictionary
-  ) : Promise<UserPropertyDictionary | UserAccessorDictionary |null>;
+  ) : Promise<UserPropertyDictionary | UserAccessorDictionary | null>;
 };
 
 export default class TypeToClass {

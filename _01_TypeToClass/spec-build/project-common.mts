@@ -4,7 +4,7 @@ import path from "path";
 import url from "url";
 
 import TypeToClass, {
-  TypeToClassCallbacks
+  TypeToClassCallbacks,
 } from "../source/TypeToClass.mjs";
 
 import {
