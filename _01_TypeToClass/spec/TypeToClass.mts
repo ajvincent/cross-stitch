@@ -1,9 +1,7 @@
 import { NumberStringType } from "../fixtures/NumberStringType.mjs";
 import {
   IsTypedNST,
-  /*
   NST_Keys,
-  */
   NumberStringAndIllegal,
   NumberStringAndType,
   /*
@@ -260,6 +258,25 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+  });
+
+  /** @see {@link ../spec-build/targets/NST_Keys.mts#} */
+  xit("mapped type", async () => {
+    const NSTC = await getModuleDefaultClass<NST_Keys>(moduleSource, "NST_Keys_Class.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack
     ).toThrowError("not yet implemented");
   });
 });
