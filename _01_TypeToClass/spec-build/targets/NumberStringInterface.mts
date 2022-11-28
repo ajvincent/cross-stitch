@@ -4,9 +4,9 @@ import {
 } from "../project-common.mjs";
 
 await OneTypeToClass(
-  "NumberStringType.mts",
-  "NumberStringType",
-  "NumberStringTypeClass.mts",
-  "NumberStringTypeClass",
+  "NumberStringInterface.mts",
+  "NumberStringInterface",
+  "NumberStringInterfaceClass.mts",
+  "NumberStringInterfaceClass",
   NotImplementedCallbacks
 );
