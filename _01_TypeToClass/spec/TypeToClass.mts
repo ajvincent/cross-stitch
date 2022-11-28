@@ -4,7 +4,9 @@ import {
   /*
   NST_Keys,
   NumberStringAndIllegal,
+  */
   NumberStringAndType,
+  /*
   NumberStringConditional,
   NumberStringExcludesBar,
   NumberStringFoo,
@@ -72,6 +74,31 @@ describe("TypeToClass supports", () => {
     ]);
 
     const instance = new TypedClass;
+    expect(
+      () => instance.type
+    ).toThrowError("not yet implemented");
+  });
+
+  /** @see {@link ../spec-build/targets/NumberStringWithTypeClass.mts#} */
+  it(`multiple types on implementation`, async () => {
+    const TypedClass = await getModuleDefaultClass<NumberStringAndType>(moduleSource, "NumberStringWithTypeClass.mjs");
+    expect(Reflect.ownKeys(TypedClass.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+      "type",
+    ]);
+
+    const instance = new TypedClass;
+
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+
     expect(
       () => instance.type
     ).toThrowError("not yet implemented");

@@ -2,7 +2,7 @@
 
 - [x] Type alias to literal
 - [x] Interface split across two declarations
-- [ ] Multiple types on implementation
+- [x] Multiple types on implementation
 - [ ] Partial type implementation
 - [ ] Imported & re-exported type
 - [x] Properties of a type as "not implemented" getter
