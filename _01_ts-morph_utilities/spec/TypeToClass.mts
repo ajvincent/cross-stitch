@@ -19,7 +19,7 @@ import {
   ModuleSourceDirectory
 } from "../../_00_shared_utilities/source/AsyncSpecModules.mjs";
 
-describe("TypeToClass supports", () => {
+describe("TypeToClass (old) supports", () => {
   const moduleSource: ModuleSourceDirectory = {
     importMeta: import.meta,
     pathToDirectory: "../../spec-generated"

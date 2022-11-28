@@ -1,6 +1,6 @@
 # Checklist
 
-- [ ] Type alias to literal
+- [x] Type alias to literal
 - [ ] Interface split across two declarations
 - [ ] Multiple types on implementation
 - [ ] Partial type implementation
