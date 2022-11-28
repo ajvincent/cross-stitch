@@ -3,7 +3,7 @@
 - [x] Type alias to literal
 - [x] Interface split across two declarations
 - [x] Multiple types on implementation
-- [ ] Partial type implementation
+- [x] Partial type implementation
 - [ ] Imported & re-exported type
 - [x] Properties of a type as "not implemented" getter
 - [ ] Properties of a type in a constructor
