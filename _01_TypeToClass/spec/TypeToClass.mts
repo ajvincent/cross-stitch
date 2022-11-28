@@ -120,4 +120,23 @@ describe("TypeToClass supports", () => {
       () => instance.repeatForward("foo", 3)
     ).toThrowError("not yet implemented");
   });
+
+  /** @see {@link ../spec-build/targets/StringNumberType.mts#} */
+  it("imported & re-exported type", async () => {
+    const NSTC = await getModuleDefaultClass<NumberStringType>(moduleSource, "StringNumberTypeClass.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+  });
 });

@@ -4,7 +4,7 @@
 - [x] Interface split across two declarations
 - [x] Multiple types on implementation
 - [x] Partial type implementation
-- [ ] Imported & re-exported type
+- [x] Imported & re-exported type
 - [x] Properties of a type as "not implemented" getter
 - [ ] Properties of a type in a constructor
 - [ ] Extended interfaces
