@@ -11,7 +11,7 @@
 - [x] Intersection of a referenced type
 - [x] Never key in type
 - [x] Union in arguments of a method (should be legal)
-- [ ] Parameterized type
+- [x] Parameterized type
 - [ ] Mapped type
 - [ ] Conditional type
 - [ ] Symbol key in type

@@ -8,8 +8,8 @@ import {
   NumberStringAndType,
   /*
   NumberStringConditional,
-  NumberStringExcludesBar,
   */
+  NumberStringExcludesBar,
   NumberStringFoo,
   UnionArgument,
   /*
@@ -241,6 +241,25 @@ describe("TypeToClass supports", () => {
     const instance = new NSTC;
     expect(
       () => instance.doSomething("foo")
+    ).toThrowError("not yet implemented");
+  });
+
+  /** @see {@link ../spec-build/targets/NumberStringExcludesBar.mts#} */
+  it("parameterized type", async () => {
+    const NSTC = await getModuleDefaultClass<NumberStringExcludesBar>(moduleSource, "NumberStringExcludesBarClass.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
     ).toThrowError("not yet implemented");
   });
 });
