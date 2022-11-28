@@ -25,6 +25,7 @@ describe("TypeToClass supports", () => {
     pathToDirectory: "../../spec-generated"
   };
 
+  /** @see {@link ../spec-build/targets/NumberStringType.mts} */
   it("type alias to literal", async () => {
     const NSTC = await getModuleDefaultClass<NumberStringType>(moduleSource, "NumberStringTypeClass.mjs");
     expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
@@ -43,6 +44,7 @@ describe("TypeToClass supports", () => {
     ).toThrowError("not yet implemented");
   });
 
+  /** @see {@link ../spec-build/targets/NumberStringInterface.mts} */
   it("interface split across two declarations", async () => {
     const NSTC = await getModuleDefaultClass<NumberStringType>(moduleSource, "NumberStringInterfaceClass.mjs");
     expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
@@ -61,6 +63,7 @@ describe("TypeToClass supports", () => {
     ).toThrowError("not yet implemented");
   });
 
+  /** @see {@link ../spec-build/targets/IsTypedNST.mts} */
   it(`properties of a type as "not implemented" getter`, async () => {
     const TypedClass = await getModuleDefaultClass<IsTypedNST>(moduleSource, "IsTypedNST.mjs");
     expect(Reflect.ownKeys(TypedClass.prototype)).toEqual([
