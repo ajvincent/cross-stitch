@@ -10,8 +10,7 @@
 - [x] Extended interfaces
 - [x] Intersection of a referenced type
 - [x] Never key in type
-- [ ] Union of a referenced type (should be illegal)
-- [ ] Union in arguments of a method (should be legal)
+- [x] Union in arguments of a method (should be legal)
 - [ ] Parameterized type
 - [ ] Mapped type
 - [ ] Conditional type

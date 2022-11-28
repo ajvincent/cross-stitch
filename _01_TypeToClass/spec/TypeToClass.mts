@@ -11,8 +11,8 @@ import {
   NumberStringExcludesBar,
   */
   NumberStringFoo,
-  /*
   UnionArgument,
+  /*
   SymbolTypeKey,
   NumberStringAndSymbol,
   */
@@ -227,6 +227,20 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.illegal
+    ).toThrowError("not yet implemented");
+  });
+
+  /** @see {@link ../spec-build/targets/UnionArgument.mts#} */
+  it("union in arguments of a method", async () => {
+    const NSTC = await getModuleDefaultClass<UnionArgument>(moduleSource, "UnionArgumentClass.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "doSomething"
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.doSomething("foo")
     ).toThrowError("not yet implemented");
   });
 });
