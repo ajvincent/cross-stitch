@@ -3,8 +3,8 @@ import {
   IsTypedNST,
   /*
   NST_Keys,
-  NumberStringAndIllegal,
   */
+  NumberStringAndIllegal,
   NumberStringAndType,
   /*
   NumberStringConditional,
@@ -203,6 +203,30 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.repeatFoo(3)
+    ).toThrowError("not yet implemented");
+  });
+
+  /** @see {@link ../spec-build/targets/NumberStringAndIllegal.mts#} */
+  it("never key in type", async () => {
+    const NSTC = await getModuleDefaultClass<NumberStringAndIllegal>(moduleSource, "NumberStringAndIllegal.mjs");
+    expect(Reflect.ownKeys(NSTC.prototype)).toEqual([
+      "constructor",
+      "repeatForward",
+      "repeatBack",
+      "illegal"
+    ]);
+
+    const instance = new NSTC;
+    expect(
+      () => instance.repeatForward("foo", 3)
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+
+    expect(
+      () => instance.illegal
     ).toThrowError("not yet implemented");
   });
 });
