@@ -71,4 +71,4 @@ export const SymbolTypeKey = Symbol("type");
 
 export type NumberStringAndSymbol = NumberStringType & {
   [SymbolTypeKey]: boolean;
-}
+};

@@ -54,8 +54,10 @@ const NotImplementedCallbacks: TypeToClassCallbacks = {
   async maybeAddProperty(classDeclaration, structures)
   {
     void(classDeclaration);
-    void(structures);
-    throw new Error("unexpected");
+
+    const { getter, setter } = structures;
+    getter.statements = setter.statements = [`throw new Error("not yet implemented");`];
+    return { getter, setter };
   },
 };
 
@@ -84,6 +86,20 @@ async function OneTypeToClass(
   await saveGeneratedFile(destFile);
 }
 
+async function buildSingleTypePattern(
+  typeName: string,
+  classFileLocation: string,
+) : Promise<void>
+{
+  return await OneTypeToClass(
+    "TypePatterns.mts",
+    typeName,
+    classFileLocation,
+    "NumberStringClass",
+    NotImplementedCallbacks
+  );
+}
+
 export {
   fixturesDir,
   generatedDir,
@@ -91,5 +107,6 @@ export {
   TypeToClassCallbacks,
   saveGeneratedFile,
   OneTypeToClass,
+  buildSingleTypePattern,
   NotImplementedCallbacks,
 };

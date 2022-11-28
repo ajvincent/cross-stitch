@@ -5,7 +5,7 @@
 - [ ] Multiple types on implementation
 - [ ] Partial type implementation
 - [ ] Imported & re-exported type
-- [ ] Properties of a type as "not implemented" getter
+- [x] Properties of a type as "not implemented" getter
 - [ ] Properties of a type in a constructor
 - [ ] Extended interfaces
 - [ ] Intersection of a referenced type
@@ -16,6 +16,6 @@
 - [ ] Mapped type
 - [ ] Conditional type
 - [ ] Symbol key in type
-- [ ] Property getters
-- [ ] Property setters
+- [ ] Property getters defined directly on the type
+- [ ] Property setters defined directly on the type
 - [ ] Multiple call signatures (testcase wanted!)

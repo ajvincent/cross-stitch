@@ -48,7 +48,6 @@ type UserSetterStructure = Pick<
   "name" |
   "typeParameters" |
   "parameters" |
-  "returnType" |
   "statements" |
   never
 >;
@@ -122,8 +121,7 @@ const SignaturesToDeclarations = Object.freeze({
           type: signature.type
         }
       ],
-      returnType: "void",
-      statements: []
+      statements: [],
     };
 
     return { property, getter, setter };

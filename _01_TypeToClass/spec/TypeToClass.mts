@@ -1,7 +1,7 @@
 import { NumberStringType } from "../fixtures/NumberStringType.mjs";
-/*
 import {
   IsTypedNST,
+  /*
   NST_Keys,
   NumberStringAndIllegal,
   NumberStringAndType,
@@ -11,8 +11,8 @@ import {
   UnionArgument,
   SymbolTypeKey,
   NumberStringAndSymbol,
+  */
 } from "../fixtures/TypePatterns.mjs";
-*/
 
 import {
   getModuleDefaultClass,
@@ -58,6 +58,19 @@ describe("TypeToClass supports", () => {
 
     expect(
       () => instance.repeatBack(3, "foo")
+    ).toThrowError("not yet implemented");
+  });
+
+  it(`properties of a type as "not implemented" getter`, async () => {
+    const TypedClass = await getModuleDefaultClass<IsTypedNST>(moduleSource, "IsTypedNST.mjs");
+    expect(Reflect.ownKeys(TypedClass.prototype)).toEqual([
+      "constructor",
+      "type",
+    ]);
+
+    const instance = new TypedClass;
+    expect(
+      () => instance.type
     ).toThrowError("not yet implemented");
   });
 });
