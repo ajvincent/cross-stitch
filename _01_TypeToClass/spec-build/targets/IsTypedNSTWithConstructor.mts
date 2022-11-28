@@ -15,7 +15,6 @@ const callbacks: TypeToClassCallbacks = {
     if (structures.property.name !== "type")
       throw new Error(`unexpected property name: ${structures.property.name}`);
 
-    debugger;
     const ctor: Omit<ts.ConstructorDeclarationStructure, "kind"> = {
       statements: [
         `this.type = "foo";`
