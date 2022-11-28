@@ -77,7 +77,7 @@ type FileWithType = Readonly<{
  * 
  * @param pathToClassFile - The class file to build.
  * @param className - The class name.
- * @param filesAndTypes 
+ * @param filesAndTypes - The type files and types to extract.
  * @param callbacks - The method and property structure callbacks.
  */
 async function ManyTypesToClass(
