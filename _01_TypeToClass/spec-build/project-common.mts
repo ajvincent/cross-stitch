@@ -7,6 +7,10 @@ import TypeToClass, {
   TypeToClassCallbacks
 } from "../source/TypeToClass.mjs";
 
+import {
+  PromiseAllSequence,
+} from "../../_00_shared_utilities/source/PromiseTypes.mjs";
+
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 
 const project = new ts.Project({
@@ -61,15 +65,28 @@ const NotImplementedCallbacks: TypeToClassCallbacks = {
   },
 };
 
-async function OneTypeToClass(
+type FileWithType = Readonly<{
+  /** The type definitions file. */
   pathToTypeFile: string,
-  typeName: string,
+
+  /** The type name to extract. */
+  typeName: string
+}>;
+
+/**
+ * 
+ * @param pathToClassFile - The class file to build.
+ * @param className - The class name.
+ * @param filesAndTypes 
+ * @param callbacks - The method and property structure callbacks.
+ */
+async function ManyTypesToClass(
   pathToClassFile: string,
   className: string,
-  callbacks: TypeToClassCallbacks,
+  filesAndTypes: FileWithType[],
+  callbacks: TypeToClassCallbacks
 ) : Promise<void>
 {
-  const srcFile = fixturesDir.addSourceFileAtPath(pathToTypeFile);
   const destFile = generatedDir.createSourceFile(pathToClassFile);
 
   const TTC = new TypeToClass(
@@ -78,12 +95,42 @@ async function OneTypeToClass(
     callbacks
   );
 
-  await TTC.addTypeAliasOrInterface(
-    srcFile,
-    typeName,
-  );
+  await PromiseAllSequence(filesAndTypes, async ({pathToTypeFile, typeName}) => {
+    const srcFile = fixturesDir.addSourceFileAtPath(pathToTypeFile);
+    await TTC.addTypeAliasOrInterface(
+      srcFile,
+      typeName,
+    );
+  });
 
   await saveGeneratedFile(destFile);
+}
+
+/**
+ * 
+ * @param pathToTypeFile - The type definitions file.
+ * @param typeName - The type name to extract.
+ * @param pathToClassFile - The class file to build.
+ * @param className - The class name.
+ * @param callbacks - The method and property structure callbacks.
+ */
+async function OneTypeToClass(
+  pathToTypeFile: string,
+  typeName: string,
+  pathToClassFile: string,
+  className: string,
+  callbacks: TypeToClassCallbacks,
+) : Promise<void>
+{
+  await ManyTypesToClass(
+    pathToClassFile,
+    className,
+    [{
+      pathToTypeFile,
+      typeName
+    }],
+    callbacks
+  );
 }
 
 async function buildSingleTypePattern(
@@ -107,6 +154,8 @@ export {
   TypeToClassCallbacks,
   saveGeneratedFile,
   OneTypeToClass,
+  FileWithType,
+  ManyTypesToClass,
   buildSingleTypePattern,
   NotImplementedCallbacks,
 };
