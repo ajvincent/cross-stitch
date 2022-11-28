@@ -1,3 +1,15 @@
+/**
+ * @remarks
+ *
+ * ts-morph operates synchronously, and this is partly because tsc, the TypeScript compiler,
+ * does synchronous file operations all the time.
+ *
+ * To work around that, and speed up the build, I am implementing each TypeToClass call as
+ * a separate module file, which I can then execute via fork().
+ *
+ * @see directBuild.mts for a way to invoke one of these modules directly.
+ */
+
 import fs from "fs/promises";
 import path from "path";
 import url from "url";
