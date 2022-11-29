@@ -1,5 +1,9 @@
 // Imported types
-import type { exportedOne, exportedBar } from "./ExportedTypes.mjs";
+import type {
+  exportedOne,
+  exportedBar,
+  exportedWop,
+} from "./ExportedTypes.mjs";
 
 {
   const tOne: exportedOne = 1;
@@ -8,6 +12,8 @@ import type { exportedOne, exportedBar } from "./ExportedTypes.mjs";
   const tBar: exportedBar = { bar: true };
   void(tBar);
 }
+
+// #region type aliases
 
 // Primitive type aliases
 export type oneStringType = "one string";
@@ -55,10 +61,86 @@ export type objectUnionType = objectWithFooProperty | objectWithBarProperty;
 
 export type objectNumberUnion = objectWithFooProperty | 3;
 
+// symbol key
+export const SymbolTypeKey = Symbol("type");
+type TypeHasSymbolKey = {
+  [SymbolTypeKey]: boolean;
+  "[SymbolTypeKey]": boolean;
+};
+{
+  const s: TypeHasSymbolKey = {
+    [SymbolTypeKey]: true,
+    "[SymbolTypeKey]": false,
+  };
+  void(s);
+}
+
+// indexed types
+type FooExtracted = objectIntersectionType["fooObject"];
+
 // parameterized types
 
 // keyof type, typeof type, indexed access type,
 // conditional type, mapped types, template literal type
 
-// Interfaces
+// aliases to aliases
+type oneStringTypeAlias = oneStringType;
+type objectWithFooPropertyAlias = objectWithFooProperty;
+
+// #endregion type aliases
+
+// #region Interfaces
+export interface FooInterface {
+  foo: true;
+}
+
+export interface FooInterface {
+  foo2: true;
+}
+
+interface ExtendedWop extends exportedWop, FooInterface
+{
+  bar: true;
+}
+
+interface EmptyInterface {};
+{
+  const empty: EmptyInterface = {};
+  void(empty);
+}
+
+{
+  const Wop: ExtendedWop = {
+    foo: true,
+    foo2: true,
+    bar: true,
+    wop: true,
+  };
+  void(Wop);
+}
+
+type FooInterfaceAlias = FooInterface;
+
 // Indexed and Mapped interfaces
+
+// #endregion Interfaces
+
+// Scoping
+{
+  type myString = "foo";
+  const x: myString = "foo";
+  void(x);
+}
+
+// types not defined in order
+type SandwichHead = {
+  head: true;
+}
+type FullSandwich = SandwichHead & SandwichTail;
+type SandwichTail = {
+  tail: true;
+}
+{
+  const sandwich: FullSandwich = { head: true, tail: true };
+  void(sandwich);
+}

@@ -39,6 +39,7 @@ describe("Basic type support from ts-morph: ", () => {
     );
   });
 
+  // #region type aliases
   describe("Primitive type aliases report .getType().isObject() === false for", () => {
     const typeAndSpecArray: [typeName: string, expectation: string][] = [
       ["oneStringType", "a single string type"],
@@ -112,4 +113,89 @@ describe("Basic type support from ts-morph: ", () => {
     const bar = BasicTypes.getTypeAliasOrThrow("objectWithBarProperty");
     expect(bar.isExported()).toBe(false);
   });
+
+  it("Source file cannot directly get block-scoped types", () => {
+    expect(BasicTypes.getTypeAlias("myString")).toBe(undefined);
+  });
+
+  // #endregion type aliases
+
+  describe("Interfaces", () => {
+    describe("report .getType().isObject() === true", () => {
+      it("for a non-empty interface", () => {
+        const decl = BasicTypes.getInterfaceOrThrow("FooInterface");
+        const type = decl.getType();
+        expect(type.isObject()).toBe(true);
+      });
+
+      it("for an empty interface", () => {
+        const decl = BasicTypes.getInterfaceOrThrow("EmptyInterface");
+        const type = decl.getType();
+        expect(type.isObject()).toBe(true);
+      });
+    });
+
+    it("can have multiple interface declarations via their type symbol", () => {
+      const firstDecl = BasicTypes.getInterfaceOrThrow("FooInterface");
+      const symbol = firstDecl.getSymbolOrThrow();
+      const declarations = symbol.getDeclarations();
+      expect(declarations[0]).toBe(firstDecl);
+      expect(declarations.length).toBe(2);
+      expect(declarations[1]).not.toBe(firstDecl);
+    });
+  });
+
+  xdescribe("Import declarations", () => {
+
+  });
+
+  describe("Fields of object type aliases and interfaces:", () => {
+    xdescribe("Properties and methods: ", () => {
+
+    });
+
+    xit("Symbol keys appear with a ComputedPropertyName", () => {
+      const decl = BasicTypes.getTypeAliasOrThrow("TypeHasSymbolKey")
+      const typeNode = decl.getTypeNode();
+      if (!ts.Node.isTypeLiteral(typeNode))
+        throw new Error("expected TypeLiteralNode");
+
+    });
+
+    xdescribe("TypeReference nodes", () => {
+
+    });
+
+    xdescribe("Mapped types", () => {
+
+    });
+  });
+
+  describe("Shared types among ", () => {
+    it("type aliases", () => {
+      const mainAlias = BasicTypes.getTypeAliasOrThrow("oneStringType");
+      const sideAlias = BasicTypes.getTypeAliasOrThrow("oneStringTypeAlias");
+
+      expect(mainAlias.getType()).toBe(sideAlias.getType());
+    });
+
+    it("a type alias and its type node", () => {
+      const interfaceDecl = BasicTypes.getInterfaceOrThrow("FooInterface");
+      const alias = BasicTypes.getTypeAliasOrThrow("FooInterfaceAlias");
+
+      expect(alias.getType()).toBe(interfaceDecl.getType());
+    });
+  });
+
+  // #region structures
+
+  it("Node structures are unique objects which start out equal for the same node", () => {
+    const barProperty = BasicTypes.getTypeAliasOrThrow("objectWithBarProperty");
+    const leftStructure = barProperty.getStructure();
+    const rightStructure = barProperty.getStructure();
+    expect(leftStructure).not.toBe(rightStructure);
+    expect(leftStructure).toEqual(rightStructure);
+  });
+
+  // #endregion structures
 });
