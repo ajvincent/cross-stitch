@@ -6,6 +6,30 @@
  *
  * The results from this will inform the design of helper utilities in TypeToClass and
  * other follow-on stages.
+ *
+ * This might turn out to be actually a Hard Problem.  There are be types with an
+ * infinite set of field keys:
+ *
+ * type ManyProperties = {
+ *   // IndexSignature, https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures
+ *   [key: string]: true;
+ * };
+ *
+ * Those we cannot resolve in TypeToClass.  It's just not possible to generate all the keys
+ * which this type matches.
+ *
+ * So we have to figure out from the type structure if we have a finite set of keys or not.
+ * This must happen before we attempt to figure out the type definitions for each key.
+ *
+ * type FiniteProperties = {
+ *   // MappedType, https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
+ *   [key in "foo" | "bar"]: someOtherType;
+ * };
+ *
+ * Mapped types give us a different sort of trouble.  We might be better off replacing, at least temporarily,
+ * the MappedType node with a set of other nodes.  The good news is the claim in the handbook that the
+ * type parameter's type operator must be a union of PropertyKey's.  So it's a finite, enumerable set, and
+ * we should be able to extract the set easily.
  */
 
 import ts from "ts-morph";
@@ -294,8 +318,82 @@ describe("Basic type support from ts-morph: ", () => {
 
     });
 
-    xdescribe("Mapped types", () => {
+    it("Mapped types", () => {
+      let mappedTypeNode: ts.MappedTypeNode;
+      {
+        const alias = BasicTypes.getTypeAliasOrThrow("FiniteProperties");
+        mappedTypeNode = alias.getTypeNodeOrThrow().asKindOrThrow(ts.SyntaxKind.MappedType);
+      }
 
+      const mappedTypeNodeStart = mappedTypeNode.getStart(true);
+
+      const subTypeNode = mappedTypeNode.getTypeNodeOrThrow();
+      const subTypeNodeStart = subTypeNode.getStart(true);
+      const structure: ts.TypeAliasDeclarationStructure = (
+        mappedTypeNode.getParentOrThrow()
+                      .asKindOrThrow(ts.SyntaxKind.TypeAliasDeclaration)
+                      .getStructure()
+      );
+      expect(structure.type).not.toBe("");
+
+      let templateText: string;
+      {
+        templateText = (structure.type as string).substring(
+          subTypeNode.getStart(true) - mappedTypeNodeStart,
+          subTypeNode.getEnd() - mappedTypeNodeStart
+        );
+      }
+
+      type startAndEnd = { start: number, end: number };
+      function getTextOffsets(node: ts.Node) : startAndEnd
+      {
+        return {
+          start: node.getStart(true) - subTypeNodeStart,
+          end: node.getEnd() - subTypeNodeStart
+        };
+      }
+
+      const referenceOffsets: startAndEnd[] = (
+        mappedTypeNode.getTypeParameter()
+                      .getFirstChildByKindOrThrow(ts.SyntaxKind.Identifier)
+                      .findReferencesAsNodes()
+                      .map(getTextOffsets)
+                      .reverse()
+      );
+
+      function getKeyFromChildType(childType: ts.Type) : string
+      {
+        // childType represents a string or a number
+        const result = (childType.getLiteralValue() as string);
+        if (result)
+          return `"${result}"`;
+
+        // childType represents a symbol
+        return `[${childType.getSymbolOrThrow().getEscapedName()}]`;
+      }
+
+      const keys: ReadonlyArray<string> = (
+        mappedTypeNode.getTypeParameter()
+                      .getConstraintOrThrow()
+                      .getType()
+                      .getUnionTypes()
+                      .map(getKeyFromChildType)
+      );
+
+      const finalText: string = keys.map(key => {
+        let text = templateText;
+        referenceOffsets.forEach(({start, end}) => {
+          text = text.substring(0, start) + key + text.substring(end);
+        })
+        return `  ${key}: ${text};`;
+      }).join("\n");
+
+      structure.type = `{\n${finalText}\n}`;
+      expect(structure.type).withContext("generated structure type").toBe(
+`{
+  "foo": objectIntersectionType[\`\${"foo"}Object\`];
+  "bar": objectIntersectionType[\`\${"bar"}Object\`];
+}`);
     });
   });
 

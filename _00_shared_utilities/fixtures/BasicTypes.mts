@@ -88,13 +88,23 @@ type TypeHasSymbolKey = {
   void(s);
 }
 
-// indexed types
+// indexed access type
 type FooExtracted = objectIntersectionType["fooObject"];
 
 // parameterized types
 
-// keyof type, typeof type, indexed access type,
+// keyof type, typeof type
 // conditional type, mapped types, template literal type
+
+// mapped type
+type FiniteProperties = {
+  [key in "foo" | "bar"]: objectIntersectionType[`${key}Object`];
+};
+
+type ManyProperties = {
+  // IndexSignature.  This is poison for TypeToClass.
+  [key: string]: true;
+};
 
 // aliases to aliases
 type oneStringTypeAlias = oneStringType;
