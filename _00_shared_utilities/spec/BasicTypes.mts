@@ -319,16 +319,60 @@ describe("Basic type support from ts-morph: ", () => {
     });
 
     it("Mapped types", () => {
+      /*
+From https://www.typescriptlang.org/docs/handbook/2/mapped-types.html,
+"A mapped type is a generic type which uses a union of PropertyKeys (frequently
+created via a keyof) to iterate through keys to create a type."
+
+Each PropertyKey is a string, number, or symbol.
+
+Mapped types take the form:
+type objectMirrored = {
+  [ key in keyof someOtherType ]: someOtherType[key];
+};
+
+Given:
+type someOtherType = {
+  foo: unknown;
+  bar: string;
+  [SymbolKey]: boolean;
+}
+
+I want to generate (at least in this phase) a structure for:
+
+type objectMirrored = {
+  "foo": someOtherType["foo"];
+  "bar": someOtherType["bar"];
+  [SymbolKey]: someOtherType[SymbolKey];
+};
+
+I can resolve the indexed properties in a later phase.
+
+So, here's how this works:
+
+I.   Extract the source code behind the mapped type node as templateText.
+II.  The type parameter node ("key" in the above example) has reference nodes.
+     We convert those to start and end positions in the template text to replace.
+III. The type parameter node also has the constraint node ("keyof someOtherType"
+     in the above example), which is a union type of strings, numbers, and symbols.
+     We extract the literal types from this as keys.
+IV.  Let finalTypeText = "{\n". For each key in keys:
+  A. Let keyText be templateText.
+  B. For each pair of start and end positions, in reverse order:
+    1. Replace the text in keyText between the start and end positions with the key identifier's name.
+  C. Append `${key}: ${keyText};\n` to finalTypeText.
+V.   Append "};" to finalTypeText.
+VI.  finalTypeText now represents a LiteralType which can replace the MappedType as a structure.
+       */
       let mappedTypeNode: ts.MappedTypeNode;
       {
+        // Setting up.  In the actual implementation, I won't have the type alias name here.
         const alias = BasicTypes.getTypeAliasOrThrow("FiniteProperties");
         mappedTypeNode = alias.getTypeNodeOrThrow().asKindOrThrow(ts.SyntaxKind.MappedType);
       }
 
       const mappedTypeNodeStart = mappedTypeNode.getStart(true);
 
-      const subTypeNode = mappedTypeNode.getTypeNodeOrThrow();
-      const subTypeNodeStart = subTypeNode.getStart(true);
       const structure: ts.TypeAliasDeclarationStructure = (
         mappedTypeNode.getParentOrThrow()
                       .asKindOrThrow(ts.SyntaxKind.TypeAliasDeclaration)
@@ -336,15 +380,28 @@ describe("Basic type support from ts-morph: ", () => {
       );
       expect(structure.type).not.toBe("");
 
-      let templateText: string;
-      {
-        templateText = (structure.type as string).substring(
-          subTypeNode.getStart(true) - mappedTypeNodeStart,
-          subTypeNode.getEnd() - mappedTypeNodeStart
-        );
-      }
+      // Where TypeScript plugs in the identifier.
+      const subTypeNode = mappedTypeNode.getTypeNodeOrThrow();
+      const subTypeNodeStart = subTypeNode.getStart(true);
 
+      // The template to populate.
+      const templateText: string = structure.type.toString().substring(
+        subTypeNode.getStart(true) - mappedTypeNodeStart,
+        subTypeNode.getEnd() - mappedTypeNodeStart
+      );
+
+      // #region reference offsets
       type startAndEnd = { start: number, end: number };
+
+      // The substring locations in template text to replace with each key.
+      const referenceOffsets: startAndEnd[] = (
+        mappedTypeNode.getTypeParameter()
+                      .getFirstChildByKindOrThrow(ts.SyntaxKind.Identifier)
+                      .findReferencesAsNodes()
+                      .map(getTextOffsets)
+                      .reverse()
+      );
+
       function getTextOffsets(node: ts.Node) : startAndEnd
       {
         return {
@@ -352,13 +409,15 @@ describe("Basic type support from ts-morph: ", () => {
           end: node.getEnd() - subTypeNodeStart
         };
       }
+      // #endregion reference offsets
 
-      const referenceOffsets: startAndEnd[] = (
+      // #region keys to replace in the template.
+      const keys: ReadonlyArray<string> = (
         mappedTypeNode.getTypeParameter()
-                      .getFirstChildByKindOrThrow(ts.SyntaxKind.Identifier)
-                      .findReferencesAsNodes()
-                      .map(getTextOffsets)
-                      .reverse()
+                      .getConstraintOrThrow()
+                      .getType()
+                      .getUnionTypes()
+                      .map(getKeyFromChildType)
       );
 
       function getKeyFromChildType(childType: ts.Type) : string
@@ -371,24 +430,18 @@ describe("Basic type support from ts-morph: ", () => {
         // childType represents a symbol
         return `[${childType.getSymbolOrThrow().getEscapedName()}]`;
       }
+      // #endregion keys to replace in the template.
 
-      const keys: ReadonlyArray<string> = (
-        mappedTypeNode.getTypeParameter()
-                      .getConstraintOrThrow()
-                      .getType()
-                      .getUnionTypes()
-                      .map(getKeyFromChildType)
-      );
-
-      const finalText: string = keys.map(key => {
+      const extrapolatedFields: string = keys.map(key => {
         let text = templateText;
+        const replacement = key.replace(/^\[(.*)\]$/, "$1");
         referenceOffsets.forEach(({start, end}) => {
-          text = text.substring(0, start) + key + text.substring(end);
+          text = text.substring(0, start) + replacement + text.substring(end);
         })
         return `  ${key}: ${text};`;
       }).join("\n");
 
-      structure.type = `{\n${finalText}\n}`;
+      structure.type = `{\n${extrapolatedFields}\n}`;
       expect(structure.type).withContext("generated structure type").toBe(
 `{
   "foo": objectIntersectionType[\`\${"foo"}Object\`];
