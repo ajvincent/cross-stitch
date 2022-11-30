@@ -12,6 +12,7 @@ import ts from "ts-morph";
 
 import path from "path";
 import url from "url";
+import { type } from "os";
 
 describe("Basic type support from ts-morph: ", () => {
   let BasicTypes: ts.SourceFile;
@@ -65,7 +66,9 @@ describe("Basic type support from ts-morph: ", () => {
 
     typeAndSpecArray.forEach(([typeName, expectation]) => {
       it(expectation, () => {
-        const decl = BasicTypes.getTypeAliasOrThrow(typeName);
+        const decl = BasicTypes.getTypeAliasOrThrow(typeName).asKindOrThrow(
+          ts.SyntaxKind.TypeAliasDeclaration
+        );
         const type = decl.getType();
         expect(type.isObject()).toBe(false);
       });
@@ -76,13 +79,16 @@ describe("Basic type support from ts-morph: ", () => {
     const typeAndSpecArray: [typeName: string, expectation: string][] = [
       ["emptyObjectType", "an empty object type"],
       ["objectWithFooProperty", "an object with a property"],
-      ["stringArray", "an array"],
+      ["stringArray", "an array of strings"],
+      ["stringNumberAndBoolean", "a tuple of specific types"],
       ["voidFunction", "an empty function returning void"],
     ];
 
     typeAndSpecArray.forEach(([typeName, expectation]) => {
       it(expectation, () => {
-        const decl = BasicTypes.getTypeAliasOrThrow(typeName);
+        const decl = BasicTypes.getTypeAliasOrThrow(typeName).asKindOrThrow(
+          ts.SyntaxKind.TypeAliasDeclaration
+        );
         const type = decl.getType();
         expect(type.isObject()).toBe(true);
       });
@@ -99,7 +105,9 @@ describe("Basic type support from ts-morph: ", () => {
 
     typeAndSpecArray.forEach(([typeName, expectation]) => {
       it(expectation, () => {
-        const decl = BasicTypes.getTypeAliasOrThrow(typeName);
+        const decl = BasicTypes.getTypeAliasOrThrow(typeName).asKindOrThrow(
+          ts.SyntaxKind.TypeAliasDeclaration
+        );
         const type = decl.getType();
         expect(type.isObject()).toBe(false);
       });
@@ -116,6 +124,18 @@ describe("Basic type support from ts-morph: ", () => {
 
   it("Source file cannot directly get block-scoped types", () => {
     expect(BasicTypes.getTypeAlias("myString")).toBe(undefined);
+  });
+
+  it("TypeAliasDeclaration reports its type parameters", () => {
+    const decl = BasicTypes.getTypeAliasOrThrow("GetterAndSetter").asKindOrThrow(
+      ts.SyntaxKind.TypeAliasDeclaration
+    );
+    const typeParameters = decl.getTypeParameters();
+    expect(typeParameters.length).toBe(1);
+
+    const firstTypeParam = typeParameters[0].getStructure();
+    expect(firstTypeParam.name).toBe("T");
+    expect(firstTypeParam.constraint).toBe("unknown");
   });
 
   // #endregion type aliases
@@ -149,9 +169,117 @@ describe("Basic type support from ts-morph: ", () => {
 
   });
 
-  describe("Fields of object type aliases and interfaces:", () => {
-    xdescribe("Properties and methods: ", () => {
+  function getAliasTypeNodeByName<
+    TKind extends ts.SyntaxKind
+  >(
+    name: string,
+    kind: TKind
+  ) : ts.KindToNodeMappings[TKind]
+  {
+    return BasicTypes.getTypeAliasOrThrow(name).getTypeNodeOrThrow().asKindOrThrow(kind);
+  }
 
+  describe("Extracting fields of object type aliases and interfaces:", () => {
+    it("TypeLiteral with no mapped types", () => {
+      const typeLiteral = getAliasTypeNodeByName<
+        ts.SyntaxKind.TypeLiteral
+      >("NumberStringType", ts.SyntaxKind.TypeLiteral);
+
+      const members = typeLiteral.getMembers();
+      const structures = members.map(m => m.getStructure());
+      expect(structures.length).toBe(2);
+      expect(structures[0].kind).withContext(
+        "first member should be a MethodSignature"
+      ).toBe(ts.StructureKind.MethodSignature);
+      expect(structures[1].kind).withContext(
+        "second member should be a MethodSignature"
+      ).toBe(ts.StructureKind.MethodSignature);
+    });
+
+    it("PropertySignature of a TypeLiteral", () => {
+      const typeLiteral = getAliasTypeNodeByName<
+        ts.SyntaxKind.TypeLiteral
+      >("objectWithBarProperty", ts.SyntaxKind.TypeLiteral);
+
+      const property = typeLiteral.getMembers()[0].asKindOrThrow(
+        ts.SyntaxKind.PropertySignature
+      ).getStructure();
+
+      expect(property.name).toBe("barObject");
+      expect(property.type).toBe("unknown");
+      expect(property.isReadonly).toBe(false);
+    });
+
+    it("GetAccessorSignature and SetAccessorSignature of a TypeLiteral", () => {
+      const alias = BasicTypes.getTypeAliasOrThrow("GetterAndSetter");
+
+      const typeLiteral = getAliasTypeNodeByName<
+        ts.SyntaxKind.TypeLiteral
+      >("GetterAndSetter", ts.SyntaxKind.TypeLiteral);
+
+      const members = typeLiteral.getMembers();
+      const getter = members[0].asKindOrThrow(
+        ts.SyntaxKind.GetAccessor
+      ).getStructure();
+
+      expect(getter.name).toBe("value");
+      expect(getter.typeParameters).toEqual([]);
+      expect(getter.parameters).toEqual([]);
+      expect(getter.returnType).toBe("T");
+
+      const setter = members[1].asKindOrThrow(
+        ts.SyntaxKind.SetAccessor
+      ).getStructure();
+
+      expect(setter.name).toBe("value");
+      expect(setter.typeParameters).toEqual([]);
+      expect(setter.parameters?.length).toBe(1);
+      if (setter.parameters)
+      {
+        const firstParam = setter.parameters[0];
+        expect(firstParam.name).toBe("newValue");
+        expect(firstParam.type).toBe("T");
+      }
+    });
+
+    it("MethodSignature of a TypeLiteral", () => {
+      const typeLiteral = getAliasTypeNodeByName<
+        ts.SyntaxKind.TypeLiteral
+      >("NumberStringType", ts.SyntaxKind.TypeLiteral);
+
+      const members = typeLiteral.getMembers();
+      const firstMethod = members[0].asKindOrThrow(
+        ts.SyntaxKind.MethodSignature
+      ).getStructure();
+      const { typeParameters, parameters, returnType } = firstMethod;
+
+      {
+        expect(typeParameters?.length).withContext("typeParameters should be a single-element array").toBe(1);
+        if (!typeParameters?.length)
+          return;
+
+        const firstType = typeParameters[0] as ts.OptionalKind<ts.TypeParameterDeclarationStructure>;
+        expect(firstType.name).toBe("S");
+        expect(firstType.constraint).toBe("string");
+      }
+
+      {
+        expect(parameters?.length).withContext("parameters should be a two-element array").toBe(2);
+        if (!parameters)
+          return;
+
+        const firstArg = parameters[0];
+        expect(firstArg.name).toBe("s");
+        expect(firstArg.type).toBe("S");
+        expect(firstArg.initializer).toBe(undefined);
+
+        const secondArg = parameters[1];
+        expect(secondArg.name).toBe("n");
+        expect(secondArg.type).toBe("number");
+        expect(secondArg.initializer).toBe(undefined);
+      }
+
+      expect(returnType).withContext("returnType should be 'string'").toBe("string");
     });
 
     xit("Symbol keys appear with a ComputedPropertyName", () => {

@@ -37,6 +37,8 @@ export type anyObjectType = object;
 
 export type unionOfStrings = "first string" | "second string";
 
+export type stringNumberAndBoolean = [ string, number, boolean ];
+
 enum OneTwoThree {
   one = 1,
   two,
@@ -51,6 +53,17 @@ export type objectWithFooProperty = {
 };
 export type stringArray = string[];
 export type voidFunction = () => void;
+
+export type NumberStringType = {
+  // typed so I can examine the type parameters
+  repeatForward<S extends string>(s: S, n: number): string;
+  repeatBack(n: number, s: string): string;
+};
+
+export type GetterAndSetter<T extends unknown> = {
+  get value(): T;
+  set value(newValue: T);
+};
 
 // intersections and unions
 /* not exported */ type objectWithBarProperty = {
