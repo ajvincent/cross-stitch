@@ -47,7 +47,9 @@ export type OneTwoThreeType = OneTwoThree;
 
 // Object type aliases
 export type objectWithFooProperty = {
-  fooObject: never;
+  fooObject: {
+    foo: never;
+  };
 };
 export type stringArray = string[];
 export type voidFunction = () => void;
