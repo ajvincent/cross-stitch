@@ -27,7 +27,6 @@ export type anySymbolType = symbol;
 export type undefinedType = undefined;
 export type nullType = null;
 export type neverType = never;
-export type anyType = any;
 export type unknownType = unknown;
 export type voidType = void;
 
@@ -43,11 +42,10 @@ enum OneTwoThree {
   one = 1,
   two,
   three,
-};
+}
 export type OneTwoThreeType = OneTwoThree;
 
 // Object type aliases
-export type emptyObjectType = {};
 export type objectWithFooProperty = {
   fooObject: never;
 };
@@ -60,7 +58,7 @@ export type NumberStringType = {
   repeatBack(n: number, s: string): string;
 };
 
-export type GetterAndSetter<T extends unknown> = {
+export type GetterAndSetter<T extends number> = {
   get value(): T;
   set value(newValue: T);
 };
@@ -89,7 +87,7 @@ type TypeHasSymbolKey = {
 }
 
 // indexed access type
-type FooExtracted = objectIntersectionType["fooObject"];
+export type FooExtracted = objectIntersectionType["fooObject"];
 
 // parameterized types
 
@@ -97,18 +95,22 @@ type FooExtracted = objectIntersectionType["fooObject"];
 // conditional type, mapped types, template literal type
 
 // mapped type
-type FiniteProperties = {
+export type FiniteProperties = {
   [key in "foo" | "bar"]: objectIntersectionType[`${key}Object`];
 };
 
-type ManyProperties = {
+export type ManyProperties = {
   // IndexSignature.  This is poison for TypeToClass.
   [key: string]: true;
 };
 
+export type ManyPropertiesMapped = {
+  [key in keyof ManyProperties]: false;
+};
+
 // aliases to aliases
-type oneStringTypeAlias = oneStringType;
-type objectWithFooPropertyAlias = objectWithFooProperty;
+export type oneStringTypeAlias = oneStringType;
+export type objectWithFooPropertyAlias = objectWithFooProperty;
 
 // #endregion type aliases
 
@@ -126,12 +128,6 @@ interface ExtendedWop extends exportedWop, FooInterface
   bar: true;
 }
 
-interface EmptyInterface {};
-{
-  const empty: EmptyInterface = {};
-  void(empty);
-}
-
 {
   const Wop: ExtendedWop = {
     foo: true,
@@ -142,7 +138,7 @@ interface EmptyInterface {};
   void(Wop);
 }
 
-type FooInterfaceAlias = FooInterface;
+export type FooInterfaceAlias = FooInterface;
 
 // Indexed and Mapped interfaces
 

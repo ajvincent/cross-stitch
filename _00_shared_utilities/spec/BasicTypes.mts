@@ -10,10 +10,10 @@
  * This might turn out to be actually a Hard Problem.  There are be types with an
  * infinite set of field keys:
  *
- * type ManyProperties = {
+ * type ManyProperties = \{
  *   // IndexSignature, https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures
  *   [key: string]: true;
- * };
+ * \};
  *
  * Those we cannot resolve in TypeToClass.  It's just not possible to generate all the keys
  * which this type matches.
@@ -21,10 +21,10 @@
  * So we have to figure out from the type structure if we have a finite set of keys or not.
  * This must happen before we attempt to figure out the type definitions for each key.
  *
- * type FiniteProperties = {
+ * type FiniteProperties = \{
  *   // MappedType, https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
  *   [key in "foo" | "bar"]: someOtherType;
- * };
+ * \};
  *
  * Mapped types give us a different sort of trouble.  We might be better off replacing, at least temporarily,
  * the MappedType node with a set of other nodes.  The good news is the claim in the handbook that the
@@ -36,7 +36,6 @@ import ts from "ts-morph";
 
 import path from "path";
 import url from "url";
-import { type } from "os";
 
 describe("Basic type support from ts-morph: ", () => {
   let BasicTypes: ts.SourceFile;
@@ -101,7 +100,6 @@ describe("Basic type support from ts-morph: ", () => {
 
   describe("Object type aliases report .getType().isObject() === true for", () => {
     const typeAndSpecArray: [typeName: string, expectation: string][] = [
-      ["emptyObjectType", "an empty object type"],
       ["objectWithFooProperty", "an object with a property"],
       ["stringArray", "an array of strings"],
       ["stringNumberAndBoolean", "a tuple of specific types"],
@@ -159,24 +157,16 @@ describe("Basic type support from ts-morph: ", () => {
 
     const firstTypeParam = typeParameters[0].getStructure();
     expect(firstTypeParam.name).toBe("T");
-    expect(firstTypeParam.constraint).toBe("unknown");
+    expect(firstTypeParam.constraint).toBe("number");
   });
 
   // #endregion type aliases
 
   describe("Interfaces", () => {
-    describe("report .getType().isObject() === true", () => {
-      it("for a non-empty interface", () => {
-        const decl = BasicTypes.getInterfaceOrThrow("FooInterface");
-        const type = decl.getType();
-        expect(type.isObject()).toBe(true);
-      });
-
-      it("for an empty interface", () => {
-        const decl = BasicTypes.getInterfaceOrThrow("EmptyInterface");
-        const type = decl.getType();
-        expect(type.isObject()).toBe(true);
-      });
+    it("report .getType().isObject() === true for a non-empty interface", () => {
+      const decl = BasicTypes.getInterfaceOrThrow("FooInterface");
+      const type = decl.getType();
+      expect(type.isObject()).toBe(true);
     });
 
     it("can have multiple interface declarations via their type symbol", () => {
@@ -190,7 +180,7 @@ describe("Basic type support from ts-morph: ", () => {
   });
 
   xdescribe("Import declarations", () => {
-
+    void(null);
   });
 
   function getAliasTypeNodeByName<
@@ -235,8 +225,6 @@ describe("Basic type support from ts-morph: ", () => {
     });
 
     it("GetAccessorSignature and SetAccessorSignature of a TypeLiteral", () => {
-      const alias = BasicTypes.getTypeAliasOrThrow("GetterAndSetter");
-
       const typeLiteral = getAliasTypeNodeByName<
         ts.SyntaxKind.TypeLiteral
       >("GetterAndSetter", ts.SyntaxKind.TypeLiteral);
@@ -315,7 +303,7 @@ describe("Basic type support from ts-morph: ", () => {
     });
 
     xdescribe("TypeReference nodes", () => {
-
+      void(null);
     });
 
     it("Mapped types", () => {
