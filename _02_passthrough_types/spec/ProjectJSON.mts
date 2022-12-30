@@ -164,7 +164,7 @@ describe("ProjectJSON: StaticValidator", () => {
       expect(x.cause).toBeInstanceOf(AggregateError);
       if (x.cause instanceof AggregateError) {
         expect(x.cause.errors.length).toBe(1);
-        expect(x.cause.errors[0].message).toBe("must have required property 'keys'");
+        expect((x.cause.errors[0] as Error).message).toBe("must have required property 'keys'");
       }
     });
 
@@ -440,7 +440,7 @@ describe("ProjectJSON: StaticValidator", () => {
           const rejects = !shouldAccept(setReturn, role);
           it(`${role} does ${rejects ? "not " : ""}validate`, () => {
             const foo = (rawData.keys as KeysAsProperties).foo as BodyComponentData | PassiveComponentData;
-            foo.setReturn = setReturn as setReturnTypes;
+            foo.setReturn = setReturn;
             foo.role = role as roleItemsTypes;
 
             const expectation = expect(() => StaticValidator([rawData]));

@@ -31,6 +31,7 @@ describe("Project Driver creates an EntryClass which", () => {
     SpyClass = await getModuleDefaultClass<PassThroughClassWithSpy>(moduleSource, "PassThrough_JasmineSpy_WithReturn.mjs");
 
     ComponentMap = await getModulePart<
+      "default",
       InstanceToComponentMap_Type<NumberStringType, NumberStringType>
     >(moduleSource, "PassThroughClassType.mjs", "default");
   });
@@ -112,6 +113,7 @@ describe("Project Driver with optimized creates an EntryClass with three key com
     );
 
     ComponentMap = await getModulePart<
+      "default",
       InstanceToComponentMap_Type<NumberStringType, NumberStringType>
     >(moduleSource, "PassThroughClassType.mjs", "default");
   });
@@ -169,7 +171,7 @@ describe("Project Driver with optimized creates an EntryClass with three key com
       const args = spy.calls.argsFor(0);
       expect(args[0]).toBe("repeatForward");
       //expect(args[1]).toBe(passThrough);
-      expect(args[1].entryPoint).toBe(instance);
+      expect((args[1] as {entryPoint: unknown}).entryPoint).toBe(instance);
       expect(args[2]).toBe("foo");
       expect(args[3]).toBe(3);
       expect(args.length).toBe(4);

@@ -98,7 +98,7 @@ export default class TypeToClass {
       this.#targetClass.addImplements(typeName);
     else {
       this.#targetClass.addImplements(`Pick<${typeName}, ${
-        Array.from(acceptedFields.values()).map(v => `"${v}"`).join(" | ")
+        Array.from(acceptedFields.values()).map(v => v ? `"${v}"` : `null`).join(" | ")
       }>`);
     }
 

@@ -20,7 +20,9 @@ export default async function ProjectDriver(
 {
   let configs: ReadonlyArray<BuildData>;
   {
-    const contents = JSON.parse(await fs.readFile(pathToProjectJSON, { encoding: "utf-8"}));
+    const contents: unknown = JSON.parse(
+      await fs.readFile(pathToProjectJSON, { encoding: "utf-8"})
+    );
     if (!StaticValidator(contents))
       throw new Error("static validation failed");
     configs = contents;

@@ -37,12 +37,13 @@ describe("Component class generator", () => {
     ThrowClass = await getModuleDefaultClass<PassThroughClassType>(moduleSource, "PassThrough_NotImplemented.mjs");
 
     ComponentMap = await getModulePart<
+      "default",
       InstanceToComponentMap_TypeDefault<NumberStringType, NumberStringType>
     >(moduleSource, "PassThroughClassType.mjs", "default");
   });
 
   it("creates the base 'not-yet implemented' class", () => {
-    expect(Reflect.ownKeys(BaseClass.prototype)).toEqual([
+    expect(Reflect.ownKeys(BaseClass.prototype as object)).toEqual([
       "constructor",
       "repeatForward",
       "repeatBack",
@@ -63,7 +64,7 @@ describe("Component class generator", () => {
        This tests that the generated pass-through classes are compatible components for the
        key-to-component maps.
     */
-    expect(Reflect.ownKeys(SpyClass.prototype)).toEqual([
+    expect(Reflect.ownKeys(SpyClass.prototype as object)).toEqual([
       "constructor",
       "repeatForward",
       "repeatBack",
@@ -102,7 +103,7 @@ describe("Component class generator", () => {
     const args = spyInstanceReturn.spy.calls.argsFor(0);
     expect(args[0]).toBe("repeatForward");
     expect(args[1]).toBe(passThrough);
-    expect(args[1].entryPoint).toBe(instance);
+    expect((args[1] as {entryPoint: unknown}).entryPoint).toBe(instance);
     expect(args[2]).toBe("foo");
     expect(args[3]).toBe(3);
     expect(args.length).toBe(4);
@@ -133,8 +134,8 @@ describe("Component class generator", () => {
 
     const args = spyInstanceReturn.spy.calls.argsFor(0);
     expect(args[0]).toBe("repeatBack");
-    // I can't really check args[1], as that's a PassThroughArgument I haven't seen.
-    expect(args[1].entryPoint).toBe(instance);
+
+    expect((args[1] as {entryPoint: unknown}).entryPoint).toBe(instance);
     expect(args[2]).toBe("foo");
     expect(args[3]).toBe(3);
     expect(args.length).toBe(4);
@@ -167,8 +168,8 @@ describe("Component class generator", () => {
 
     const args = spyInstanceReturn.spy.calls.argsFor(0);
     expect(args[0]).toBe("repeatBack");
-    expect(args[1].entryPoint).toBe(instance);
     // I can't really check args[1], as that's a PassThroughArgument I haven't seen.
+    expect((args[1] as {entryPoint: unknown}).entryPoint).toBe(instance);
     expect(args[2]).toBe("foo");
     expect(args[3]).toBe(3);
     expect(args.length).toBe(4);

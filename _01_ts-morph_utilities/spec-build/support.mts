@@ -278,7 +278,8 @@ async function throwNumberStringOrBar(
   if (!pass)
     throw new Error("Expected exception for NumberStringOrType, but none was thrown!");
 
-  await destFile.delete();
+  destFile.delete();
+  return Promise.resolve();
 }
 
 async function buildFooExtendsNumberStringClass(

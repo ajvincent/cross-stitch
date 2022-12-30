@@ -46,6 +46,7 @@ export default class NumberStringClass implements NumberStringType {
         if (!hasReturn)
             throw new Error("No resolved result!");
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return result;
     }
 }

@@ -1,7 +1,15 @@
-/* https://nodejs.org/api/packages.html#imports
-   This is an internal build tool, so it's all right to use a private import.
- */
-import { DefaultWeakMap } from "#sharedUtilities/DefaultMap.mjs";
+/* This class is so trivial, it's worth copying in here. */
+class DefaultWeakMap<K extends object, V> extends WeakMap<K, V>
+{
+  getDefault(key: K, builder: () => V): V {
+    let value = this.get(key);
+    if (!value) {
+      value = builder();
+      this.set(key, value);
+    }
+    return value;
+  }
+}
 
 import {
   AnyFunction,

@@ -10,6 +10,10 @@ import TypeToClass, {
 import {
   PromiseAllSequence,
 } from "../../_00_shared_utilities/source/PromiseTypes.mjs";
+import {
+  type UserAccessorDictionary,
+  type UserMethodStructure
+} from "../source/SignaturesToDeclarations.mjs";
 
 const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
 
@@ -43,7 +47,7 @@ async function saveGeneratedFile(generated: ts.SourceFile) : Promise<void>
 }
 
 const NotImplementedCallbacks: TypeToClassCallbacks = {
-  async maybeAddMethod(classDeclaration, structure)
+  maybeAddMethod(classDeclaration, structure) : Promise<UserMethodStructure>
   {
     void(classDeclaration);
     structure.statements = [];
@@ -52,16 +56,16 @@ const NotImplementedCallbacks: TypeToClassCallbacks = {
       structure.statements.push(...structure.parameters.map(p => `void(${p.name});\n`));
     }
     structure.statements.push(`throw new Error("not yet implemented");`);
-    return structure;
+    return Promise.resolve(structure);
   },
 
-  async maybeAddProperty(classDeclaration, structures)
+  maybeAddProperty(classDeclaration, structures) : Promise<UserAccessorDictionary>
   {
     void(classDeclaration);
 
     const { getter, setter } = structures;
     getter.statements = setter.statements = [`throw new Error("not yet implemented");`];
-    return { getter, setter };
+    return Promise.resolve({ getter, setter });
   },
 };
 

@@ -1,8 +1,7 @@
-import {
+import Ajv, {
   JSONSchemaType,
   ErrorObject
 } from "ajv";
-import Ajv from 'ajv';
 
 type ComponentLocationBaseData = {
   readonly "type": "component",
@@ -274,7 +273,7 @@ const BuildDataArraySchema: JSONSchemaType<BuildDataArray> = {
   "items": BuildDataSchema
 };
 
-const ajv = new Ajv.default();
+const ajv = new Ajv();
 const SchemaValidator = ajv.compile(BuildDataArraySchema);
 
 export function StaticValidator(data: unknown) : data is BuildDataArray

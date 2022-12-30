@@ -29,7 +29,10 @@ describe("PromiseTypes.Accumulator", () => {
       "Accumulator failed on an added task"
     );
 
-    const aggError = await acc.finalPromise.catch(exn => exn);
+    const aggError = await acc.finalPromise.then(
+      () : never => { throw new Error("unreached") },
+      (exn: AggregateError) => exn
+    );
     expect(aggError).toBeInstanceOf(AggregateError);
     expect(aggError.errors.length).toBe(1);
     expect(aggError.errors[0]).toBe(exn);
@@ -37,10 +40,10 @@ describe("PromiseTypes.Accumulator", () => {
 
   it("allows adding more tasks while a following task is pending", async () => {
     const deferred0: Deferred<true> = new Deferred;
-    acc.track(deferred0.promise);
+    void(acc.track(deferred0.promise));
 
     const deferred1: Deferred<true> = new Deferred;
-    acc.track(deferred1.promise);
+    void(acc.track(deferred1.promise));
 
     await expectAsync(Promise.race([
       acc.finalPromise,
@@ -61,10 +64,10 @@ describe("PromiseTypes.Accumulator", () => {
 
   it("allows adding more tasks while a preceding task is pending", async () => {
     const deferred0: Deferred<true> = new Deferred;
-    acc.track(deferred0.promise);
+    void(acc.track(deferred0.promise));
 
     const deferred1: Deferred<true> = new Deferred;
-    acc.track(deferred1.promise);
+    void(acc.track(deferred1.promise));
 
     await expectAsync(Promise.race([
       acc.finalPromise,
