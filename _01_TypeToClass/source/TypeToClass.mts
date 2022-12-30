@@ -112,7 +112,7 @@ export default class TypeToClass {
    * @param typeName   - The type to extract.
    * @returns an interface or type alias node.
    */
-   #extractFirstTypeNode(
+  #extractFirstTypeNode(
     sourceFile: ts.SourceFile,
     typeName: string,
   ) : InterfaceOrTypeAlias

@@ -89,9 +89,7 @@ describe("Basic type support from ts-morph: ", () => {
 
     typeAndSpecArray.forEach(([typeName, expectation]) => {
       it(expectation, () => {
-        const decl = BasicTypes.getTypeAliasOrThrow(typeName).asKindOrThrow(
-          ts.SyntaxKind.TypeAliasDeclaration
-        );
+        const decl = BasicTypes.getTypeAliasOrThrow(typeName);
         const type = decl.getType();
         expect(type.isObject()).toBe(false);
       });

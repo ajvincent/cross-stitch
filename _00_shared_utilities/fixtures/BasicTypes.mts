@@ -97,8 +97,10 @@ export type FooExtracted = objectIntersectionType["fooObject"];
 // conditional type, mapped types, template literal type
 
 // mapped type
+
+type FooOrBar = "foo" | "bar";
 export type FiniteProperties = {
-  [key in "foo" | "bar"]: objectIntersectionType[`${key}Object`];
+  [key in FooOrBar]: objectIntersectionType[`${key}Object`];
 };
 
 export type ManyProperties = {
