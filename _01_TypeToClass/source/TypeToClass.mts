@@ -23,7 +23,8 @@ export type TypeToClassCallbacks =
   ) : Promise<UserPropertyDictionary | UserAccessorDictionary | null>;
 };
 
-export default class TypeToClass {
+export default class TypeToClass
+{
   readonly #destFile: ts.SourceFile;
   #targetClass: ts.ClassDeclaration;
   readonly #userCallbacks: TypeToClassCallbacks;
@@ -214,7 +215,6 @@ export default class TypeToClass {
       throw new Error(`Name mismatch between field and ${logDescription}: "${fieldName}" versus "${structureName}"`);
     }
   }
-
 
   #importDeclarations = new WeakMap<ts.SourceFile, ts.ImportDeclaration>;
 

@@ -147,9 +147,7 @@ describe("Basic type support from ts-morph: ", () => {
   });
 
   it("TypeAliasDeclaration reports its type parameters", () => {
-    const decl = BasicTypes.getTypeAliasOrThrow("GetterAndSetter").asKindOrThrow(
-      ts.SyntaxKind.TypeAliasDeclaration
-    );
+    const decl = BasicTypes.getTypeAliasOrThrow("GetterAndSetter");
     const typeParameters = decl.getTypeParameters();
     expect(typeParameters.length).toBe(1);
 
@@ -368,7 +366,9 @@ return new Map<ts.Symbol, ts.Node[]>(mappedProperties.map(propertyAsSymbol => [
           const fooObjectPropertyNode = fooPropertySymbol.getDeclarations()[0].asKindOrThrow(ts.SyntaxKind.PropertySignature);
           const fooObjectTypeNode = fooObjectPropertyNode.getTypeNodeOrThrow();
 
-          expect(actualNodes[0]).withContext("we should be able to match a named property").toBe(fooObjectTypeNode);
+          expect(actualNodes[0])
+            .withContext("we should be able to match a named property")
+            .toBe(fooObjectTypeNode);
         }
       }
     });
