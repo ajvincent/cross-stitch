@@ -67,7 +67,7 @@ export type CallableType = {
 
 export type ConstructableType = {
   new<Type extends string>(x: Type) : NumberStringType;
-  new (y: number) : NumberStringType;
+  new (y: number) : null;
 };
 
 // intersections and unions

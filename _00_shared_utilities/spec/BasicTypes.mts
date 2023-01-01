@@ -295,7 +295,7 @@ describe("Basic type support from ts-morph: ", () => {
 
         expect(parameters?.length)
           .withContext("parameters should be a one-element array")
-          .toBe(2);
+          .toBe(1);
         if (parameters?.length !== 1)
           return;
 
@@ -316,9 +316,9 @@ describe("Basic type support from ts-morph: ", () => {
         const { typeParameters, parameters, returnType } = signature;
 
         expect(typeParameters)
-          .withContext("typeParameters should be undefined")
-          .toBe(undefined);
-        if (typeParameters)
+          .withContext("typeParameters should be an empty array")
+          .toEqual([]);
+        if (typeParameters?.length !== 0)
           return;
 
         expect(parameters?.length)
@@ -333,8 +333,8 @@ describe("Basic type support from ts-morph: ", () => {
         expect(firstArg.initializer).toBe(undefined);
 
         expect(returnType)
-          .withContext(`returnType should be "NumberStringType"`)
-          .toBe("NumberStringType");
+          .withContext(`returnType should be null`)
+          .toBe("null");
       }
     });
 
@@ -363,7 +363,7 @@ describe("Basic type support from ts-morph: ", () => {
 
         expect(parameters?.length)
           .withContext("parameters should be a one-element array")
-          .toBe(2);
+          .toBe(1);
         if (parameters?.length !== 1)
           return;
 
@@ -384,9 +384,9 @@ describe("Basic type support from ts-morph: ", () => {
         const { typeParameters, parameters, returnType } = signature;
 
         expect(typeParameters)
-          .withContext("typeParameters should be undefined")
-          .toBe(undefined);
-        if (typeParameters)
+          .withContext("typeParameters should be an empty array")
+          .toEqual([]);
+        if (typeParameters?.length !== 0)
           return;
 
         expect(parameters?.length)
@@ -401,8 +401,8 @@ describe("Basic type support from ts-morph: ", () => {
         expect(firstArg.initializer).toBe(undefined);
 
         expect(returnType)
-          .withContext(`returnType should be "NumberStringType"`)
-          .toBe("NumberStringType");
+          .withContext(`returnType`)
+          .toBe("null");
       }
     });
 
