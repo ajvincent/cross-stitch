@@ -31,38 +31,17 @@
  * type parameter's type operator must be a union of PropertyKey's.  So it's a finite, enumerable set, and
  * we should be able to extract the set easily.
  */
-
 import ts from "ts-morph";
 
-import path from "path";
-import url from "url";
+import BasicTypes, {
+  getAliasTypeNodeByName
+} from "../spec-utilities/BasicTypesSource.mjs";
+
+/*
+import CodeBlockTemporary from "../source/CodeBlock-Temporary.mjs";
+*/
 
 describe("Basic type support from ts-morph: ", () => {
-  let BasicTypes: ts.SourceFile;
-
-  beforeAll(() => {
-    const parentDir = path.resolve(url.fileURLToPath(import.meta.url), "../..");
-
-    const project = new ts.Project({
-      compilerOptions: {
-        lib: ["es2022"],
-        target: ts.ScriptTarget.ES2022,
-        module: ts.ModuleKind.ES2022,
-        moduleResolution: ts.ModuleResolutionKind.Node16,
-        sourceMap: true,
-        declaration: true,
-        strict: true,
-        esModuleInterop: true,
-        skipLibCheck: true,
-        forceConsistentCasingInFileNames: true,
-      }
-    });
-
-    BasicTypes = project.addSourceFileAtPath(
-      path.join(parentDir, "fixtures/BasicTypes.mts")
-    );
-  });
-
   // #region type aliases
   describe("Primitive type aliases report .getType().isObject() === false for", () => {
     const typeAndSpecArray: [typeName: string, expectation: string][] = [
@@ -149,11 +128,15 @@ describe("Basic type support from ts-morph: ", () => {
   it("TypeAliasDeclaration reports its type parameters", () => {
     const decl = BasicTypes.getTypeAliasOrThrow("GetterAndSetter");
     const typeParameters = decl.getTypeParameters();
-    expect(typeParameters.length).toBe(1);
+    expect(typeParameters.length).toBe(2);
 
     const firstTypeParam = typeParameters[0].getStructure();
     expect(firstTypeParam.name).toBe("T");
     expect(firstTypeParam.constraint).toBe("number");
+
+    const secondTypeParam = typeParameters[1].getStructure();
+    expect(secondTypeParam.name).toBe("U");
+    expect(typeof secondTypeParam.constraint).toBe("undefined");
   });
 
   // #endregion type aliases
@@ -179,18 +162,8 @@ describe("Basic type support from ts-morph: ", () => {
     void(null);
   });
 
-  function getAliasTypeNodeByName<
-    TKind extends ts.SyntaxKind
-  >(
-    name: string,
-    kind: TKind
-  ) : ts.KindToNodeMappings[TKind]
-  {
-    return BasicTypes.getTypeAliasOrThrow(name).getTypeNodeOrThrow().asKindOrThrow(kind);
-  }
-
   describe("Extracting fields of object type aliases and interfaces:", () => {
-    it("TypeLiteral with no mapped types", () => {
+    it("TypeLiteral", () => {
       const typeLiteral = getAliasTypeNodeByName<
         ts.SyntaxKind.TypeLiteral
       >("NumberStringType", ts.SyntaxKind.TypeLiteral);
@@ -290,12 +263,43 @@ describe("Basic type support from ts-morph: ", () => {
       expect(returnType).withContext("returnType should be 'string'").toBe("string");
     });
 
-    xit("Symbol keys appear with a ComputedPropertyName", () => {
-      const decl = BasicTypes.getTypeAliasOrThrow("TypeHasSymbolKey")
-      const typeNode = decl.getTypeNode();
-      if (!ts.Node.isTypeLiteral(typeNode))
-        throw new Error("expected TypeLiteralNode");
+    it("Symbol keys appear with a ComputedPropertyName", () => {
+      const typeLiteral = getAliasTypeNodeByName<
+        ts.SyntaxKind.TypeLiteral
+      >("TypeHasSymbolKey", ts.SyntaxKind.TypeLiteral);
 
+      const members = typeLiteral.getMembers();
+      const structures = members.map(m => m.getStructure());
+      expect(structures.length).toBe(2);
+
+      const [symbolStructure, stringStructure] = structures;
+
+      expect(symbolStructure.kind).withContext(
+        "first member should be a PropertySignature"
+      ).toBe(ts.StructureKind.PropertySignature);
+      if (!ts.Structure.isPropertySignature(symbolStructure))
+        return;
+      expect(symbolStructure.name).toBe("[SymbolTypeKey]");
+
+      expect(stringStructure.kind)
+        .withContext("second member should be a PropertySignature")
+        .toBe(ts.StructureKind.PropertySignature);
+      if (!ts.Structure.isPropertySignature(stringStructure))
+        return;
+      expect(stringStructure.name).toBe("\"[SymbolTypeKey]\"");
+    });
+
+    it("with other signatures", () => {
+      const typeLiteral = getAliasTypeNodeByName<
+        ts.SyntaxKind.TypeLiteral
+      >("ManyPropertiesWithRequired", ts.SyntaxKind.TypeLiteral);
+
+      const members = typeLiteral.getMembers();
+      const structures = members.map(m => m.getStructure());
+      expect(structures.length).toBe(2);
+
+      expect(ts.Structure.isIndexSignature(structures[0])).toBe(true);
+      expect(ts.Structure.isPropertySignature(structures[1])).toBe(true);
     });
 
     xdescribe("TypeReference nodes", () => {

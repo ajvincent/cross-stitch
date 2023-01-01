@@ -60,10 +60,14 @@ export type NumberStringType = {
   repeatBack(n: number, s: string): string;
 };
 
-export type GetterAndSetter<T extends number> = {
+export type GetterAndSetter<T extends number, U> = {
   get value(): T;
   set value(newValue: T);
+  
+  other: U;
 };
+
+export type GetterAndSetterString<T extends number> = GetterAndSetter<T, string>;
 
 // intersections and unions
 /* not exported */ type objectWithBarProperty = {
@@ -111,6 +115,11 @@ export type ManyProperties = {
 export type ManyPropertiesMapped = {
   [key in keyof ManyProperties]: false;
 };
+
+export type ManyPropertiesWithRequired = {
+  [key: string]: true;
+  mustExist: true;
+}
 
 // aliases to aliases
 export type oneStringTypeAlias = oneStringType;
