@@ -17,4 +17,5 @@
 - [ ] Symbol key in type
 - [ ] Property getters defined directly on the type
 - [ ] Property setters defined directly on the type
-- [ ] Multiple call signatures (testcase wanted!)
+- [ ] Call signatures
+- [ ] Construct signatures

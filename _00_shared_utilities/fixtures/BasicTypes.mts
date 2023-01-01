@@ -106,6 +106,9 @@ export type GetterAndSetter<T extends number, U> = {
 
 export type GetterAndSetterString<T extends number> = GetterAndSetter<T, string>;
 
+// resolving a type parameter
+export type GetterAndSetterBoolean<T extends number> = GetterAndSetter<T, boolean>;
+
 // keyof type, typeof type
 // conditional type, mapped types, template literal type
 
@@ -116,13 +119,14 @@ export type FiniteProperties = {
   [key in FooOrBar]: objectIntersectionType[`${key}Object`];
 };
 
-export type ManyProperties = {
-  // IndexSignature.  This is poison for TypeToClass.
-  [key: string]: true;
-};
-
 export type ManyPropertiesMapped = {
   [key in keyof ManyProperties]: false;
+};
+
+// Index signatures.  These are poison for TypeToClass.
+
+export type ManyProperties = {
+  [key: string]: true;
 };
 
 export type ManyPropertiesWithRequired = {
