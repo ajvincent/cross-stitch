@@ -8,7 +8,7 @@ import {
 import matchTypeAndName from "../../spec-utilities/matchTypeAndName.mjs";
 import onlyFieldNodes from "../../spec-utilities/onlyFieldNodes.mjs";
 
-describe("TypeNodesWithChildren/TypeLiteral gets signatures for type", () => {
+describe("ExtractMembers/TypeLiteral gets signatures for type literals:", () => {
   const {
     MethodSignature,
     PropertySignature,

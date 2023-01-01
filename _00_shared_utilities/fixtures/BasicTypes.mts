@@ -149,9 +149,17 @@ export interface FooInterface {
   foo2: true;
 }
 
-interface ExtendedWop extends exportedWop, FooInterface
+export interface BarInterface extends FooInterface
 {
   bar: true;
+}
+
+export interface TwiceFooInterface extends FooInterface, BarInterface
+{
+}
+
+interface ExtendedWop extends exportedWop, BarInterface
+{
 }
 
 {

@@ -1,12 +1,13 @@
 import ts from "ts-morph";
 import {
+  FieldNode,
   type ChildListsResult,
 } from "./childLists.mjs";
 
 import router from "./router.mjs";
 
 export default function mergeChildLists(
-  nodes: ts.TypeNode[]
+  nodes: (ts.TypeNode | ts.InterfaceDeclaration)[]
 ) : ChildListsResult
 {
   if (nodes.length === 1)
@@ -15,23 +16,38 @@ export default function mergeChildLists(
   const results = nodes.map(node => router(node));
 
   return {
-    fieldNodes: results.flatMap(
-      result => result.fieldNodes
+    fieldNodes: flatUniqueMap<FieldNode>(
+      results.map(result => result.fieldNodes)
     ),
-    unresolvedTypeNodes: results.flatMap(
-      result => result.unresolvedTypeNodes
+
+    unresolvedTypeNodes: flatUniqueMap<ts.TypeNode>(
+      results.map(result => result.unresolvedTypeNodes)
     ),
-    indexSignatures: results.flatMap(
-      result => result.indexSignatures
+
+    indexSignatures: flatUniqueMap<ts.IndexSignatureDeclaration>(
+      results.map(result => result.indexSignatures)
     ),
-    mappedTypes: results.flatMap(
-      result => result.mappedTypes
+
+    mappedTypes: flatUniqueMap<ts.MappedTypeNode>(
+      results.map(result => result.mappedTypes)
     ),
-    constructorSignatures: results.flatMap(
-      result => result.constructorSignatures
+
+    constructorSignatures: flatUniqueMap<ts.ConstructSignatureDeclaration>(
+      results.map(result => result.constructorSignatures)
     ),
-    callSignatures: results.flatMap(
-      result => result.callSignatures
+
+    callSignatures: flatUniqueMap<ts.CallSignatureDeclaration>(
+      results.map(result => result.callSignatures)
     ),
   };
+}
+
+/* I tried too hard to be clever and find a way to do flattening on the result array.
+   I now realize all this would have done is made the code above unreadable.
+*/
+function flatUniqueMap<T extends ts.Node>(
+  element_2dArray: T[][]
+) : T[]
+{
+  return Array.from(new Set<T>(element_2dArray.flat()));
 }
