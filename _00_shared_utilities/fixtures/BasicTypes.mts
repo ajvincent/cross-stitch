@@ -60,14 +60,15 @@ export type NumberStringType = {
   repeatBack(n: number, s: string): string;
 };
 
-export type GetterAndSetter<T extends number, U> = {
-  get value(): T;
-  set value(newValue: T);
-  
-  other: U;
+export type CallableType = {
+  <Type extends string>(x: Type) : NumberStringType;
+  (y: number) : null;
 };
 
-export type GetterAndSetterString<T extends number> = GetterAndSetter<T, string>;
+export type ConstructableType = {
+  new<Type extends string>(x: Type) : NumberStringType;
+  new (y: number) : NumberStringType;
+};
 
 // intersections and unions
 /* not exported */ type objectWithBarProperty = {
@@ -96,6 +97,14 @@ type TypeHasSymbolKey = {
 export type FooExtracted = objectIntersectionType["fooObject"];
 
 // parameterized types
+export type GetterAndSetter<T extends number, U> = {
+  get value(): T;
+  set value(newValue: T);
+
+  other: U;
+};
+
+export type GetterAndSetterString<T extends number> = GetterAndSetter<T, string>;
 
 // keyof type, typeof type
 // conditional type, mapped types, template literal type

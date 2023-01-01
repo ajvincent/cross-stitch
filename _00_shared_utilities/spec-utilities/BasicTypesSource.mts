@@ -20,10 +20,9 @@ const project = new ts.Project({
   }
 });
 
-const BasicTypes = project.addSourceFileAtPath(
+export const BasicTypes = project.addSourceFileAtPath(
   path.join(parentDir, "fixtures/BasicTypes.mts")
 );
-export default BasicTypes;
 
 export function getAliasTypeNodeByName<
   TKind extends ts.SyntaxKind
@@ -36,5 +35,3 @@ export function getAliasTypeNodeByName<
     .getTypeNodeOrThrow()
     .asKindOrThrow(kind);
 }
-
-

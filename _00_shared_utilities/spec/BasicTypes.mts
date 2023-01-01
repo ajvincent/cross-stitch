@@ -33,7 +33,8 @@
  */
 import ts from "ts-morph";
 
-import BasicTypes, {
+import {
+  BasicTypes,
   getAliasTypeNodeByName
 } from "../spec-utilities/BasicTypesSource.mjs";
 
@@ -235,8 +236,10 @@ describe("Basic type support from ts-morph: ", () => {
       const { typeParameters, parameters, returnType } = firstMethod;
 
       {
-        expect(typeParameters?.length).withContext("typeParameters should be a single-element array").toBe(1);
-        if (!typeParameters?.length)
+        expect(typeParameters?.length)
+          .withContext("typeParameters should be a single-element array")
+          .toBe(1);
+        if (typeParameters?.length !== 1)
           return;
 
         const firstType = typeParameters[0] as ts.OptionalKind<ts.TypeParameterDeclarationStructure>;
@@ -245,8 +248,10 @@ describe("Basic type support from ts-morph: ", () => {
       }
 
       {
-        expect(parameters?.length).withContext("parameters should be a two-element array").toBe(2);
-        if (!parameters)
+        expect(parameters?.length)
+          .withContext("parameters should be a two-element array")
+          .toBe(2);
+        if (parameters?.length !== 2)
           return;
 
         const firstArg = parameters[0];
@@ -260,7 +265,145 @@ describe("Basic type support from ts-morph: ", () => {
         expect(secondArg.initializer).toBe(undefined);
       }
 
-      expect(returnType).withContext("returnType should be 'string'").toBe("string");
+      expect(returnType)
+        .withContext("returnType should be 'string'")
+        .toBe("string");
+    });
+
+    it("Call signatures of a TypeLiteral", () => {
+      const typeLiteral = getAliasTypeNodeByName<
+        ts.SyntaxKind.TypeLiteral
+      >("CallableType", ts.SyntaxKind.TypeLiteral);
+
+      const members = typeLiteral.getMembers();
+      expect(members.length).toBe(2);
+
+      {
+        const signature = members[0].asKindOrThrow(
+          ts.SyntaxKind.CallSignature
+        ).getStructure();
+        const { typeParameters, parameters, returnType } = signature;
+
+        expect(typeParameters?.length)
+          .withContext("typeParameters should be a single-element array")
+          .toBe(1);
+        if (!typeParameters?.length)
+          return;
+        const firstType = typeParameters[0] as ts.OptionalKind<ts.TypeParameterDeclarationStructure>;
+        expect(firstType.name).toBe("Type");
+        expect(firstType.constraint).toBe("string");
+
+        expect(parameters?.length)
+          .withContext("parameters should be a one-element array")
+          .toBe(2);
+        if (parameters?.length !== 1)
+          return;
+
+        const firstArg = parameters[0];
+        expect(firstArg.name).toBe("x");
+        expect(firstArg.type).toBe("Type");
+        expect(firstArg.initializer).toBe(undefined);
+
+        expect(returnType)
+          .withContext(`returnType should be "NumberStringType"`)
+          .toBe("NumberStringType");
+      }
+
+      {
+        const signature = members[1].asKindOrThrow(
+          ts.SyntaxKind.CallSignature
+        ).getStructure();
+        const { typeParameters, parameters, returnType } = signature;
+
+        expect(typeParameters)
+          .withContext("typeParameters should be undefined")
+          .toBe(undefined);
+        if (typeParameters)
+          return;
+
+        expect(parameters?.length)
+          .withContext("parameters should be a one-element array")
+          .toBe(1);
+        if (parameters?.length !== 1)
+          return;
+
+        const firstArg = parameters[0];
+        expect(firstArg.name).toBe("y");
+        expect(firstArg.type).toBe("number");
+        expect(firstArg.initializer).toBe(undefined);
+
+        expect(returnType)
+          .withContext(`returnType should be "NumberStringType"`)
+          .toBe("NumberStringType");
+      }
+    });
+
+    it("Construct signatures of a TypeLiteral", () => {
+      const typeLiteral = getAliasTypeNodeByName<
+        ts.SyntaxKind.TypeLiteral
+      >("ConstructableType", ts.SyntaxKind.TypeLiteral);
+
+      const members = typeLiteral.getMembers();
+      expect(members.length).toBe(2);
+
+      {
+        const signature = members[0].asKindOrThrow(
+          ts.SyntaxKind.ConstructSignature
+        ).getStructure();
+        const { typeParameters, parameters, returnType } = signature;
+
+        expect(typeParameters?.length)
+          .withContext("typeParameters should be a single-element array")
+          .toBe(1);
+        if (!typeParameters?.length)
+          return;
+        const firstType = typeParameters[0] as ts.OptionalKind<ts.TypeParameterDeclarationStructure>;
+        expect(firstType.name).toBe("Type");
+        expect(firstType.constraint).toBe("string");
+
+        expect(parameters?.length)
+          .withContext("parameters should be a one-element array")
+          .toBe(2);
+        if (parameters?.length !== 1)
+          return;
+
+        const firstArg = parameters[0];
+        expect(firstArg.name).toBe("x");
+        expect(firstArg.type).toBe("Type");
+        expect(firstArg.initializer).toBe(undefined);
+
+        expect(returnType)
+          .withContext(`returnType should be "NumberStringType"`)
+          .toBe("NumberStringType");
+      }
+
+      {
+        const signature = members[1].asKindOrThrow(
+          ts.SyntaxKind.ConstructSignature
+        ).getStructure();
+        const { typeParameters, parameters, returnType } = signature;
+
+        expect(typeParameters)
+          .withContext("typeParameters should be undefined")
+          .toBe(undefined);
+        if (typeParameters)
+          return;
+
+        expect(parameters?.length)
+          .withContext("parameters should be a one-element array")
+          .toBe(1);
+        if (parameters?.length !== 1)
+          return;
+
+        const firstArg = parameters[0];
+        expect(firstArg.name).toBe("y");
+        expect(firstArg.type).toBe("number");
+        expect(firstArg.initializer).toBe(undefined);
+
+        expect(returnType)
+          .withContext(`returnType should be "NumberStringType"`)
+          .toBe("NumberStringType");
+      }
     });
 
     it("Symbol keys appear with a ComputedPropertyName", () => {
