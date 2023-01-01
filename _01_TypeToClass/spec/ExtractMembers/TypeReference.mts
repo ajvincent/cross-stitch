@@ -1,6 +1,6 @@
 import ts from "ts-morph";
 
-import router from "../../source/TypeNodesWithChildren/router.mjs";
+import router from "../../source/ExtractMembers/router.mjs";
 import {
   getAliasTypeNodeByName
 } from "../../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";

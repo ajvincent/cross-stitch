@@ -62,12 +62,21 @@ export default class TypeToClass
    *
    * @param sourceFile - The source file.
    * @param typeName   - The type to extract.
+   * @param parametersMap - parameters to apply to the type.
+   * @param classParametersMap - parameters to add to the class definition.
    */
   async addTypeAliasOrInterface(
     sourceFile: ts.SourceFile,
-    typeName: string
+    typeName: string,
+    parametersMap: Map<string, string> = new Map,
+    classParametersMap: Set<string> = new Set,
   ) : Promise<void>
   {
+    if (parametersMap.size)
+      throw new Error("parametersMap must be empty for now - this feature is not yet supported!");
+    if (classParametersMap.size)
+      throw new Error("classParametersMap must be empty for now - this feature is not yet supported!");
+
     const firstTypeNode = this.#extractFirstTypeNode(sourceFile, typeName);
     const type = firstTypeNode.getType();
 

@@ -1,6 +1,6 @@
 import ts from "ts-morph";
 
-import mergeChildLists from "../../source/TypeNodesWithChildren/mergeChildLists.mjs";
+import mergeChildLists from "../../source/ExtractMembers/mergeChildLists.mjs";
 import {
   getAliasTypeNodeByName
 } from "../../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";

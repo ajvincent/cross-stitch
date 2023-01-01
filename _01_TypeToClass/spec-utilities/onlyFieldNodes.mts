@@ -1,6 +1,6 @@
 import {
   type ChildListsResult,
-} from "../source/TypeNodesWithChildren/childLists.mjs";
+} from "../source/ExtractMembers/childLists.mjs";
 
 export default function onlyFieldNodes(results: ChildListsResult) : void
 {
