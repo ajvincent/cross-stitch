@@ -44,6 +44,8 @@ export default function mergeChildLists(
 
 /* I tried too hard to be clever and find a way to do flattening on the result array.
    I now realize all this would have done is made the code above unreadable.
+
+   Plus, I couldn't get it to work...
 */
 function flatUniqueMap<T extends ts.Node>(
   element_2dArray: T[][]

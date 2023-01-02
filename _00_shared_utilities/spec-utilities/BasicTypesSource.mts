@@ -35,3 +35,10 @@ export function getAliasTypeNodeByName<
     .getTypeNodeOrThrow()
     .asKindOrThrow(kind);
 }
+
+export function createTempFile(pathToFile: string) : ts.SourceFile
+{
+  return project.createSourceFile(
+    path.join(parentDir, "temp", pathToFile)
+  );
+}
