@@ -3,6 +3,7 @@ import { CodeBlockWriter } from "ts-morph";
 import {
   IndexedAccess,
   Intersection,
+  KeyofTypeofOperator,
   Root,
   StringWrapper,
   TypeArgumented,
@@ -46,6 +47,40 @@ describe("AliasTypeBuilders, exports:", () => {
       expect(
         () => new IndexedAccess(objectType)
       ).toThrowError("object type is already attached");
+    });
+  });
+
+  describe("KeyofTypeofOperator", () => {
+    let printer: KeyofTypeofOperator;
+
+    it("throws for neither the keyof nor the typeof operator", () => {
+      expect(
+        () => printer = new KeyofTypeofOperator(false, false)
+      ).toThrowError("You must set isKeyOf or isTypeOf");
+    });
+
+    it("allows the keyof operator alone", () => {
+      printer = new KeyofTypeofOperator(true, false);
+      printer.addLiteral("foo");
+
+      printer.print(writer);
+      expect(writer.toString()).toBe(`keyof foo`);
+    });
+
+    it("allows the typeof operator alone", () => {
+      printer = new KeyofTypeofOperator(false, true);
+      printer.addLiteral("foo");
+
+      printer.print(writer);
+      expect(writer.toString()).toBe(`typeof foo`);
+    });
+
+    it("allows both the keyof and typeof operators", () => {
+      printer = new KeyofTypeofOperator(true, true);
+      printer.addLiteral("foo");
+
+      printer.print(writer);
+      expect(writer.toString()).toBe(`keyof typeof foo`);
     });
   });
 
