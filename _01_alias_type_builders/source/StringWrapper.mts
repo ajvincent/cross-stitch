@@ -17,15 +17,12 @@ export default class StringWrapper extends TypePrinterClass
     Object.freeze(this);
   }
 
-  readonly typeArgumentCount = 0;
-
-  ready() : true
-  {
-    return true;
-  }
+  readonly isReady = true;
 
   print(writer: CodeBlockWriter) : void
   {
+    // No need to call assertReadyToPrint(): this.isReady is true.
+
     if (this.#asQuoted)
       writer.quote(this.#value);
     else
