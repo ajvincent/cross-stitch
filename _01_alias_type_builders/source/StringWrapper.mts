@@ -1,11 +1,11 @@
 import type { CodeBlockWriter } from "ts-morph";
 
-import { BuilderKind } from "./BuilderKind.mjs";
+import { PrinterKind } from "./PrinterKind.mjs";
 import { TypePrinterClass } from "./TypePrinter.mjs";
 
 export default class StringWrapper extends TypePrinterClass
 {
-  readonly printerKind = BuilderKind.StringWrapper;
+  readonly printerKind = PrinterKind.StringWrapper;
 
   readonly #value: string;
   readonly #asQuoted: boolean;

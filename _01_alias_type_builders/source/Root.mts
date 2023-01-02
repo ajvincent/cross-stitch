@@ -1,7 +1,7 @@
 import { CodeBlockWriter } from "ts-morph";
 
 import { TypeBranchClass } from "./TypeBranch.mjs";
-import { BuilderKind } from "./BuilderKind.mjs";
+import { PrinterKind } from "./PrinterKind.mjs";
 
 /**
  * @remarks
@@ -13,7 +13,7 @@ import { BuilderKind } from "./BuilderKind.mjs";
 export default class Root
 extends TypeBranchClass
 {
-  readonly printerKind = BuilderKind.Root;
+  readonly printerKind = PrinterKind.Root;
 
   readonly minTypeArgumentCount = 1;
   readonly maxTypeArgumentCount = 1;

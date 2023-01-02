@@ -1,13 +1,13 @@
 import { CodeBlockWriter } from "ts-morph";
 
-import { BuilderKind } from "./BuilderKind.mjs";
+import { PrinterKind } from "./PrinterKind.mjs";
 import { TypeBranchClass } from "./TypeBranch.mjs";
 import { TypePrinterClass } from "./TypePrinter.mjs";
 
 export default class IndexedAccess
 extends TypeBranchClass
 {
-  readonly printerKind = BuilderKind.IndexedAccess;
+  readonly printerKind = PrinterKind.IndexedAccess;
 
   readonly minTypeArgumentCount = 1;
   readonly maxTypeArgumentCount = 1;

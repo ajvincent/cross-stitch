@@ -1,11 +1,11 @@
 import { CodeBlockWriter } from "ts-morph";
-import { BuilderKind } from "../source/BuilderKind.mjs";
+import { PrinterKind } from "../source/PrinterKind.mjs";
 import { TypePrinterClass } from "../source/TypePrinter.mjs";
 
 describe("TypePrinterClass", () => {
   class Vanilla extends TypePrinterClass
   {
-    readonly printerKind = BuilderKind.SPECS_ONLY;
+    readonly printerKind = PrinterKind.SPECS_ONLY;
 
     isReady: boolean;
   

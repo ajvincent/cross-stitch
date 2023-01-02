@@ -1,13 +1,13 @@
 import { CodeBlockWriter } from "ts-morph";
 
-import { BuilderKind } from "./BuilderKind.mjs";
+import { PrinterKind } from "./PrinterKind.mjs";
 import { TypeBranchClass } from "./TypeBranch.mjs";
 import { TypePrinterClass } from "./TypePrinter.mjs";
 
 export default class TypeArgumented
 extends TypeBranchClass
 {
-  readonly printerKind = BuilderKind.TypeArgumented;
+  readonly printerKind = PrinterKind.TypeArgumented;
 
   readonly minTypeArgumentCount = 1;
   readonly maxTypeArgumentCount = undefined;

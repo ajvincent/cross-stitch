@@ -1,12 +1,12 @@
 import { CodeBlockWriter } from "ts-morph";
 
 import { TypeBranchClass } from "./TypeBranch.mjs";
-import { BuilderKind } from "./BuilderKind.mjs";
+import { PrinterKind } from "./PrinterKind.mjs";
 
 export default class Union
 extends TypeBranchClass
 {
-  readonly printerKind = BuilderKind.Union;
+  readonly printerKind = PrinterKind.Union;
 
   readonly minTypeArgumentCount = 2;
   readonly maxTypeArgumentCount = undefined;

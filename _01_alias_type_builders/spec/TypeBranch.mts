@@ -1,5 +1,5 @@
 import { CodeBlockWriter } from "ts-morph";
-import { BuilderKind } from "../source/BuilderKind.mjs";
+import { PrinterKind } from "../source/PrinterKind.mjs";
 import { TypeBranchClass } from "../source/TypeBranch.mjs";
 import {
   Root,
@@ -16,7 +16,7 @@ describe("TypeBranchClass", () => {
     readonly minTypeArgumentCount = 1;
     readonly maxTypeArgumentCount = 2;
 
-    readonly printerKind = BuilderKind.SPECS_ONLY;
+    readonly printerKind = PrinterKind.SPECS_ONLY;
 
     print(writer: CodeBlockWriter) : void
     {

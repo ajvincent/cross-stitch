@@ -1,19 +1,19 @@
 import { CodeBlockWriter } from "ts-morph";
 
-import { BuilderKind } from "./BuilderKind.mjs";
+import { PrinterKind } from "./PrinterKind.mjs";
 import { TypeBranchClass } from "./TypeBranch.mjs";
 
 export default class KeyofTypeofOperator
 extends TypeBranchClass
 {
-  readonly printerKind = BuilderKind.KeyofTypeof;
+  readonly printerKind = PrinterKind.KeyofTypeof;
 
   readonly minTypeArgumentCount = 1;
   readonly maxTypeArgumentCount = 1;
 
   readonly #isKeyOf: boolean;
   readonly #isTypeOf: boolean;
-  
+
   constructor(isKeyOf: boolean, isTypeOf: boolean)
   {
     super();

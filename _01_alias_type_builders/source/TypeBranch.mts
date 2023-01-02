@@ -6,7 +6,7 @@ import {
 } from "./TypePrinter.mjs";
 
 import StringWrapper from "./StringWrapper.mjs";
-import { BuilderKind } from "./BuilderKind.mjs";
+import { PrinterKind } from "./PrinterKind.mjs";
 export interface ReadonlyTypeBranch
 extends TypePrinterInterface
 {
@@ -89,7 +89,7 @@ implements TypeBranchInterface
   {
     this.#assertMayAdd();
 
-    if (printer.printerKind === BuilderKind.Root)
+    if (printer.printerKind === PrinterKind.Root)
       throw new Error("Root printers may never be children of other printers");
     if (printer.isAttached)
       throw new Error("printer is already attached");
@@ -171,7 +171,7 @@ implements TypeBranchInterface
     if (index)
       writer.write(joinChars);
 
-    if (child.printerKind !== BuilderKind.StringWrapper)
+    if (child.printerKind !== PrinterKind.StringWrapper)
     {
       writer.newLine();
       writer.indent(() => child.print(writer));

@@ -1,4 +1,4 @@
-export enum BuilderKind {
+export enum PrinterKind {
   StringWrapper = 1000000,
   Root,
   Intersection,

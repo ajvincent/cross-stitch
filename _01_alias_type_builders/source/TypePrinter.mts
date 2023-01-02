@@ -1,11 +1,11 @@
 import type { CodeBlockWriter } from "ts-morph";
 
-import { BuilderKind } from "./BuilderKind.mjs";
+import { PrinterKind } from "./PrinterKind.mjs";
 
 export interface TypePrinterInterface
 {
   /** An unique builder kind for each class. */
-  readonly printerKind: BuilderKind;
+  readonly printerKind: PrinterKind;
 
   /** True if this is ready to print. */
   readonly isReady: boolean;
@@ -23,7 +23,7 @@ export interface TypePrinterInterface
 export abstract class TypePrinterClass
 implements TypePrinterInterface
 {
-  readonly abstract printerKind: BuilderKind;
+  readonly abstract printerKind: PrinterKind;
 
   abstract readonly isReady : boolean;
 
