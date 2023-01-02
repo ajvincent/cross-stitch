@@ -36,9 +36,13 @@ export function getAliasTypeNodeByName<
     .asKindOrThrow(kind);
 }
 
-export function createTempFile(pathToFile: string) : ts.SourceFile
+export function createSourceFile(
+  pathToFile: string,
+  sourceCode: string | ts.WriterFunction = ""
+) : ts.SourceFile
 {
   return project.createSourceFile(
-    path.join(parentDir, "temp", pathToFile)
+    path.normalize(path.join(parentDir, "..", pathToFile)),
+    sourceCode
   );
 }

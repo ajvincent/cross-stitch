@@ -5,6 +5,7 @@ import { PrinterKind } from "./source/PrinterKind.mjs";
 import Root from "./source/Root.mjs";
 import StringWrapper from "./source/StringWrapper.mjs";
 import TypeArgumented from "./source/TypeArgumented.mjs";
+import type { TypePrinterInterface } from "./source/TypePrinter.mjs";
 import Union from "./source/Union.mjs";
 
 export {
@@ -15,5 +16,6 @@ export {
   Root,
   StringWrapper,
   TypeArgumented,
+  type TypePrinterInterface,
   Union,
 }
