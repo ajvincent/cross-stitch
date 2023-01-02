@@ -1,7 +1,11 @@
-import StringWrapper from "./StringWrapper.mjs";
+import Intersection from "./Intersection.mjs";
 import Root from "./Root.mjs";
+import StringWrapper from "./StringWrapper.mjs";
+import Union from "./Union.mjs";
 
 export {
-  StringWrapper,
+  Intersection,
   Root,
+  StringWrapper,
+  Union,
 }
