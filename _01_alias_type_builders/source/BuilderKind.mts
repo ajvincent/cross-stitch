@@ -4,7 +4,7 @@ export enum BuilderKind {
   Intersection,
   Union,
   IndexedAccess,
-  TypeParametered,
+  TypeArgumented,
   KeyofTypeof,
   Tuple,
   TypeLiteral,

@@ -4,7 +4,7 @@ import { TypeBranchClass } from "../source/TypeBranch.mjs";
 import {
   Root,
   StringWrapper,
-} from "../source/exports.mjs";
+} from "../exports.mjs";
 
 const WriterOptions = Object.freeze({
   indentNumberOfSpaces: 2,
