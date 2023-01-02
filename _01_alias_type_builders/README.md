@@ -2,10 +2,10 @@
 
 In order from base classes and interfaces to derived classes and interfaces:
 
-- [PrinterKind](source/PrinterKind.mts): Defines the `PrinterKind` enum, which we can use for [discrimated unions](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions).
+- [PrinterKind](source/PrinterKind.mts): Defines the `PrinterKind` enum, which we can use for [discriminated unions](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions).
 - [TypePrinter](source/TypePrinter.mts): The base class for all type printers.  Provides:
+  - a `ready()` method for ensuring we can use the printer
   - a `print()` method for type alias creation
-  - a `ready()` method for verification
 - [StringWrapper](source/StringWrapper.mts): For handling strings and literals.
 - [TypeBranch](source/TypeBranch.mts): Base classes and interfaces for all `TypePrinter` objects except:
   - `StringWrapper` because it can't have any children.
