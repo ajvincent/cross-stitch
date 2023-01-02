@@ -1,5 +1,6 @@
 import ts from "ts-morph";
-export default class CodeBlockTemporary {
+export default class CodeBlockTemporary
+{
   readonly #sourceFile: ts.SourceFile;
   readonly #statementBlock: ts.Block;
 
