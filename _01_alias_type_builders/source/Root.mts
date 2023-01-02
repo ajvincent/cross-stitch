@@ -13,7 +13,7 @@ import { BuilderKind } from "./BuilderKind.mjs";
 export default class Root
 extends TypeBranchClass
 {
-  readonly builderKind = BuilderKind.Root;
+  readonly printerKind = BuilderKind.Root;
 
   readonly minTypeArgumentCount = 1;
   readonly maxTypeArgumentCount = 1;

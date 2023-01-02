@@ -53,12 +53,6 @@ implements TypeBranchInterface
 
   abstract readonly minTypeArgumentCount : number;
   abstract readonly maxTypeArgumentCount : number | undefined;
-  #assertMayAdd() : void
-  {
-    if (this.#typeArguments.length === this.maxTypeArgumentCount)
-      throw new Error("Maximum type argument count reached!");
-  }
-
   addLiteral(arg: string): this
   {
     return this.#addStringWrapper(arg, false);
@@ -95,18 +89,27 @@ implements TypeBranchInterface
   {
     this.#assertMayAdd();
 
-    if (printer.builderKind === BuilderKind.Root)
-      throw new Error("Root builders may never be children of other builders");
+    if (printer.printerKind === BuilderKind.Root)
+      throw new Error("Root printers may never be children of other printers");
     if (printer.isAttached)
-      throw new Error("builder is already attached");
+      throw new Error("printer is already attached");
     if (!printer.isReady)
-      throw new Error("builder is not ready to be attached");
+      throw new Error("printer is not ready to be attached");
 
     printer.markAttached();
     this.#typeArguments.push(printer);
 
     this.#maybeMarkReady();
     return this;
+  }
+
+  #assertMayAdd() : void
+  {
+    if (this.#typeArguments.length === this.maxTypeArgumentCount)
+      throw new Error("Maximum type argument count reached!");
+
+    if (this.isAttached)
+      throw new Error("This printer is attached to another already and may not take additional children!");
   }
 
   get isReady() : boolean
@@ -168,7 +171,7 @@ implements TypeBranchInterface
     if (index)
       writer.write(joinChars);
 
-    if (child.builderKind !== BuilderKind.StringWrapper)
+    if (child.printerKind !== BuilderKind.StringWrapper)
     {
       writer.newLine();
       writer.indent(() => child.print(writer));

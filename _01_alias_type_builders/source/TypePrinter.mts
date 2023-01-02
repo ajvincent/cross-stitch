@@ -5,7 +5,7 @@ import { BuilderKind } from "./BuilderKind.mjs";
 export interface TypePrinterInterface
 {
   /** An unique builder kind for each class. */
-  readonly builderKind: BuilderKind;
+  readonly printerKind: BuilderKind;
 
   /** True if this is ready to print. */
   readonly isReady: boolean;
@@ -23,7 +23,7 @@ export interface TypePrinterInterface
 export abstract class TypePrinterClass
 implements TypePrinterInterface
 {
-  readonly abstract builderKind: BuilderKind;
+  readonly abstract printerKind: BuilderKind;
 
   abstract readonly isReady : boolean;
 

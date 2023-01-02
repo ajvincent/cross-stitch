@@ -9,4 +9,7 @@ export enum BuilderKind {
   Tuple,
   TypeLiteral,
   MappedType,
+
+  /** Don't use this outside of test specifications. */
+  SPECS_ONLY = 1999999,
 }

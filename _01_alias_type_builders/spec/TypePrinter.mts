@@ -5,8 +5,8 @@ import { TypePrinterClass } from "../source/TypePrinter.mjs";
 describe("TypePrinterClass", () => {
   class Vanilla extends TypePrinterClass
   {
-    readonly builderKind = BuilderKind.Root;
-  
+    readonly printerKind = BuilderKind.SPECS_ONLY;
+
     isReady: boolean;
   
     constructor() {

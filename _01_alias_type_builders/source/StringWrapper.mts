@@ -5,7 +5,7 @@ import { TypePrinterClass } from "./TypePrinter.mjs";
 
 export default class StringWrapper extends TypePrinterClass
 {
-  readonly builderKind = BuilderKind.StringWrapper;
+  readonly printerKind = BuilderKind.StringWrapper;
 
   readonly #value: string;
   readonly #asQuoted: boolean;

@@ -1,7 +1,10 @@
 import { CodeBlockWriter } from "ts-morph";
 import { BuilderKind } from "../source/BuilderKind.mjs";
 import { TypeBranchClass } from "../source/TypeBranch.mjs";
-import { StringWrapper } from "../source/exports.mjs";
+import {
+  Root,
+  StringWrapper,
+} from "../source/exports.mjs";
 
 const WriterOptions = Object.freeze({
   indentNumberOfSpaces: 2,
@@ -13,7 +16,7 @@ describe("TypeBranchClass", () => {
     readonly minTypeArgumentCount = 1;
     readonly maxTypeArgumentCount = 2;
 
-    readonly builderKind = BuilderKind.Root;
+    readonly printerKind = BuilderKind.SPECS_ONLY;
 
     print(writer: CodeBlockWriter) : void
     {
@@ -91,6 +94,40 @@ describe("TypeBranchClass", () => {
     expect(childPrinter.isAttached).toBe(true);
     expect(printer.typeArguments.length).toBe(1);
     expect(printer.typeArguments[0]).toBe(childPrinter);
+  });
+
+  it("rejects adding child type printers which are not ready", () => {
+    const childPrinter = new Vanilla;
+
+    expect(
+      () => printer.addTypePrinter(childPrinter)
+    ).toThrowError("printer is not ready to be attached");
+  });
+
+  it("rejects adding child type printers which are not ready", () => {
+    const childPrinter = new Vanilla;
+    childPrinter.addLiteral("foo");
+    childPrinter.markAttached();
+
+    expect(
+      () => printer.addTypePrinter(childPrinter)
+    ).toThrowError("printer is already attached");
+  });
+
+  it("rejects adding Root printers as children", () => {
+    const childPrinter = new Root;
+    expect(
+      () => printer.addTypePrinter(childPrinter)
+    ).toThrowError("Root printers may never be children of other printers");
+  });
+
+  it("rejects adding child type printers once the printer is attached", () => {
+    printer.addString("foo");
+
+    printer.markAttached();
+    expect(
+      () => printer.addString("bar")
+    ).toThrowError("This printer is attached to another already and may not take additional children!");
   });
 
   it("allows multiple type arguments up to its maxTypeArgumentCount", () => {
