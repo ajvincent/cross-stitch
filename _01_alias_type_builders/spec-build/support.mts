@@ -6,6 +6,8 @@ import {
 import * as AliasTypeBuilders from "../exports.mjs";
 
 const typePrinterList: AliasTypeBuilders.TypePrinterInterface[] = [
+  new AliasTypeBuilders.Identifier("ManyPropertiesWithRequired"),
+
   new AliasTypeBuilders.StringWrapper("oneStringType", false),
   new AliasTypeBuilders.StringWrapper("enclosedString", true),
 

@@ -6,6 +6,7 @@ In order from base classes and interfaces to derived classes and interfaces:
 - [TypePrinter](source/TypePrinter.mts): The base class for all type printers.  Provides:
   - a `ready()` method for ensuring we can use the printer
   - a `print()` method for type alias creation
+- [Identifier](source/Identifier.mts): For identifiers in the ts-morph AST, specifically.
 - [StringWrapper](source/StringWrapper.mts): For handling strings and literals.
 - [TypeBranch](source/TypeBranch.mts): Base classes and interfaces for all `TypePrinter` objects except:
   - `StringWrapper` because it can't have any children.

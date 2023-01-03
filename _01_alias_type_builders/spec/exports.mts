@@ -1,6 +1,7 @@
 import { CodeBlockWriter } from "ts-morph";
 
 import {
+  Identifier,
   IndexedAccess,
   Intersection,
   KeyofTypeofOperator,
@@ -18,6 +19,14 @@ describe("AliasTypeBuilders, exports:", () => {
   let writer: CodeBlockWriter;
   beforeEach(() => {
     writer = new CodeBlockWriter(WriterOptions);
+  });
+
+  it("Identifier prints a literal string", () => {
+    const foo = new Identifier(`foo`);
+    foo.print(writer);
+    expect(writer.toString()).toBe(`foo`);
+
+    expect(foo.isAttached).toBe(false);
   });
 
   describe("IndexedAccess", () => {
@@ -49,6 +58,16 @@ describe("AliasTypeBuilders, exports:", () => {
       ).toThrowError("object type is already attached");
     });
   });
+
+  it("Intersection prints at least two types, enclosed in parentheses and joined by ampersands", () => {
+    const printer = new Intersection;
+    printer.addLiteral("foo");
+    printer.addLiteral("bar");
+
+    printer.print(writer);
+    expect(writer.toString()).toBe(`(foo & bar)`);
+  });
+
 
   describe("KeyofTypeofOperator", () => {
     let printer: KeyofTypeofOperator;
@@ -84,15 +103,6 @@ describe("AliasTypeBuilders, exports:", () => {
     });
   });
 
-  it("Intersection prints at least two types, enclosed in parentheses and joined by ampersands", () => {
-    const printer = new Intersection;
-    printer.addLiteral("foo");
-    printer.addLiteral("bar");
-
-    printer.print(writer);
-    expect(writer.toString()).toBe(`(foo & bar)`);
-  });
-
   it("Root asserts it is ready to print before printing a value", () => {
     const printer = new Root;
     expect(
@@ -105,7 +115,7 @@ describe("AliasTypeBuilders, exports:", () => {
       const foo = new StringWrapper(`foo`, false);
       foo.print(writer);
       expect(writer.toString()).toBe(`foo`);
-  
+
       expect(foo.isAttached).toBe(false);
     });
   

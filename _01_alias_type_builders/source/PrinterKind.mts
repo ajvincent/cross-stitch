@@ -39,6 +39,9 @@ export enum PrinterKind {
   // not implemented, give me a need for it
   MappedType,
 
+  /** Late addition */
+  Identifier,
+
   /** Don't use this outside of test specifications. */
   SPECS_ONLY = 1999999,
 }

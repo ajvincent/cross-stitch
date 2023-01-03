@@ -1,3 +1,4 @@
+import Identifier from "./source/Identifier.mjs";
 import IndexedAccess from "./source/IndexedAccess.mjs";
 import Intersection from "./source/Intersection.mjs";
 import KeyofTypeofOperator from "./source/KeyofTypeofOperator.mjs";
@@ -9,6 +10,7 @@ import type { TypePrinterInterface } from "./source/TypePrinter.mjs";
 import Union from "./source/Union.mjs";
 
 export {
+  Identifier,
   IndexedAccess,
   Intersection,
   KeyofTypeofOperator,
