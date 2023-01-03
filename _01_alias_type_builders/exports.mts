@@ -6,6 +6,7 @@ import { PrinterKind } from "./source/PrinterKind.mjs";
 import Root from "./source/Root.mjs";
 import StringWrapper from "./source/StringWrapper.mjs";
 import TypeArgumented from "./source/TypeArgumented.mjs";
+import type { ReadonlyTypeBranch } from "./source/TypeBranch.mjs";
 import type { TypePrinterInterface } from "./source/TypePrinter.mjs";
 import Union from "./source/Union.mjs";
 
@@ -15,9 +16,21 @@ export {
   Intersection,
   KeyofTypeofOperator,
   PrinterKind,
+  type ReadonlyTypeBranch,
   Root,
   StringWrapper,
   TypeArgumented,
   type TypePrinterInterface,
   Union,
 }
+
+export type TypePrinterUnion =
+  Identifier |
+  IndexedAccess |
+  Intersection |
+  KeyofTypeofOperator |
+  Root |
+  StringWrapper |
+  TypeArgumented |
+  Union |
+  never;

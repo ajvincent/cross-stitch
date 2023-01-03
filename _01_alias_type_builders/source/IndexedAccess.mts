@@ -12,7 +12,7 @@ extends TypeBranchClass
   readonly minTypeArgumentCount = 1;
   readonly maxTypeArgumentCount = 1;
 
-  readonly #objectType: TypePrinterClass;
+  readonly objectType: TypePrinterClass;
 
   /**
    * Representing an IndexedAccessType node in ts-morph.
@@ -25,14 +25,14 @@ extends TypeBranchClass
       throw new Error("object type is not ready");
     if (objectType.isAttached)
       throw new Error("object type is already attached");
-    this.#objectType = objectType;
+    this.objectType = objectType;
     objectType.markAttached();
   }
 
   print(writer: CodeBlockWriter): void
   {
     this.assertReadyToPrint();
-    this.#objectType.print(writer);
+    this.objectType.print(writer);
     writer.write("[");
     this.forEachChildPrint(writer);
     writer.write("]");

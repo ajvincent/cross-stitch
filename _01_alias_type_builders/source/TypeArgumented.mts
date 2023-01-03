@@ -13,7 +13,7 @@ extends TypeBranchClass
   readonly maxTypeArgumentCount = undefined;
 
   /** The object type printer. */
-  readonly #objectType: TypePrinterClass;
+  readonly objectType: TypePrinterClass;
 
   /**
    * Representing type arguments on a type reference.
@@ -26,14 +26,14 @@ extends TypeBranchClass
       throw new Error("object type is not ready");
     if (objectType.isAttached)
       throw new Error("object type is already attached");
-    this.#objectType = objectType;
+    this.objectType = objectType;
     objectType.markAttached();
   }
 
   print(writer: CodeBlockWriter): void
   {
     this.assertReadyToPrint();
-    this.#objectType.print(writer);
+    this.objectType.print(writer);
     writer.write("<");
     this.forEachChildPrint(writer, ", ");
     writer.write(">");
