@@ -1,17 +1,17 @@
 import ts from "ts-morph";
 
-import router from "../../source/ExtractMembers/router.mjs";
-import traverseAST from "../../source/ExtractMembers/traverseAST.mjs";
+import router from "../source/router.mjs";
+import traverseAST from "../source/traverseAST.mjs";
 import {
   BasicTypes
-} from "../../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
+} from "../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
 
 const {
   PropertySignature,
 } = ts.SyntaxKind;
 
-import matchTypeAndName from "../../spec-utilities/matchTypeAndName.mjs";
-import onlyFieldNodes from "../../spec-utilities/onlyFieldNodes.mjs";
+import matchTypeAndName from "../spec-utilities/matchTypeAndName.mjs";
+import onlyFieldNodes from "../spec-utilities/onlyFieldNodes.mjs";
 
 it("ExtractMembers/router gets signatures for a single declaration node", () => {
   const decl = BasicTypes.getInterfaceOrThrow("FooInterface");

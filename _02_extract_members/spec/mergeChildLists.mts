@@ -1,12 +1,12 @@
 import ts from "ts-morph";
 
-import mergeChildLists from "../../source/ExtractMembers/mergeChildLists.mjs";
+import mergeChildLists from "../source/mergeChildLists.mjs";
 import {
   getAliasTypeNodeByName
-} from "../../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
+} from "../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
 
-import matchTypeAndName from "../../spec-utilities/matchTypeAndName.mjs";
-import onlyFieldNodes from "../../spec-utilities/onlyFieldNodes.mjs";
+import matchTypeAndName from "../spec-utilities/matchTypeAndName.mjs";
+import onlyFieldNodes from "../spec-utilities/onlyFieldNodes.mjs";
 
 const {
   MethodSignature,

@@ -1,12 +1,12 @@
 import ts from "ts-morph";
 
-import router from "../../source/ExtractMembers/router.mjs";
+import router from "../source/router.mjs";
 import {
   getAliasTypeNodeByName
-} from "../../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
+} from "../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
 
-import matchTypeAndName from "../../spec-utilities/matchTypeAndName.mjs";
-import onlyFieldNodes from "../../spec-utilities/onlyFieldNodes.mjs";
+import matchTypeAndName from "../spec-utilities/matchTypeAndName.mjs";
+import onlyFieldNodes from "../spec-utilities/onlyFieldNodes.mjs";
 
 describe("ExtractMembers/TypeLiteral gets signatures for type literals:", () => {
   const {

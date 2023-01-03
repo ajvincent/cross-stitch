@@ -2,7 +2,7 @@ import ts from "ts-morph";
 
 import {
   type FieldNode,
-} from "../source/ExtractMembers/childLists.mjs";
+} from "../source/childLists.mjs";
 
 export default function matchTypeAndName(
   node: FieldNode,

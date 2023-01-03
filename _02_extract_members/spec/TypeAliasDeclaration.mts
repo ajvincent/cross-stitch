@@ -1,11 +1,11 @@
 import ts from "ts-morph";
 
-import router from "../../source/ExtractMembers/router.mjs";
-import traverseAST from "../../source/ExtractMembers/traverseAST.mjs";
+import router from "../source/router.mjs";
+import traverseAST from "../source/traverseAST.mjs";
 import {
   BasicTypes,
   getAliasTypeNodeByName
-} from "../../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
+} from "../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
 
 it("ExtractMembers/router takes TypeAliasDeclaration nodes", () => {
   const literal = getAliasTypeNodeByName<ts.SyntaxKind.TypeLiteral>(

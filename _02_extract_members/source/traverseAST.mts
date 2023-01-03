@@ -6,7 +6,7 @@ import {
 import routeChildForLists from "./router.mjs";
 import mergeChildLists from "./mergeChildLists.mjs";
 
-import { DefaultWeakMap } from "../../../_00_shared_utilities/source/DefaultMap.mjs";
+import { DefaultWeakMap } from "../../_00_shared_utilities/source/DefaultMap.mjs";
 
 const ExportedTypes = new DefaultWeakMap<ts.SourceFile, Set<ts.Type>>;
 

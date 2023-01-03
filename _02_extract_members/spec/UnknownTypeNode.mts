@@ -1,11 +1,11 @@
 import ts from "ts-morph";
 
-import router from "../../source/ExtractMembers/router.mjs";
+import router from "../source/router.mjs";
 import {
   getAliasTypeNodeByName
-} from "../../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
+} from "../../_00_shared_utilities/spec-utilities/BasicTypesSource.mjs";
 
-import onlyFieldNodes from "../../spec-utilities/onlyFieldNodes.mjs";
+import onlyFieldNodes from "../spec-utilities/onlyFieldNodes.mjs";
 
 describe("TypeNodesWithChildren/UnknownTypeNode picks up", () => {
   it("primitive type aliases", () => {
